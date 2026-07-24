@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   Sidebar,
@@ -8,7 +10,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -34,14 +35,15 @@ import {
   BiShieldQuarter,
   BiCog,
   BiPulse,
-  BiHelpCircle,
+  BiChevronDown,
+  BiHomeAlt,
 } from "react-icons/bi"
-import { Button } from "@/components/ui/button"
 import type { IconType } from "react-icons"
 
 interface NavItem {
   icon: IconType
   label: string
+  path: string
 }
 
 interface NavGroup {
@@ -53,53 +55,116 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     label: "Aktivitas Gudang",
+    icon: BiClipboard,
     items: [
-      { icon: BiDownArrowCircle, label: "Terima Barang (In)" },
-      { icon: BiUpArrowCircle, label: "Keluarkan Barang (Out)" },
-      { icon: BiTransfer, label: "Mutasi Antar Gudang" },
-      { icon: BiClipboard, label: "Stok Opname" },
-      { icon: BiTimeFive, label: "Kartu Stok & Riwayat" },
+      {
+        icon: BiDownArrowCircle,
+        label: "Terima Barang (In)",
+        path: "/inventory/barang-masuk",
+      },
+      {
+        icon: BiUpArrowCircle,
+        label: "Keluarkan Barang (Out)",
+        path: "/inventory/barang-keluar",
+      },
+      {
+        icon: BiTransfer,
+        label: "Mutasi Antar Gudang",
+        path: "/inventory/mutasi",
+      },
+      { icon: BiClipboard, label: "Stok Opname", path: "/inventory/opname" },
+      {
+        icon: BiTimeFive,
+        label: "Kartu Stok & Riwayat",
+        path: "/inventory/stok",
+      },
     ],
   },
   {
     label: "Data Master",
+    icon: BiPackage,
     items: [
-      { icon: BiPackage, label: "Daftar Barang & SKU" },
-      { icon: BiTag, label: "Kategori & Satuan Unit" },
-      { icon: BiBuildings, label: "Daftar Gudang & Rak" },
-      { icon: BiUser, label: "Supplier & Customer" },
+      { icon: BiPackage, label: "Daftar Barang & SKU", path: "/master/barang" },
+      {
+        icon: BiTag,
+        label: "Kategori & Satuan Unit",
+        path: "/master/kategori",
+      },
+      {
+        icon: BiBuildings,
+        label: "Daftar Gudang & Rak",
+        path: "/master/gudang",
+      },
+      { icon: BiUser, label: "Supplier & Customer", path: "/master/supplier" },
     ],
   },
   {
     label: "SDM & Kehadiran",
+    icon: BiUserCheck,
     items: [
-      { icon: BiCalendar, label: "Jadwal Shift" },
-      { icon: BiUserCheck, label: "Presensi Harian" },
-      { icon: BiEditAlt, label: "Cuti & Izin" },
+      {
+        icon: BiCalendar,
+        label: "Jadwal Shift",
+        path: "/absensi/jadwal-shift",
+      },
+      { icon: BiUserCheck, label: "Presensi Harian", path: "/absensi/petugas" },
+      { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/rekap" },
     ],
   },
   {
     label: "Pusat Laporan",
+    icon: BiBarChartAlt2,
     items: [
-      { icon: BiBarChartAlt2, label: "Pergerakan Stok" },
-      { icon: BiError, label: "Selisih Opname" },
-      { icon: BiUserPlus, label: "Rekap Kehadiran" },
+      { icon: BiBarChartAlt2, label: "Pergerakan Stok", path: "/laporan" },
+      { icon: BiError, label: "Selisih Opname", path: "/laporan" },
+      { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/laporan" },
     ],
   },
   {
     label: "Pengaturan Sistem",
+    icon: BiCog,
     items: [
-      { icon: BiShieldQuarter, label: "Pengguna & Hak Akses" },
-      { icon: BiCog, label: "Konfigurasi Gudang & PIC" },
-      { icon: BiPulse, label: "Log Aktivitas" },
+      {
+        icon: BiShieldQuarter,
+        label: "Pengguna & Hak Akses",
+        path: "/pengaturan/users",
+      },
+      {
+        icon: BiCog,
+        label: "Konfigurasi Gudang & PIC",
+        path: "/pengaturan/roles",
+      },
+      { icon: BiPulse, label: "Log Aktivitas", path: "/pengaturan/users" },
     ],
   },
 ]
 
+const dashboardItem: NavItem = {
+  icon: BiHomeAlt,
+  label: "Dashboard",
+  path: "/dashboard",
+}
+
 export function AppSidebar() {
+  const pathname = usePathname()
   const sidebarRef = React.useRef<HTMLDivElement>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = React.useState(false)
+  const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
+    new Set(navGroups.map((g) => g.label))
+  )
+
+  const toggleGroup = React.useCallback((label: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) {
+        next.delete(label)
+      } else {
+        next.add(label)
+      }
+      return next
+    })
+  }, [])
 
   React.useEffect(() => {
     const sidebarElement = sidebarRef.current
@@ -131,79 +196,99 @@ export function AppSidebar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "sticky top-0 h-svh w-[260px] flex flex-col border-r border-border/40 bg-white transition-shadow duration-200 overflow-hidden select-none",
+        "sticky top-0 flex h-svh w-[260px] flex-col overflow-hidden border-r border-border/40 bg-white transition-shadow duration-200 select-none",
         isHovered && "z-20 shadow-md"
       )}
     >
-      <SidebarHeader className="px-5 pt-5 pb-2 shrink-0">
+      <SidebarHeader className="shrink-0 px-5 pt-5 pb-5">
         <div className="flex items-center gap-2">
           <div className="flex gap-[3px]">
+            <div className="h-[10px] w-[3px] rounded-sm bg-foreground" />
+            <div className="h-[18px] w-[3px] rounded-sm bg-foreground" />
             <div className="h-[18px] w-[3px] rounded-sm bg-foreground" />
           </div>
           <span className="text-[17px] font-bold tracking-tight text-foreground">
-            Warehouse
+            Sabiru Warehouse
           </span>
         </div>
       </SidebarHeader>
 
       <SidebarContent
         ref={contentRef}
-        className="gap-0 px-3 min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin] [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+        className="min-h-0 flex-1 [scrollbar-width:thin] gap-0 overflow-y-auto overscroll-contain px-3 [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
       >
-        {navGroups.map((group) => (
-          <SidebarGroup key={group.label} className="pt-2 pb-0">
-            <SidebarGroupLabel className="flex items-center gap-2 px-2.5 text-[11px] font-semibold tracking-wider text-muted-foreground/50 uppercase">
-              {group.icon && <group.icon className="!size-[14px]" />}
-              <span>{group.label}</span>
-            </SidebarGroupLabel>
-            {group.items.length > 0 && (
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {group.items.map((item) => (
-                    <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton
-                        className={cn(
-                          "h-8 gap-2.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors",
-                          "hover:bg-muted/60 hover:text-foreground"
-                        )}
-                      >
-                        <item.icon className="!size-[18px] shrink-0" />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            )}
-          </SidebarGroup>
-        ))}
+        {navGroups.map((group) => {
+          const isExpanded = expandedGroups.has(group.label)
+
+          return (
+            <SidebarGroup key={group.label} className="pt-2 pb-0">
+              <button
+                onClick={() => toggleGroup(group.label)}
+                className="flex w-full items-center gap-2 py-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground/50 uppercase transition-colors hover:text-muted-foreground/80"
+              >
+                {group.icon && <group.icon className="!size-[20px] shrink-0" />}
+                <span className="flex-1 text-left">{group.label}</span>
+                <BiChevronDown
+                  className={cn(
+                    "!size-[20px] shrink-0 transition-transform duration-200",
+                    isExpanded && "rotate-180"
+                  )}
+                />
+              </button>
+              <div
+                className={cn(
+                  "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+                  isExpanded
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                )}
+              >
+                <div className="overflow-hidden">
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {group.items.map((item) => (
+                        <SidebarMenuItem key={item.label}>
+                          <SidebarMenuButton
+                            className={cn(
+                              "h-8 gap-2.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors",
+                              "hover:bg-muted/60 hover:text-foreground"
+                            )}
+                          >
+                            <item.icon className="!size-[18px] shrink-0" />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </div>
+              </div>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
 
-      <SidebarFooter className="px-3 pb-4 shrink-0">
-        <div className="rounded-xl border border-border/50 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-100">
-              <BiHelpCircle className="!size-[18px] text-blue-600" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[13px] font-semibold text-foreground">
-                Butuh Bantuan?
-              </span>
-              <p className="text-[11px] leading-relaxed text-muted-foreground">
-                Hubungi tim support atau baca dokumentasi penggunaan.
-              </p>
-              <Button
-                variant="link"
-                size="sm"
-                className="h-auto p-0 text-[12px] font-medium text-blue-600"
-              >
-                Buka Pusat Bantuan
-              </Button>
-            </div>
+      <SidebarFooter className="shrink-0 px-3 pb-4">
+        <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-white px-3 py-2.5 shadow-sm">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tl from-[#ffffff] from-[#93cce8] via-[#0063b5] to-[#cbf9ff] text-[13px] font-semibold tracking-tight text-white shadow-xs">
+            AU
           </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-[13px] font-semibold text-foreground">
+              Admin User
+            </span>
+            <span className="truncate text-[11px] text-muted-foreground">
+              Warehouse Manager
+            </span>
+          </div>
+          <button
+            className="flex size-8 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:scale-[0.96]"
+            aria-label="Settings"
+          >
+            <BiCog className="!size-[18px]" />
+          </button>
         </div>
       </SidebarFooter>
     </Sidebar>
   )
 }
-
