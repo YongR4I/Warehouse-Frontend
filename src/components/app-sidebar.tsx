@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
@@ -16,7 +15,6 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import {
-  BiStar,
   BiDownArrowCircle,
   BiUpArrowCircle,
   BiTransfer,
@@ -267,28 +265,6 @@ export function AppSidebar() {
           )
         })}
       </SidebarContent>
-
-      <SidebarFooter className="shrink-0 px-3 pb-4">
-        <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-white px-3 py-2.5 shadow-sm">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tl from-[#ffffff] from-[#93cce8] via-[#0063b5] to-[#cbf9ff] text-[13px] font-semibold tracking-tight text-white shadow-xs">
-            AU
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-[13px] font-semibold text-foreground">
-              Admin User
-            </span>
-            <span className="truncate text-[11px] text-muted-foreground">
-              Warehouse Manager
-            </span>
-          </div>
-          <button
-            className="flex size-8 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:scale-[0.96]"
-            aria-label="Settings"
-          >
-            <BiCog className="!size-[18px]" />
-          </button>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   )
 }
