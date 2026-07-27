@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   Sidebar,
@@ -145,6 +145,7 @@ const dashboardItem: NavItem = {
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const sidebarRef = React.useRef<HTMLDivElement>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = React.useState(false)
@@ -247,6 +248,7 @@ export function AppSidebar() {
                       {group.items.map((item) => (
                         <SidebarMenuItem key={item.label}>
                           <SidebarMenuButton
+                            onClick={() => router.push(item.path)}
                             className={cn(
                               "h-8 gap-2.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors",
                               "hover:bg-muted/60 hover:text-foreground"
