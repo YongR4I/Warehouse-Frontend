@@ -9,9 +9,10 @@ interface PageHeaderProps {
   items: BreadcrumbItem[]
   title: string
   icon?: IconType
+  description?: string
 }
 
-export function PageHeader({ items, title, icon: Icon }: PageHeaderProps) {
+export function PageHeader({ items, title, icon: Icon, description }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-2">
       <nav className="flex items-center gap-1.5 text-sm text-[#857F78]">
@@ -29,11 +30,16 @@ export function PageHeader({ items, title, icon: Icon }: PageHeaderProps) {
         ))}
       </nav>
       <div className="flex items-center gap-3">
-        {Icon && <Icon className="max-sm:size-5 size-7 shrink-0 text-foreground" />}
+        {Icon && <Icon className="max-sm:size-6 size-9 shrink-0 text-foreground" />}
         <h1 className="text-[clamp(20px,4vw,30px)] font-bold tracking-tight text-foreground">
           {title}
         </h1>
       </div>
-    </div>  
+      {description && (
+        <p className="text-sm text-[#857F78]">
+          {description}
+        </p>
+      )}
+    </div>
   )
 }

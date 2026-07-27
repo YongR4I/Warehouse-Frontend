@@ -11,6 +11,7 @@ export default function BarangMasukPage() {
         ]}
         title="Terima Barang (in)"
         icon={BiPackage}
+        description="Catat penerimaan stok barang masuk ke gudang."
       />
     </div>
   )
