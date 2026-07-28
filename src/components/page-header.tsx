@@ -17,7 +17,7 @@ export function PageHeader({ items, title, icon: Icon, description }: PageHeader
     <div className="flex flex-col gap-2">
       <nav className="flex items-center gap-1.5 text-sm text-[#857F78]">
         {items.map((item, index) => (
-          <span key={index} className="flex items-center gap-1.5">
+          <span key={index} className="flex items-center gap-1.5 uppercase font-semibold">
             {index > 0 && <span className="text-[#857F78]"> &gt; </span>}
             {item.href ? (
               <a href={item.href} className="hover:text-foreground transition-colors">

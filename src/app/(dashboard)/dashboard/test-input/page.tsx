@@ -4,7 +4,7 @@ import { Input } from "@/components/input"
 
 export default function TestInputPage() {
   return (
-    <div className="flex flex-col gap-8 p-6 max-w-xl">
+    <div className="flex flex-col gap-8 max-w-xl">
       <h1 className="text-2xl font-bold font-heading">Test Input Components</h1>
 
       <section className="flex flex-col gap-4">
