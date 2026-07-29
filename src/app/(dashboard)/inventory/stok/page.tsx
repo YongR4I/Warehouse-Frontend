@@ -98,12 +98,12 @@ export default function StokPage() {
           <PageHeader
             items={[
               { label: "Dashboard", href: "/dashboard" },
-              { label: "Inventory" },
-              { label: "Stok" },
+              { label: "Aktivitas Gudang" },
+              { label: "Kartu Stok & Riwayat" },
             ]}
-            title="Stok"
+            title="Kartu Stok & Riwayat"
             icon={BiPackage}
-            description="Kelola data stok barang dan pantau ketersediaan inventory."
+            description="Lihat riwayat pergerakan stok tiap barang "
           />
           <div className="flex items-center gap-2 mt-4">
             <Button variant="outline-black">

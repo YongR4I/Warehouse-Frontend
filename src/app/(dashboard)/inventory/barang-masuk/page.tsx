@@ -24,66 +24,60 @@ import {
 const dummyData = [
   {
     noReferensi: "BM-2026070001",
-    supplier: "PT. Semen Indonesia",
-    barang: "Semen Portland 50kg",
-    qty: 100,
-    gudang: "Gudang Pusat",
-    tanggal: "20 Jul 2026",
+    gudangAsal: "Gudang Pusat",
+    supplier: "PT Sumber Makmur",
+    tanggal: "21 Jul 2026",
+    totalItem: "8 SKU",
     dibuatOleh: "Andi Wijaya",
     status: "disetujui",
-    dokumen: "2 File",
+    dokumen: "2 file",
   },
   {
     noReferensi: "BM-2026070002",
-    supplier: "PT. Krakatau Steel",
-    barang: "Besi Beton 10mm",
-    qty: 200,
-    gudang: "Gudang Timur",
+    gudangAsal: "Gudang Timur",
+    supplier: "CV Indo Perkasa",
     tanggal: "21 Jul 2026",
+    totalItem: "3 SKU",
     dibuatOleh: "Rina Sari",
     status: "menunggu_approval",
-    dokumen: "1 File",
+    dokumen: "1 file",
   },
   {
     noReferensi: "BM-2026070003",
-    supplier: "PT. Avia Avian",
-    barang: "Cat Tembok 5L",
-    qty: 50,
-    gudang: "Gudang Selatan",
+    gudangAsal: "Gudang Pusat",
+    supplier: "PT Sumber Makmur",
     tanggal: "22 Jul 2026",
-    dibuatOleh: "Budi Hartono",
+    totalItem: "12 SKU",
+    dibuatOleh: "Andi Wijaya",
     status: "draft",
     dokumen: "-",
   },
   {
     noReferensi: "BM-2026070004",
-    supplier: "PT. Wavin Duta",
-    barang: "Pipa PVC 3 inch",
-    qty: 75,
-    gudang: "Gudang Pusat",
-    tanggal: "23 Jul 2026",
-    dibuatOleh: "Andi Wijaya",
+    gudangAsal: "Gudang Selatan",
+    supplier: "PT Karya Baja",
+    tanggal: "22 Jul 2026",
+    totalItem: "5 SKU",
+    dibuatOleh: "Budi Hartono",
     status: "ditolak",
-    dokumen: "1 File",
+    dokumen: "3 file",
   },
   {
     noReferensi: "BM-2026070005",
-    supplier: "PT. Semen Indonesia",
-    barang: "Paku Beton 5cm",
-    qty: 500,
-    gudang: "Gudang Timur",
-    tanggal: "24 Jul 2026",
+    gudangAsal: "Gudang Pusat",
+    supplier: "CV Indo Perkasa",
+    tanggal: "23 Jul 2026",
+    totalItem: "9 SKU",
     dibuatOleh: "Rina Sari",
     status: "disetujui",
-    dokumen: "1 File",
+    dokumen: "2 file",
   },
   {
     noReferensi: "BM-2026070006",
-    supplier: "PT. Union Metal",
-    barang: "Kabel NYM 2x1.5",
-    qty: 25,
-    gudang: "Gudang Pusat",
+    gudangAsal: "Gudang Timur",
+    supplier: "PT Karya Baja",
     tanggal: "24 Jul 2026",
+    totalItem: "2 SKU",
     dibuatOleh: "Budi Hartono",
     status: "menunggu_approval",
     dokumen: "-",
@@ -98,10 +92,10 @@ export default function BarangMasukPage() {
           <PageHeader
             items={[
               { label: "Dashboard", href: "/dashboard" },
-              { label: "Inventory" },
-              { label: "Barang Masuk" },
+              { label: "Aktivitas Gudang" },
+              { label: "Terima Barang (In)" },
             ]}
-            title="Barang Masuk"
+            title="Terima Barang (In)"
             icon={BiDownArrowCircle}
             description="Catat penerimaan stok barang masuk ke gudang."
           />
@@ -139,30 +133,27 @@ export default function BarangMasukPage() {
         </div>
       </div>
 
-      <div className="wrapper mt-[25px]">
+      <div className="wrapper mt-[25px] min-w-0">
         <Table>
           <TableHeader className="bg-white border-b border-border/60">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold text-foreground normal-case tracking-normal">
-                No. referensi
+                No. Referensi
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
+                Gudang asal
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
                 Supplier
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Barang
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Qty
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Gudang
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
                 Tanggal
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Dibuat oleh
+                Total Item
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
+                Dibuat Oleh
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal text-center">
                 Status
@@ -171,7 +162,7 @@ export default function BarangMasukPage() {
                 Dokumen
               </TableHead>
               <TableHead className="pr-6 text-xs font-semibold text-foreground normal-case tracking-normal text-right">
-                Aksi
+                Action
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -181,41 +172,38 @@ export default function BarangMasukPage() {
                 key={row.noReferensi}
                 className="h-16 hover:bg-muted/30 border-b border-border/40"
               >
-                <TableCell className="pl-6 text-sm font-sans text-foreground">
+                <TableCell className="pl-6 text-sm font-sans text-foreground whitespace-nowrap">
                   {row.noReferensi}
+                </TableCell>
+                <TableCell className="text-sm font-sans text-foreground">
+                  {row.gudangAsal}
                 </TableCell>
                 <TableCell className="text-sm font-sans text-foreground">
                   {row.supplier}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.barang}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.qty}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.gudang}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-muted-foreground">
+                <TableCell className="text-sm font-sans text-muted-foreground whitespace-nowrap">
                   {row.tanggal}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
+                <TableCell className="text-sm font-sans text-foreground whitespace-nowrap">
+                  {row.totalItem}
+                </TableCell>
+                <TableCell className="text-sm font-sans text-foreground whitespace-nowrap">
                   {row.dibuatOleh}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-center">
+                <TableCell className="text-sm font-sans text-center whitespace-nowrap">
                   <StatusBadge status={row.status} />
                 </TableCell>
-                <TableCell className="text-sm font-sans text-center">
+                <TableCell className="text-sm font-sans text-center whitespace-nowrap">
                   {row.dokumen !== "-" ? (
                     <span className="inline-flex items-center gap-0.5 border border-border/80 rounded-[4px] px-1.5 py-0.5 bg-card hover:bg-accent/10 transition-colors text-[11px] leading-none cursor-pointer text-muted-foreground whitespace-nowrap">
                       <BiFile className="size-3 text-muted-foreground/80" />
                       <span>{row.dokumen}</span>
                     </span>
                   ) : (
-                    <span className="text-muted-foreground font-sans">-</span>
+                    <span className="text-muted-foreground font-sans whitespace-nowrap">-</span>
                   )}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
                     <button className="p-1 hover:bg-muted rounded-md transition-colors cursor-pointer">
                       <BiChevronRight className="size-4 text-foreground/75" />
@@ -232,13 +220,13 @@ export default function BarangMasukPage() {
                 style={{ height: `${300 - dummyData.length * 64}px` }}
                 className="hover:bg-transparent border-none pointer-events-none"
               >
-                <TableCell colSpan={10} className="p-0 border-none" />
+                <TableCell colSpan={9} className="p-0 border-none" />
               </TableRow>
             )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={10} className="p-0 align-middle">
+              <TableCell colSpan={9} className="p-0 align-middle">
                 <div className="bg-white h-14 px-6 flex items-center justify-between text-xs text-muted-foreground font-sans">
                   <span>Menampilkan 1-6 dari 19 data</span>
                   <div className="flex items-center">

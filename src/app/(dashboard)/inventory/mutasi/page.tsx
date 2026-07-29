@@ -24,70 +24,70 @@ import {
 
 const dummyData = [
   {
-    noReferensi: "MT-2026070001",
-    barang: "Semen Portland 50kg",
+    noReferensi: "MT-2026070031",
     asal: "Gudang Pusat",
     tujuan: "Gudang Timur",
-    qty: 100,
+    barang: "Semen Portland 50kg",
+    qty: 50,
     tanggal: "20 Jul 2026",
     dibuatOleh: "Andi Wijaya",
     status: "disetujui",
-    dokumen: "1 File",
+    dokumen: "2 File",
   },
   {
-    noReferensi: "MT-2026070002",
+    noReferensi: "MT-2026070033",
+    asal: "Gudang Selatan",
+    tujuan: "Gudang Pusat",
     barang: "Besi Beton 10mm",
-    asal: "Gudang Timur",
-    tujuan: "Gudang Selatan",
-    qty: 80,
+    qty: 120,
     tanggal: "21 Jul 2026",
     dibuatOleh: "Rina Sari",
     status: "menunggu_approval",
-    dokumen: "-",
+    dokumen: "1 File",
   },
   {
-    noReferensi: "MT-2026070003",
-    barang: "Cat Tembok 5L",
+    noReferensi: "MT-2026070035",
     asal: "Gudang Pusat",
     tujuan: "Gudang Selatan",
-    qty: 30,
+    barang: "Cat Tembok 5L",
+    qty: 15,
     tanggal: "22 Jul 2026",
     dibuatOleh: "Budi Hartono",
     status: "draft",
     dokumen: "-",
   },
   {
-    noReferensi: "MT-2026070004",
-    barang: "Pipa PVC 3 inch",
-    asal: "Gudang Selatan",
+    noReferensi: "MT-2026070037",
+    asal: "Gudang Timur",
     tujuan: "Gudang Pusat",
-    qty: 40,
+    barang: "Pipa PVC 3 inch",
+    qty: 30,
     tanggal: "23 Jul 2026",
     dibuatOleh: "Andi Wijaya",
     status: "ditolak",
     dokumen: "1 File",
   },
   {
-    noReferensi: "MT-2026070005",
+    noReferensi: "MT-2026070039",
+    asal: "Gudang Pusat",
+    tujuan: "Gudang Timur",
     barang: "Paku Beton 5cm",
-    asal: "Gudang Timur",
-    tujuan: "Gudang Pusat",
-    qty: 200,
+    qty: 80,
     tanggal: "24 Jul 2026",
     dibuatOleh: "Rina Sari",
     status: "disetujui",
     dokumen: "1 File",
   },
   {
-    noReferensi: "MT-2026070006",
-    barang: "Kabel NYM 2x1.5",
-    asal: "Gudang Pusat",
+    noReferensi: "MT-2026070041",
+    asal: "Gudang Selatan",
     tujuan: "Gudang Timur",
-    qty: 15,
-    tanggal: "25 Jul 2026",
+    barang: "Kabel NYM 2x1.5",
+    qty: 10,
+    tanggal: "24 Jul 2026",
     dibuatOleh: "Budi Hartono",
     status: "menunggu_approval",
-    dokumen: "2 File",
+    dokumen: "-",
   },
 ] as const
 
@@ -99,10 +99,10 @@ export default function MutasiPage() {
           <PageHeader
             items={[
               { label: "Dashboard", href: "/dashboard" },
-              { label: "Inventory" },
-              { label: "Mutasi" },
+              { label: "Aktivitas Gudang" },
+              { label: "Mutasi Antar Gudang" },
             ]}
-            title="Mutasi"
+            title="Mutasi Antar Gudang"
             icon={BiTransfer}
             description="Catat perpindahan stok barang antar gudang."
           />
@@ -140,7 +140,7 @@ export default function MutasiPage() {
         </div>
       </div>
 
-      <div className="wrapper mt-[25px]">
+      <div className="wrapper mt-[25px] min-w-0">
         <Table>
           <TableHeader className="bg-white border-b border-border/60">
             <TableRow className="h-14 hover:bg-transparent">
@@ -148,10 +148,10 @@ export default function MutasiPage() {
                 No. referensi
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Barang
+                Rute mutasi
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Rute
+                Barang
               </TableHead>
               <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
                 Qty
@@ -179,11 +179,8 @@ export default function MutasiPage() {
                 key={row.noReferensi}
                 className="h-16 hover:bg-muted/30 border-b border-border/40"
               >
-                <TableCell className="pl-6 text-sm font-sans text-foreground">
+                <TableCell className="pl-6 text-sm font-sans text-foreground whitespace-nowrap">
                   {row.noReferensi}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.barang}
                 </TableCell>
                 <TableCell className="text-sm font-sans text-foreground">
                   <div className="flex items-center gap-1.5">
@@ -193,28 +190,31 @@ export default function MutasiPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm font-sans text-foreground">
+                  {row.barang}
+                </TableCell>
+                <TableCell className="text-sm font-sans text-foreground whitespace-nowrap">
                   {row.qty}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-muted-foreground">
+                <TableCell className="text-sm font-sans text-muted-foreground whitespace-nowrap">
                   {row.tanggal}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
+                <TableCell className="text-sm font-sans text-foreground whitespace-nowrap">
                   {row.dibuatOleh}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-center">
+                <TableCell className="text-sm font-sans text-center whitespace-nowrap">
                   <StatusBadge status={row.status} />
                 </TableCell>
-                <TableCell className="text-sm font-sans text-center">
+                <TableCell className="text-sm font-sans text-center whitespace-nowrap">
                   {row.dokumen !== "-" ? (
                     <span className="inline-flex items-center gap-0.5 border border-border/80 rounded-[4px] px-1.5 py-0.5 bg-card hover:bg-accent/10 transition-colors text-[11px] leading-none cursor-pointer text-muted-foreground whitespace-nowrap">
                       <BiFile className="size-3 text-muted-foreground/80" />
                       <span>{row.dokumen}</span>
                     </span>
                   ) : (
-                    <span className="text-muted-foreground font-sans">-</span>
+                    <span className="text-muted-foreground font-sans whitespace-nowrap">-</span>
                   )}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
                     <button className="p-1 hover:bg-muted rounded-md transition-colors cursor-pointer">
                       <BiChevronRight className="size-4 text-foreground/75" />

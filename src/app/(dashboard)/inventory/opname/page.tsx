@@ -104,10 +104,10 @@ export default function OpnamePage() {
           <PageHeader
             items={[
               { label: "Dashboard", href: "/dashboard" },
-              { label: "Inventory" },
-              { label: "Opname" },
+              { label: "Aktivitas Gudang" },
+              { label: "Stok Opname" },
             ]}
-            title="Opname"
+            title="Stok Opname"
             icon={BiClipboard}
             description="Catat hasil pengecekan stok barang secara berkala."
           />
