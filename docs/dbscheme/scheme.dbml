@@ -1,0 +1,1173 @@
+// ============================================
+
+// Database: db_wms
+
+// ============================================
+
+
+
+// ============================================
+
+// 1. TABEL GUDANG
+
+// ============================================
+
+Table gudang {
+
+  id bigint [pk, increment]
+
+  kode varchar(50) [unique, not null]
+
+  nama varchar(100) [not null]
+
+  alamat text
+
+  pic varchar(100)
+
+  telepon varchar(20)
+
+  latitude decimal(10,8)
+
+  longitude decimal(11,8)
+
+  status enum('aktif', 'nonaktif') [default: 'aktif']
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    kode [unique]
+
+    (kode) [name: 'idx_kode']
+
+    (status) [name: 'idx_status']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 2. TABEL KATEGORI BARANG
+
+// ============================================
+
+Table kategori_barang {
+
+  id bigint [pk, increment]
+
+  parent_id bigint [ref: > kategori_barang.id]
+
+  nama varchar(100) [not null]
+
+  deskripsi text
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    (parent_id) [name: 'idx_parent_id']
+
+    (nama) [name: 'idx_nama']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 3. TABEL SATUAN
+
+// ============================================
+
+Table satuan {
+
+  id bigint [pk, increment]
+
+  nama varchar(50) [not null]
+
+  singkatan varchar(10) [not null]
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    (nama) [name: 'idx_nama']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 4. TABEL SUPPLIER
+
+// ============================================
+
+Table supplier {
+
+  id bigint [pk, increment]
+
+  kode varchar(50) [unique, not null]
+
+  tipe enum('perusahaan', 'pribadi') [default: 'perusahaan']
+
+  nama varchar(100) [not null]
+
+  kontak varchar(100)
+
+  telepon varchar(20)
+
+  email varchar(100)
+
+  alamat text
+
+  npwp varchar(20)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    kode [unique]
+
+    (kode) [name: 'idx_kode']
+
+    (nama) [name: 'idx_nama']
+
+    (email) [name: 'idx_email']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 5. TABEL CUSTOMER
+
+// ============================================
+
+Table customer {
+
+  id bigint [pk, increment]
+
+  kode varchar(50) [unique, not null]
+
+  tipe enum('perusahaan', 'pribadi') [default: 'perusahaan']
+
+  nama varchar(100) [not null]
+
+  kontak varchar(100)
+
+  telepon varchar(20)
+
+  email varchar(100)
+
+  alamat text
+
+  npwp varchar(20)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    kode [unique]
+
+    (kode) [name: 'idx_kode']
+
+    (nama) [name: 'idx_nama']
+
+    (email) [name: 'idx_email']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 6. TABEL BARANG
+
+// ============================================
+
+Table barang {
+
+  id bigint [pk, increment]
+
+  sku varchar(50) [unique, not null]
+
+  barcode varchar(50) [unique]
+
+  nama varchar(200) [not null]
+
+  kategori_id bigint [ref: > kategori_barang.id, not null]
+
+  satuan_id bigint [ref: > satuan.id, not null]
+
+  min_stok int [default: 0]
+
+  max_stok int [default: 0]
+
+  berat decimal(10,2)
+
+  foto varchar(255)
+
+  harga_beli decimal(15,2)
+
+  harga_jual decimal(15,2)
+
+  deskripsi text
+
+  status enum('aktif', 'nonaktif') [default: 'aktif']
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    sku [unique]
+
+    barcode [unique]
+
+    (kategori_id) [name: 'idx_kategori_id']
+
+    (satuan_id) [name: 'idx_satuan_id']
+
+    (sku) [name: 'idx_sku']
+
+    (barcode) [name: 'idx_barcode']
+
+    (nama) [name: 'idx_nama']
+
+    (status) [name: 'idx_status']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 7. TABEL LOKASI RAK
+
+// ============================================
+
+Table lokasi_rak {
+
+  id bigint [pk, increment]
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  kode_rak varchar(50) [not null]
+
+  zona varchar(50)
+
+  kapasitas int
+
+  deskripsi text
+
+  status enum('aktif', 'nonaktif', 'penuh') [default: 'aktif']
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    (gudang_id, kode_rak) [unique, name: 'uk_gudang_kode']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (zona) [name: 'idx_zona']
+
+    (status) [name: 'idx_status']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 8. TABEL SHIFT
+
+// ============================================
+
+Table shift {
+
+  id bigint [pk, increment]
+
+  nama varchar(50) [not null]
+
+  jam_masuk time [not null]
+
+  jam_pulang time [not null]
+
+  toleransi_masuk int [default: 15]
+
+  toleransi_pulang int [default: 15]
+
+  status enum('aktif', 'nonaktif') [default: 'aktif']
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    (nama) [name: 'idx_nama']
+
+    (status) [name: 'idx_status']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 9. TABEL USERS
+
+// ============================================
+
+Table users {
+
+  id bigint [pk, increment]
+
+  name varchar(100) [not null]
+
+  email varchar(100) [unique, not null]
+
+  password varchar(255) [not null]
+
+  gudang_id bigint [ref: > gudang.id]
+
+  no_pegawai varchar(50) [unique]
+
+  telepon varchar(20)
+
+  foto varchar(255)
+
+  is_active boolean [default: true]
+
+  last_login_at timestamp
+
+  email_verified_at timestamp
+
+  remember_token varchar(100)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+  deleted_at timestamp
+
+
+
+  Indexes {
+
+    email [unique]
+
+    no_pegawai [unique]
+
+    (email) [name: 'idx_email']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (no_pegawai) [name: 'idx_no_pegawai']
+
+    (is_active) [name: 'idx_is_active']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 10. TABEL BARANG MASUK
+
+// ============================================
+
+Table barang_masuk {
+
+  id bigint [pk, increment]
+
+  no_referensi varchar(100) [unique, not null]
+
+  nomor_surat_jalan varchar(100)
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  supplier_id bigint [ref: > supplier.id]
+
+  tanggal date [not null]
+
+  keterangan text
+
+  status enum('pending', 'approved', 'rejected', 'partial') [default: 'pending']
+
+  created_by bigint [ref: > users.id, not null]
+
+  approved_by bigint [ref: > users.id]
+
+  approved_at timestamp
+
+  dokumen varchar(255)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    no_referensi [unique]
+
+    (no_referensi) [name: 'idx_no_referensi']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (supplier_id) [name: 'idx_supplier_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (status) [name: 'idx_status']
+
+    (created_by) [name: 'idx_created_by']
+
+    (approved_by) [name: 'idx_approved_by']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 11. TABEL BARANG MASUK DETAIL
+
+// ============================================
+
+Table barang_masuk_detail {
+
+  id bigint [pk, increment]
+
+  barang_masuk_id bigint [ref: > barang_masuk.id, not null]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  lokasi_rak_id bigint [ref: > lokasi_rak.id]
+
+  qty int [not null]
+
+  harga_satuan decimal(15,2)
+
+  diskon decimal(5,2) [default: 0]
+
+  pajak decimal(5,2) [default: 0]
+
+  subtotal decimal(15,2)
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (barang_masuk_id) [name: 'idx_barang_masuk_id']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (lokasi_rak_id) [name: 'idx_lokasi_rak_id']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 12. TABEL BARANG KELUAR
+
+// ============================================
+
+Table barang_keluar {
+
+  id bigint [pk, increment]
+
+  no_referensi varchar(100) [unique, not null]
+
+  nomor_surat_jalan varchar(100)
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  customer_id bigint [ref: > customer.id]
+
+  tanggal date [not null]
+
+  keterangan text
+
+  status enum('pending', 'approved', 'rejected', 'delivered', 'partial') [default: 'pending']
+
+  created_by bigint [ref: > users.id, not null]
+
+  approved_by bigint [ref: > users.id]
+
+  approved_at timestamp
+
+  delivered_by bigint [ref: > users.id]
+
+  delivered_at timestamp
+
+  dokumen varchar(255)
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    no_referensi [unique]
+
+    (no_referensi) [name: 'idx_no_referensi']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (customer_id) [name: 'idx_customer_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (status) [name: 'idx_status']
+
+    (created_by) [name: 'idx_created_by']
+
+    (approved_by) [name: 'idx_approved_by']
+
+    (delivered_by) [name: 'idx_delivered_by']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 13. TABEL BARANG KELUAR DETAIL
+
+// ============================================
+
+Table barang_keluar_detail {
+
+  id bigint [pk, increment]
+
+  barang_keluar_id bigint [ref: > barang_keluar.id, not null]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  lokasi_rak_id bigint [ref: > lokasi_rak.id]
+
+  qty int [not null]
+
+  harga_satuan decimal(15,2)
+
+  diskon decimal(5,2) [default: 0]
+
+  pajak decimal(5,2) [default: 0]
+
+  subtotal decimal(15,2)
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (barang_keluar_id) [name: 'idx_barang_keluar_id']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (lokasi_rak_id) [name: 'idx_lokasi_rak_id']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 14. TABEL MUTASI STOK
+
+// ============================================
+
+Table mutasi_stok {
+
+  id bigint [pk, increment]
+
+  no_referensi varchar(100) [unique, not null]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  gudang_asal_id bigint [ref: > gudang.id, not null]
+
+  gudang_tujuan_id bigint [ref: > gudang.id, not null]
+
+  lokasi_rak_asal_id bigint [ref: > lokasi_rak.id]
+
+  lokasi_rak_tujuan_id bigint [ref: > lokasi_rak.id]
+
+  qty int [not null]
+
+  tanggal date [not null]
+
+  keterangan text
+
+  status enum('pending', 'approved', 'rejected', 'completed') [default: 'pending']
+
+  created_by bigint [ref: > users.id, not null]
+
+  approved_by bigint [ref: > users.id]
+
+  approved_at timestamp
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    no_referensi [unique]
+
+    (no_referensi) [name: 'idx_no_referensi']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (gudang_asal_id) [name: 'idx_gudang_asal_id']
+
+    (gudang_tujuan_id) [name: 'idx_gudang_tujuan_id']
+
+    (lokasi_rak_asal_id) [name: 'idx_lokasi_rak_asal_id']
+
+    (lokasi_rak_tujuan_id) [name: 'idx_lokasi_rak_tujuan_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (status) [name: 'idx_status']
+
+    (created_by) [name: 'idx_created_by']
+
+    (approved_by) [name: 'idx_approved_by']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 15. TABEL STOK OPNAME
+
+// ============================================
+
+Table stok_opname {
+
+  id bigint [pk, increment]
+
+  no_referensi varchar(100) [unique, not null]
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  tanggal date [not null]
+
+  keterangan text
+
+  status enum('draft', 'in_progress', 'completed', 'cancelled') [default: 'draft']
+
+  created_by bigint [ref: > users.id, not null]
+
+  approved_by bigint [ref: > users.id]
+
+  approved_at timestamp
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    no_referensi [unique]
+
+    (no_referensi) [name: 'idx_no_referensi']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (status) [name: 'idx_status']
+
+    (created_by) [name: 'idx_created_by']
+
+    (approved_by) [name: 'idx_approved_by']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 16. TABEL STOK OPNAME DETAIL
+
+// ============================================
+
+Table stok_opname_detail {
+
+  id bigint [pk, increment]
+
+  stok_opname_id bigint [ref: > stok_opname.id, not null]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  lokasi_rak_id bigint [ref: > lokasi_rak.id]
+
+  stok_sistem int [not null]
+
+  stok_fisik int [not null]
+
+  selisih int [not null]
+
+  keterangan text
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (stok_opname_id) [name: 'idx_stok_opname_id']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (lokasi_rak_id) [name: 'idx_lokasi_rak_id']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 17. TABEL KARTU STOK
+
+// ============================================
+
+Table kartu_stok {
+
+  id bigint [pk, increment]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  lokasi_rak_id bigint [ref: > lokasi_rak.id]
+
+  tipe enum('in', 'out', 'mutasi_in', 'mutasi_out', 'opname', 'adjustment') [not null]
+
+  qty int [not null]
+
+  saldo_sebelum int [default: 0]
+
+  saldo_sesudah int [not null]
+
+  referensi_type varchar(50)
+
+  referensi_id bigint
+
+  keterangan text
+
+  created_by bigint [ref: > users.id, not null]
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (barang_id, gudang_id) [name: 'idx_barang_gudang']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (lokasi_rak_id) [name: 'idx_lokasi_rak_id']
+
+    (referensi_type, referensi_id) [name: 'idx_referensi']
+
+    (created_at) [name: 'idx_created_at']
+
+    (tipe) [name: 'idx_tipe']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 18. TABEL JADWAL PETUGAS
+
+// ============================================
+
+Table jadwal_petugas {
+
+  id bigint [pk, increment]
+
+  user_id bigint [ref: > users.id, not null]
+
+  shift_id bigint [ref: > shift.id, not null]
+
+  tanggal date [not null]
+
+  created_by bigint [ref: > users.id]
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    (user_id, tanggal) [unique, name: 'uk_user_tanggal']
+
+    (user_id) [name: 'idx_user_id']
+
+    (shift_id) [name: 'idx_shift_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (created_by) [name: 'idx_created_by']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 19. TABEL ABSENSI
+
+// ============================================
+
+Table absensi {
+
+  id bigint [pk, increment]
+
+  user_id bigint [ref: > users.id, not null]
+
+  gudang_id bigint [ref: > gudang.id, not null]
+
+  shift_id bigint [ref: > shift.id, not null]
+
+  tanggal date [not null]
+
+  jam_masuk datetime
+
+  jam_pulang datetime
+
+  status enum('hadir', 'izin', 'sakit', 'alpha', 'cuti', 'terlambat') [default: 'hadir']
+
+  lokasi_checkin point [not null]
+
+  lokasi_checkout point [not null]
+
+  radius_validasi int [default: 100]
+
+  foto_masuk varchar(255)
+
+  foto_pulang varchar(255)
+
+  keterangan text
+
+  approved_by bigint [ref: > users.id]
+
+  approved_at timestamp
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    (user_id, tanggal) [unique, name: 'uk_user_tanggal']
+
+    (user_id) [name: 'idx_user_id']
+
+    (gudang_id) [name: 'idx_gudang_id']
+
+    (shift_id) [name: 'idx_shift_id']
+
+    (tanggal) [name: 'idx_tanggal']
+
+    (status) [name: 'idx_status']
+
+    (approved_by) [name: 'idx_approved_by']
+
+    (lokasi_checkin) [type: spatial, name: 'idx_lokasi_checkin']
+
+    (lokasi_checkout) [type: spatial, name: 'idx_lokasi_checkout']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 20. TABEL NOTIFIKASI (OPSIONAL)
+
+// ============================================
+
+Table notifikasi {
+
+  id bigint [pk, increment]
+
+  user_id bigint [ref: > users.id, not null]
+
+  judul varchar(200) [not null]
+
+  pesan text [not null]
+
+  tipe enum('info', 'warning', 'error', 'success') [default: 'info']
+
+  priority enum('low', 'medium', 'high', 'critical') [default: 'medium']
+
+  link varchar(255)
+
+  is_read boolean [default: false]
+
+  read_at timestamp
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (user_id) [name: 'idx_user_id']
+
+    (is_read) [name: 'idx_is_read']
+
+    (priority) [name: 'idx_priority']
+
+    (created_at) [name: 'idx_created_at']
+
+    (user_id, is_read) [name: 'idx_user_read']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 21. TABEL AKTIVITAS LOG (OPSIONAL)
+
+// ============================================
+
+Table aktivitas_log {
+
+  id bigint [pk, increment]
+
+  user_id bigint [ref: > users.id]
+
+  ip_address varchar(45)
+
+  user_agent text
+
+  url varchar(255)
+
+  method varchar(10)
+
+  action varchar(100)
+
+  model varchar(100)
+
+  model_id bigint
+
+  data_old json
+
+  data_new json
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (user_id) [name: 'idx_user_id']
+
+    (action) [name: 'idx_action']
+
+    (model, model_id) [name: 'idx_model']
+
+    (created_at) [name: 'idx_created_at']
+
+    (method) [name: 'idx_method']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 22. TABEL HISTORY HARGA (OPSIONAL)
+
+// ============================================
+
+Table history_harga {
+
+  id bigint [pk, increment]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  harga_beli decimal(15,2)
+
+  harga_jual decimal(15,2)
+
+  tanggal_efektif date [not null]
+
+  created_by bigint [ref: > users.id, not null]
+
+  created_at timestamp
+
+
+
+  Indexes {
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (tanggal_efektif) [name: 'idx_tanggal_efektif']
+
+    (barang_id, tanggal_efektif) [name: 'idx_barang_tanggal']
+
+  }
+
+}
+
+
+
+// ============================================
+
+// 23. TABEL BATCH BARANG (OPSIONAL)
+
+// ============================================
+
+Table batch_barang {
+
+  id bigint [pk, increment]
+
+  barang_id bigint [ref: > barang.id, not null]
+
+  batch_number varchar(50) [not null]
+
+  expired_date date
+
+  qty int [not null]
+
+  created_at timestamp
+
+  updated_at timestamp
+
+
+
+  Indexes {
+
+    (barang_id, batch_number) [unique, name: 'uk_barang_batch']
+
+    (barang_id) [name: 'idx_barang_id']
+
+    (expired_date) [name: 'idx_expired_date']
+
+    (batch_number) [name: 'idx_batch_number']
+
+    (barang_id, expired_date) [name: 'idx_barang_expired']
+
+  }
+
+}

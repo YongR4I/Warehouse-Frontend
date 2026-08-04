@@ -1,8 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { StatusBadge } from "@/components/badge"
+import { BarangMasukForm } from "@/components/barang-masuk/barang-masuk-form"
 
 import {
   BiDownArrowCircle,
@@ -85,6 +89,8 @@ const dummyData = [
 ] as const
 
 export default function BarangMasukPage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   return (
     <>
       <div className="wrapper">
@@ -104,10 +110,14 @@ export default function BarangMasukPage() {
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
-            <Button variant="default">+ Barang Masuk Baru</Button>
+            <Button variant="default" onClick={() => setDrawerOpen(true)}>
+              + Barang Masuk Baru
+            </Button>
           </div>
         </div>
       </div>
+
+      <BarangMasukForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
