@@ -10,13 +10,8 @@ export const barangKeluarSchema = z.object({
   gudangId: z.string().min(1, "Gudang tujuan wajib dipilih"),
   customer: z.string().min(1, "Customer / tujuan wajib diisi"),
   catatan: z.string().optional(),
-  dokumen: z
-    .array(z.instanceof(File))
-    .max(5, "Maksimal 5 file")
-    .optional(),
-  items: z
-    .array(barangKeluarItemSchema)
-    .min(1, "Minimal 1 item barang"),
+  dokumen: z.array(z.instanceof(File)).max(5, "Maksimal 5 file").optional(),
+  items: z.array(barangKeluarItemSchema).min(1, "Minimal 1 item barang"),
 })
 
 export type BarangKeluarFormValues = z.infer<typeof barangKeluarSchema>

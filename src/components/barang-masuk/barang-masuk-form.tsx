@@ -41,11 +41,41 @@ const mockSupplier = [
 ]
 
 const mockBarang = [
-  { id: "1", kode: "SKU-A-001", nama: "Laptop ThinkPad T14", stok: 45, satuan: "Unit" },
-  { id: "2", kode: "SKU-A-002", nama: "Monitor LG 27 inch", stok: 30, satuan: "Unit" },
-  { id: "3", kode: "SKU-B-001", nama: "Keyboard Mechanical", stok: 120, satuan: "Pcs" },
-  { id: "4", kode: "SKU-B-002", nama: "Mouse Wireless Logitech", stok: 85, satuan: "Pcs" },
-  { id: "5", kode: "SKU-C-001", nama: "Kabel HDMI 2m", stok: 200, satuan: "Pcs" },
+  {
+    id: "1",
+    kode: "SKU-A-001",
+    nama: "Laptop ThinkPad T14",
+    stok: 45,
+    satuan: "Unit",
+  },
+  {
+    id: "2",
+    kode: "SKU-A-002",
+    nama: "Monitor LG 27 inch",
+    stok: 30,
+    satuan: "Unit",
+  },
+  {
+    id: "3",
+    kode: "SKU-B-001",
+    nama: "Keyboard Mechanical",
+    stok: 120,
+    satuan: "Pcs",
+  },
+  {
+    id: "4",
+    kode: "SKU-B-002",
+    nama: "Mouse Wireless Logitech",
+    stok: 85,
+    satuan: "Pcs",
+  },
+  {
+    id: "5",
+    kode: "SKU-C-001",
+    nama: "Kabel HDMI 2m",
+    stok: 200,
+    satuan: "Pcs",
+  },
 ]
 
 interface BarangMasukFormProps {
@@ -80,7 +110,8 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
   const watchItems = watch("items")
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
-  const totalItem = watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
+  const totalItem =
+    watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
   const getBarang = (id: string) => mockBarang.find((b) => b.id === id)
 
   const onSubmit = (data: BarangMasukFormValues) => {
@@ -118,15 +149,15 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
               label="Tanggal Transaksi"
               error={errors.tanggal}
               {...register("tanggal")}
-            />  
+            />
 
-            <FormField label="Gudang Asal" error={errors.gudangId} >
+            <FormField label="Gudang Asal" error={errors.gudangId}>
               <Controller
                 control={control}
                 name="gudangId"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="min-h-10 h-10 w-full rounded-xl border-border bg-card px-3.5">
+                    <SelectTrigger className="h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5">
                       <SelectValue placeholder="Pilih gudang" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
@@ -141,13 +172,17 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
               />
             </FormField>
 
-            <FormField label="Supplier" className="col-span-2" error={errors.supplierId}>
+            <FormField
+              label="Supplier"
+              className="col-span-2"
+              error={errors.supplierId}
+            >
               <Controller
                 control={control}
                 name="supplierId"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="min-h-10 h-10 w-full rounded-xl border-border bg-card px-3.5">
+                    <SelectTrigger className="h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5">
                       <BiSearch className="mr-2 size-4 text-muted-foreground" />
                       <SelectValue placeholder="Cari atau masukkan nama supplier..." />
                     </SelectTrigger>
@@ -182,7 +217,9 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
                     accept=".pdf,.jpg,.jpeg,.png"
                     multiple
                     onChange={(e) => {
-                      const files = e.target.files ? Array.from(e.target.files) : []
+                      const files = e.target.files
+                        ? Array.from(e.target.files)
+                        : []
                       field.onChange(files)
                     }}
                     className="rounded-xl"
@@ -205,7 +242,9 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
               error={errors.items?.message || errors.items?.root?.message}
             >
               {fields.map((field, index) => {
-                const selectedBarang = getBarang(watchItems?.[index]?.barangId ?? "")
+                const selectedBarang = getBarang(
+                  watchItems?.[index]?.barangId ?? ""
+                )
                 return (
                   <ItemTableRow
                     key={field.id}

@@ -16,17 +16,16 @@ export interface FormSelectOption {
   label: string
 }
 
-export interface FormSelectProps
-  extends Omit<FormFieldProps, "children"> {
-      value?: string
-      onValueChange?: (value: string | null) => void
-      placeholder?: string
-      options?: FormSelectOption[]
-      disabled?: boolean
-      icon?: React.ReactNode
-      triggerClassName?: string
-      children?: React.ReactNode
-    }
+export interface FormSelectProps extends Omit<FormFieldProps, "children"> {
+  value?: string
+  onValueChange?: (value: string | null) => void
+  placeholder?: string
+  options?: FormSelectOption[]
+  disabled?: boolean
+  icon?: React.ReactNode
+  triggerClassName?: string
+  children?: React.ReactNode
+}
 
 export function FormSelect({
   label,
@@ -57,7 +56,7 @@ export function FormSelect({
         <Select value={value} onValueChange={onValueChange} disabled={disabled}>
           <SelectTrigger
             className={cn(
-              "min-h-10 h-10 w-full rounded-xl border-border bg-card px-3.5",
+              "h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5",
               triggerClassName
             )}
           >

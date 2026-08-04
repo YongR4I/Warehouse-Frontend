@@ -34,11 +34,41 @@ const mockGudang = [
 ]
 
 const mockBarang = [
-  { id: "1", kode: "SKU-A-001", nama: "Laptop ThinkPad T14", stok: 45, satuan: "Unit" },
-  { id: "2", kode: "SKU-A-002", nama: "Monitor LG 27 inch", stok: 30, satuan: "Unit" },
-  { id: "3", kode: "SKU-B-001", nama: "Keyboard Mechanical", stok: 120, satuan: "Pcs" },
-  { id: "4", kode: "SKU-B-002", nama: "Mouse Wireless Logitech", stok: 85, satuan: "Pcs" },
-  { id: "5", kode: "SKU-C-001", nama: "Kabel HDMI 2m", stok: 200, satuan: "Pcs" },
+  {
+    id: "1",
+    kode: "SKU-A-001",
+    nama: "Laptop ThinkPad T14",
+    stok: 45,
+    satuan: "Unit",
+  },
+  {
+    id: "2",
+    kode: "SKU-A-002",
+    nama: "Monitor LG 27 inch",
+    stok: 30,
+    satuan: "Unit",
+  },
+  {
+    id: "3",
+    kode: "SKU-B-001",
+    nama: "Keyboard Mechanical",
+    stok: 120,
+    satuan: "Pcs",
+  },
+  {
+    id: "4",
+    kode: "SKU-B-002",
+    nama: "Mouse Wireless Logitech",
+    stok: 85,
+    satuan: "Pcs",
+  },
+  {
+    id: "5",
+    kode: "SKU-C-001",
+    nama: "Kabel HDMI 2m",
+    stok: 200,
+    satuan: "Pcs",
+  },
 ]
 
 interface BarangKeluarFormProps {
@@ -46,7 +76,10 @@ interface BarangKeluarFormProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) {
+export function BarangKeluarForm({
+  open,
+  onOpenChange,
+}: BarangKeluarFormProps) {
   const [submitted, setSubmitted] = useState(false)
 
   const {
@@ -73,7 +106,8 @@ export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) 
   const watchItems = watch("items")
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
-  const totalItem = watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
+  const totalItem =
+    watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
   const getBarang = (id: string) => mockBarang.find((b) => b.id === id)
 
   const onSubmit = (data: BarangKeluarFormValues) => {
@@ -118,7 +152,7 @@ export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) 
                 name="gudangId"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="min-h-10 h-10 w-full rounded-xl border-border bg-card px-3.5">
+                    <SelectTrigger className="h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5">
                       <SelectValue placeholder="Pilih gudang" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
@@ -133,20 +167,30 @@ export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) 
               />
             </FormField>
 
-            <FormField label="Customer / Tujuan" className="col-span-2" error={errors.customer}>
+            <FormField
+              label="Customer / Tujuan"
+              className="col-span-2"
+              error={errors.customer}
+            >
               <Controller
                 control={control}
                 name="customer"
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="min-h-10 h-10 w-full rounded-xl border-border bg-card px-3.5">
+                    <SelectTrigger className="h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5">
                       <BiSearch className="mr-2 size-4 text-muted-foreground" />
                       <SelectValue placeholder="Cari atau masukkan nama customer..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
-                      <SelectItem value="toko-bangunan-jaya">Toko Bangunan Jaya</SelectItem>
-                      <SelectItem value="cv-mitra-konstruksi">CV Mitra Konstruksi</SelectItem>
-                      <SelectItem value="pt-graha-sentosa">PT Graha Sentosa</SelectItem>
+                      <SelectItem value="toko-bangunan-jaya">
+                        Toko Bangunan Jaya
+                      </SelectItem>
+                      <SelectItem value="cv-mitra-konstruksi">
+                        CV Mitra Konstruksi
+                      </SelectItem>
+                      <SelectItem value="pt-graha-sentosa">
+                        PT Graha Sentosa
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -172,7 +216,9 @@ export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) 
                     accept=".pdf,.jpg,.jpeg,.png"
                     multiple
                     onChange={(e) => {
-                      const files = e.target.files ? Array.from(e.target.files) : []
+                      const files = e.target.files
+                        ? Array.from(e.target.files)
+                        : []
                       field.onChange(files)
                     }}
                     className="rounded-xl"
@@ -194,7 +240,9 @@ export function BarangKeluarForm({ open, onOpenChange }: BarangKeluarFormProps) 
               error={errors.items?.message || errors.items?.root?.message}
             >
               {fields.map((field, index) => {
-                const selectedBarang = getBarang(watchItems?.[index]?.barangId ?? "")
+                const selectedBarang = getBarang(
+                  watchItems?.[index]?.barangId ?? ""
+                )
                 return (
                   <ItemTableRow
                     key={field.id}

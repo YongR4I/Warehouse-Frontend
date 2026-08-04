@@ -49,11 +49,7 @@ export function FormDrawer({
         {/* Header */}
         <SheetHeader className="border-b border-border/60 p-6">
           <div className="flex items-center gap-3">
-            {Icon && (
-              <span>
-                {renderIcon()}
-              </span>
-            )}
+            {Icon && <span>{renderIcon()}</span>}
             <div>
               <SheetTitle className="font-heading text-2xl font-semibold text-foreground">
                 {title}
@@ -92,7 +88,11 @@ export interface FormDrawerFooterProps {
   className?: string
 }
 
-function FormDrawerFooter({ summary, children, className }: FormDrawerFooterProps) {
+function FormDrawerFooter({
+  summary,
+  children,
+  className,
+}: FormDrawerFooterProps) {
   return (
     <div
       className={cn(

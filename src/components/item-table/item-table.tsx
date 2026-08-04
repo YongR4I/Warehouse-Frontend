@@ -91,9 +91,7 @@ export function ItemTable({
         )}
       </div>
 
-      {errorMessage && (
-        <p className="text-xs text-rose-500">{errorMessage}</p>
-      )}
+      {errorMessage && <p className="text-xs text-rose-500">{errorMessage}</p>}
     </div>
   )
 }

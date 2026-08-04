@@ -6,8 +6,7 @@ import { FormField, type FormFieldProps } from "./form-field"
 import { cn } from "@/lib/utils"
 
 export interface FormTextareaProps
-  extends Omit<FormFieldProps, "children">,
-    React.ComponentProps<"textarea"> {
+  extends Omit<FormFieldProps, "children">, React.ComponentProps<"textarea"> {
   textareaClassName?: string
 }
 
