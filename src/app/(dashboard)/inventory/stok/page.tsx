@@ -20,7 +20,8 @@ import {
 
 interface StockMovement {
   tanggal: string
-  tipeTransaksi: "Stok Opname" | "Keluar Barang" | "Mutasi Stok" | "Terima Barang"
+  tipeTransaksi:
+    "Stok Opname" | "Keluar Barang" | "Mutasi Stok" | "Terima Barang"
   noReferensi: string
   lokasiGudang: { asal: string; tujuan?: string }
   pergerakanQty: number
