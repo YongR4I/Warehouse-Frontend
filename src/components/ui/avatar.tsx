@@ -27,7 +27,7 @@ export function AvatarFallback({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center rounded-full bg-muted font-medium text-xs text-muted-foreground select-none",
+        "flex h-full w-full items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground select-none",
         className
       )}
       {...props}

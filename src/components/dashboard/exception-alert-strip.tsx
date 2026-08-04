@@ -26,25 +26,32 @@ export function ExceptionAlertStrip({
   onOpenDrawer,
 }: ExceptionAlertStripProps) {
   const totalExceptions =
-    stokKritisCount + approvalPendingCount + selisihOpnameCount + izinPendingCount
+    stokKritisCount +
+    approvalPendingCount +
+    selisihOpnameCount +
+    izinPendingCount
 
   if (totalExceptions === 0) {
     return (
-      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 md:p-5 text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-xs animate-in fade-in-50">
+      <div className="flex animate-in items-center justify-between rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-800 shadow-xs fade-in-50 md:p-5 dark:text-emerald-300">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
             <BiCheckCircle className="size-6" />
           </span>
           <div>
-            <h3 className="font-medium text-sm md:text-base font-heading text-foreground">
+            <h3 className="font-heading text-sm font-medium text-foreground md:text-base">
               Semua Operasional Gudang Normal Hari Ini
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Tidak ada stok di bawah batas minimum, approval tertunda, atau selisih opname yang membutuhkan tindakan.
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Tidak ada stok di bawah batas minimum, approval tertunda, atau
+              selisih opname yang membutuhkan tindakan.
             </p>
           </div>
         </div>
-        <Badge variant="success" className="px-3 py-1 text-xs hidden sm:inline-flex shrink-0">
+        <Badge
+          variant="success"
+          className="hidden shrink-0 px-3 py-1 text-xs sm:inline-flex"
+        >
           100% Operational OK
         </Badge>
       </div>
@@ -55,32 +62,32 @@ export function ExceptionAlertStrip({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-          <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-rose-500" />
+          <h2 className="font-mono text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Exception & Action Center
           </h2>
         </div>
-        <span className="text-[11px] text-muted-foreground font-mono">
+        <span className="font-mono text-[11px] text-muted-foreground">
           Klik card untuk tindakan langsung
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* 1. Stok Kritis Badge Card */}
         <button
           type="button"
           onClick={() => onOpenDrawer("stok")}
-          className={`group text-left rounded-2xl border p-4 transition-all duration-200 active:scale-[0.98] flex items-center justify-between shadow-xs ${
+          className={`group flex items-center justify-between rounded-2xl border p-4 text-left shadow-xs transition-all duration-200 active:scale-[0.98] ${
             stokKritisCount > 0
-              ? "border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-foreground"
-              : "border-border/60 bg-card hover:bg-muted/50 text-muted-foreground"
+              ? "border-rose-500/30 bg-rose-500/5 text-foreground hover:bg-rose-500/10"
+              : "border-border/60 bg-card text-muted-foreground hover:bg-muted/50"
           }`}
         >
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex min-w-0 items-center gap-3.5">
             <span
-              className={`p-2.5 rounded-xl shrink-0 ${
+              className={`shrink-0 rounded-xl p-2.5 ${
                 stokKritisCount > 0
-                  ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  ? "border border-rose-500/20 bg-rose-500/15 text-rose-600 dark:text-rose-400"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -88,15 +95,19 @@ export function ExceptionAlertStrip({
             </span>
             <div className="min-w-0">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-xl font-bold tabular-nums text-foreground">
+                <span className="font-mono text-xl font-bold text-foreground tabular-nums">
                   {stokKritisCount}
                 </span>
-                <span className="text-xs text-muted-foreground font-mono">SKU</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  SKU
+                </span>
               </div>
-              <p className="text-xs font-medium truncate text-foreground">Stok Kritis / Restok</p>
+              <p className="truncate text-xs font-medium text-foreground">
+                Stok Kritis / Restok
+              </p>
             </div>
           </div>
-          <span className="p-1.5 rounded-full bg-muted/60 border border-border/40 group-hover:translate-x-0.5 transition-transform shrink-0">
+          <span className="shrink-0 rounded-full border border-border/40 bg-muted/60 p-1.5 transition-transform group-hover:translate-x-0.5">
             <BiChevronRight className="size-4 text-muted-foreground" />
           </span>
         </button>
@@ -105,17 +116,17 @@ export function ExceptionAlertStrip({
         <button
           type="button"
           onClick={() => onOpenDrawer("approval")}
-          className={`group text-left rounded-2xl border p-4 transition-all duration-200 active:scale-[0.98] flex items-center justify-between shadow-xs ${
+          className={`group flex items-center justify-between rounded-2xl border p-4 text-left shadow-xs transition-all duration-200 active:scale-[0.98] ${
             approvalPendingCount > 0
-              ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-foreground"
-              : "border-border/60 bg-card hover:bg-muted/50 text-muted-foreground"
+              ? "border-amber-500/30 bg-amber-500/5 text-foreground hover:bg-amber-500/10"
+              : "border-border/60 bg-card text-muted-foreground hover:bg-muted/50"
           }`}
         >
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex min-w-0 items-center gap-3.5">
             <span
-              className={`p-2.5 rounded-xl shrink-0 ${
+              className={`shrink-0 rounded-xl p-2.5 ${
                 approvalPendingCount > 0
-                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                  ? "border border-amber-500/20 bg-amber-500/15 text-amber-600 dark:text-amber-400"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -123,15 +134,19 @@ export function ExceptionAlertStrip({
             </span>
             <div className="min-w-0">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-xl font-bold tabular-nums text-foreground">
+                <span className="font-mono text-xl font-bold text-foreground tabular-nums">
                   {approvalPendingCount}
                 </span>
-                <span className="text-xs text-muted-foreground font-mono">TX</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  TX
+                </span>
               </div>
-              <p className="text-xs font-medium truncate text-foreground">Approval Menunggu</p>
+              <p className="truncate text-xs font-medium text-foreground">
+                Approval Menunggu
+              </p>
             </div>
           </div>
-          <span className="p-1.5 rounded-full bg-muted/60 border border-border/40 group-hover:translate-x-0.5 transition-transform shrink-0">
+          <span className="shrink-0 rounded-full border border-border/40 bg-muted/60 p-1.5 transition-transform group-hover:translate-x-0.5">
             <BiChevronRight className="size-4 text-muted-foreground" />
           </span>
         </button>
@@ -140,17 +155,17 @@ export function ExceptionAlertStrip({
         <button
           type="button"
           onClick={() => onOpenDrawer("opname")}
-          className={`group text-left rounded-2xl border p-4 transition-all duration-200 active:scale-[0.98] flex items-center justify-between shadow-xs ${
+          className={`group flex items-center justify-between rounded-2xl border p-4 text-left shadow-xs transition-all duration-200 active:scale-[0.98] ${
             selisihOpnameCount > 0
-              ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-foreground"
-              : "border-border/60 bg-card hover:bg-muted/50 text-muted-foreground"
+              ? "border-amber-500/30 bg-amber-500/5 text-foreground hover:bg-amber-500/10"
+              : "border-border/60 bg-card text-muted-foreground hover:bg-muted/50"
           }`}
         >
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex min-w-0 items-center gap-3.5">
             <span
-              className={`p-2.5 rounded-xl shrink-0 ${
+              className={`shrink-0 rounded-xl p-2.5 ${
                 selisihOpnameCount > 0
-                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                  ? "border border-amber-500/20 bg-amber-500/15 text-amber-600 dark:text-amber-400"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -158,15 +173,19 @@ export function ExceptionAlertStrip({
             </span>
             <div className="min-w-0">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-xl font-bold tabular-nums text-foreground">
+                <span className="font-mono text-xl font-bold text-foreground tabular-nums">
                   {selisihOpnameCount}
                 </span>
-                <span className="text-xs text-muted-foreground font-mono">Lap</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Lap
+                </span>
               </div>
-              <p className="text-xs font-medium truncate text-foreground">Selisih Stok Opname</p>
+              <p className="truncate text-xs font-medium text-foreground">
+                Selisih Stok Opname
+              </p>
             </div>
           </div>
-          <span className="p-1.5 rounded-full bg-muted/60 border border-border/40 group-hover:translate-x-0.5 transition-transform shrink-0">
+          <span className="shrink-0 rounded-full border border-border/40 bg-muted/60 p-1.5 transition-transform group-hover:translate-x-0.5">
             <BiChevronRight className="size-4 text-muted-foreground" />
           </span>
         </button>
@@ -175,17 +194,17 @@ export function ExceptionAlertStrip({
         <button
           type="button"
           onClick={() => onOpenDrawer("izin")}
-          className={`group text-left rounded-2xl border p-4 transition-all duration-200 active:scale-[0.98] flex items-center justify-between shadow-xs ${
+          className={`group flex items-center justify-between rounded-2xl border p-4 text-left shadow-xs transition-all duration-200 active:scale-[0.98] ${
             izinPendingCount > 0
-              ? "border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 text-foreground"
-              : "border-border/60 bg-card hover:bg-muted/50 text-muted-foreground"
+              ? "border-blue-500/30 bg-blue-500/5 text-foreground hover:bg-blue-500/10"
+              : "border-border/60 bg-card text-muted-foreground hover:bg-muted/50"
           }`}
         >
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex min-w-0 items-center gap-3.5">
             <span
-              className={`p-2.5 rounded-xl shrink-0 ${
+              className={`shrink-0 rounded-xl p-2.5 ${
                 izinPendingCount > 0
-                  ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                  ? "border border-blue-500/20 bg-blue-500/15 text-blue-600 dark:text-blue-400"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -193,15 +212,19 @@ export function ExceptionAlertStrip({
             </span>
             <div className="min-w-0">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-xl font-bold tabular-nums text-foreground">
+                <span className="font-mono text-xl font-bold text-foreground tabular-nums">
                   {izinPendingCount}
                 </span>
-                <span className="text-xs text-muted-foreground font-mono">Req</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Req
+                </span>
               </div>
-              <p className="text-xs font-medium truncate text-foreground">Izin / Cuti Staff</p>
+              <p className="truncate text-xs font-medium text-foreground">
+                Izin / Cuti Staff
+              </p>
             </div>
           </div>
-          <span className="p-1.5 rounded-full bg-muted/60 border border-border/40 group-hover:translate-x-0.5 transition-transform shrink-0">
+          <span className="shrink-0 rounded-full border border-border/40 bg-muted/60 p-1.5 transition-transform group-hover:translate-x-0.5">
             <BiChevronRight className="size-4 text-muted-foreground" />
           </span>
         </button>

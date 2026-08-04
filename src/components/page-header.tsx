@@ -12,15 +12,26 @@ interface PageHeaderProps {
   description?: string
 }
 
-export function PageHeader({ items, title, icon: Icon, description }: PageHeaderProps) {
+export function PageHeader({
+  items,
+  title,
+  icon: Icon,
+  description,
+}: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-2">
       <nav className="flex items-center gap-1.5 text-sm text-[#857F78]">
         {items.map((item, index) => (
-          <span key={index} className="flex items-center gap-1.5 uppercase font-semibold">
+          <span
+            key={index}
+            className="flex items-center gap-1.5 font-semibold uppercase"
+          >
             {index > 0 && <span className="text-[#857F78]"> &gt; </span>}
             {item.href ? (
-              <a href={item.href} className="hover:text-foreground transition-colors">
+              <a
+                href={item.href}
+                className="transition-colors hover:text-foreground"
+              >
                 {item.label}
               </a>
             ) : (
@@ -30,16 +41,14 @@ export function PageHeader({ items, title, icon: Icon, description }: PageHeader
         ))}
       </nav>
       <div className="flex items-center gap-3">
-        {Icon && <Icon className="max-sm:size-6 size-9 shrink-0 text-foreground" />}
+        {Icon && (
+          <Icon className="size-9 shrink-0 text-foreground max-sm:size-6" />
+        )}
         <h1 className="text-[clamp(20px,4vw,30px)] font-bold tracking-tight text-foreground">
           {title}
         </h1>
       </div>
-      {description && (
-        <p className="text-sm text-[#857F78]">
-          {description}
-        </p>
-      )}
+      {description && <p className="text-sm text-[#857F78]">{description}</p>}
     </div>
   )
 }

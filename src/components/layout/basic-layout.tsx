@@ -9,7 +9,7 @@ export function BasicLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex flex-1 flex-col">
           <AppHeader />
-          <main className="flex-1 py-10 px-14">{children}</main>
+          <main className="flex-1 px-14 py-10">{children}</main>
         </div>
       </div>
     </SidebarProvider>

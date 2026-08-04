@@ -9,7 +9,10 @@ export interface StatusBadgeProps {
   className?: string
 }
 
-const statusConfig: Record<Status, { label: string; variant: "success" | "warning" | "destructive" | "neutral" }> = {
+const statusConfig: Record<
+  Status,
+  { label: string; variant: "success" | "warning" | "destructive" | "neutral" }
+> = {
   disetujui: { label: "Disetujui", variant: "success" },
   menunggu_approval: { label: "Menunggu Approval", variant: "warning" },
   ditolak: { label: "Ditolak", variant: "destructive" },
@@ -30,7 +33,7 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
     <Badge
       variant={config.variant}
       className={cn(
-        "whitespace-nowrap font-sans",
+        "font-sans whitespace-nowrap",
         status === "menunggu_approval" && statusColors.menunggu_approval,
         className
       )}

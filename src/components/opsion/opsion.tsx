@@ -50,19 +50,19 @@ function Opsion({
     >
       <SelectTrigger
         className={cn(
-          "h-[42px] bg-card border-border px-3.5 text-sm transition-colors focus:border-ring focus:ring-3 focus:ring-ring/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 data-[size=default]:h-10",
+          "h-[42px] border-border bg-card px-3.5 text-sm transition-colors focus:border-ring focus:ring-3 focus:ring-ring/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 data-[size=default]:h-10",
           className
         )}
         style={{ width: "158.47px" }}
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className="border border-border bg-popover rounded-2xl">
+      <SelectContent className="rounded-2xl border border-border bg-popover">
         {options.map((opt) => (
           <SelectItem
             key={opt.value}
             value={opt.value}
-            className="focus:bg-accent focus:text-accent-foreground rounded-xl cursor-pointer"
+            className="cursor-pointer rounded-xl focus:bg-accent focus:text-accent-foreground"
           >
             {opt.label}
           </SelectItem>

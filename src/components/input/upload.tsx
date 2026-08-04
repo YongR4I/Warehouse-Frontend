@@ -13,7 +13,7 @@ function UploadInput({
     <label
       data-slot="input-upload"
       className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-slate-100/40 dark:bg-zinc-900/40 py-8 px-4 cursor-pointer text-center select-none w-full transition-all duration-200 hover:bg-muted/30 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        "flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-slate-100/40 px-4 py-8 text-center transition-all duration-200 select-none focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 hover:bg-muted/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900/40",
         className
       )}
     >

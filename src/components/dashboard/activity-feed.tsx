@@ -1,7 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { ActivityLogItem } from "@/hooks/use-dashboard-data"
@@ -21,17 +27,17 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
 
   return (
     <Card className="border-border/80 shadow-xs">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+      <CardHeader className="flex flex-col justify-between gap-3 border-b border-border/60 pb-3 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-secondary text-foreground border border-border/60">
+            <span className="rounded-xl border border-border/60 bg-secondary p-2 text-foreground">
               <BiHistory className="size-5" />
             </span>
-            <CardTitle className="text-base md:text-lg font-medium text-foreground font-heading">
+            <CardTitle className="font-heading text-base font-medium text-foreground md:text-lg">
               Activity Stream & Audit Log
             </CardTitle>
           </div>
-          <CardDescription className="mt-0.5 text-muted-foreground text-xs">
+          <CardDescription className="mt-0.5 text-xs text-muted-foreground">
             Jejak aktivitas operasional petugas real-time
           </CardDescription>
         </div>
@@ -41,9 +47,9 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <button
             type="button"
             onClick={() => setFilterCategory("all")}
-            className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all active:scale-[0.98] ${
+            className={`rounded-full px-2.5 py-1 font-mono text-xs font-medium transition-all active:scale-[0.98] ${
               filterCategory === "all"
-                ? "bg-secondary text-secondary-foreground border border-border/60 shadow-xs"
+                ? "border border-border/60 bg-secondary text-secondary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -52,9 +58,9 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <button
             type="button"
             onClick={() => setFilterCategory("masuk")}
-            className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all active:scale-[0.98] ${
+            className={`rounded-full px-2.5 py-1 font-mono text-xs font-medium transition-all active:scale-[0.98] ${
               filterCategory === "masuk"
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-xs"
+                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 shadow-xs dark:text-emerald-300"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -63,9 +69,9 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <button
             type="button"
             onClick={() => setFilterCategory("keluar")}
-            className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all active:scale-[0.98] ${
+            className={`rounded-full px-2.5 py-1 font-mono text-xs font-medium transition-all active:scale-[0.98] ${
               filterCategory === "keluar"
-                ? "bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 shadow-xs"
+                ? "border border-blue-500/30 bg-blue-500/10 text-blue-700 shadow-xs dark:text-blue-300"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -74,9 +80,9 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <button
             type="button"
             onClick={() => setFilterCategory("mutasi")}
-            className={`px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-all active:scale-[0.98] ${
+            className={`rounded-full px-2.5 py-1 font-mono text-xs font-medium transition-all active:scale-[0.98] ${
               filterCategory === "mutasi"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-xs"
+                ? "border border-amber-500/30 bg-amber-500/10 text-amber-700 shadow-xs dark:text-amber-300"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -86,31 +92,40 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       </CardHeader>
 
       <CardContent className="pt-4">
-        <div className="relative pl-4 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60">
+        <div className="relative space-y-4 pl-4 before:absolute before:top-2 before:bottom-2 before:left-2 before:w-0.5 before:bg-border/60">
           {filteredActivities.map((act) => (
-            <div key={act.id} className="relative flex items-start gap-3 group">
-              <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-background" />
+            <div key={act.id} className="group relative flex items-start gap-3">
+              <span className="absolute top-1.5 -left-[21px] h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-background" />
 
-              <Avatar className="h-7 w-7 mt-0.5 shrink-0 border border-border/60 bg-muted">
-                <AvatarFallback className="text-[10px] bg-muted text-foreground font-bold font-mono">
+              <Avatar className="mt-0.5 h-7 w-7 shrink-0 border border-border/60 bg-muted">
+                <AvatarFallback className="bg-muted font-mono text-[10px] font-bold text-foreground">
                   {act.user.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
 
-              <div className="flex-1 space-y-1 min-w-0">
+              <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                    <span className="font-semibold text-xs text-foreground truncate">{act.user}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">({act.role})</span>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-mono">
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <span className="truncate text-xs font-semibold text-foreground">
+                      {act.user}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      ({act.role})
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="px-1.5 py-0 font-mono text-[9px]"
+                    >
                       {act.gudangNama.replace("Gudang ", "")}
                     </Badge>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-mono shrink-0 tabular-nums">
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">
                     {act.timestamp}
                   </span>
                 </div>
-                <p className="text-xs text-foreground/90 font-medium leading-relaxed">{act.aksi}</p>
+                <p className="text-xs leading-relaxed font-medium text-foreground/90">
+                  {act.aksi}
+                </p>
               </div>
             </div>
           ))}

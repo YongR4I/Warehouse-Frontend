@@ -208,7 +208,8 @@ const INITIAL_APPROVALS: PendingApprovalItem[] = [
     tanggal: "2026-07-24 09:15",
     nilaiTotal: 42500000,
     totalItems: 85,
-    catatan: "Penerimaan restok rutin komponen elektronik dari supplier PT Electro",
+    catatan:
+      "Penerimaan restok rutin komponen elektronik dari supplier PT Electro",
   },
   {
     id: "app-2",
@@ -379,17 +380,21 @@ const INITIAL_ACTIVITIES: ActivityLogItem[] = [
 
 export function useDashboardData(selectedWarehouseId: string | null) {
   const [stokKritisList] = useState<StokKritisItem[]>(INITIAL_STOK_KRITIS)
-  const [approvalsList, setApprovalsList] = useState<PendingApprovalItem[]>(INITIAL_APPROVALS)
+  const [approvalsList, setApprovalsList] =
+    useState<PendingApprovalItem[]>(INITIAL_APPROVALS)
   const [opnameList] = useState<SelisihOpnameItem[]>(INITIAL_OPNAME)
   const [izinList, setIzinList] = useState<IzinPendingItem[]>(INITIAL_IZIN)
-  const [activityFeed, setActivityFeed] = useState<ActivityLogItem[]>(INITIAL_ACTIVITIES)
+  const [activityFeed, setActivityFeed] =
+    useState<ActivityLogItem[]>(INITIAL_ACTIVITIES)
 
   // Filtered queries based on selectedWarehouseId ("all" or null means all warehouses)
   const isAllWarehouses = !selectedWarehouseId || selectedWarehouseId === "all"
 
   const filteredStokKritis = useMemo(() => {
     if (isAllWarehouses) return stokKritisList
-    return stokKritisList.filter((item) => item.gudangId === selectedWarehouseId)
+    return stokKritisList.filter(
+      (item) => item.gudangId === selectedWarehouseId
+    )
   }, [stokKritisList, selectedWarehouseId, isAllWarehouses])
 
   const filteredApprovals = useMemo(() => {
@@ -410,7 +415,10 @@ export function useDashboardData(selectedWarehouseId: string | null) {
   // Aggregate KPI Calculations
   const kpiData = useMemo(() => {
     if (isAllWarehouses) {
-      const totalNilaiStok = MASTER_GUDANG_LIST.reduce((acc, g) => acc + g.nilaiStok, 0)
+      const totalNilaiStok = MASTER_GUDANG_LIST.reduce(
+        (acc, g) => acc + g.nilaiStok,
+        0
+      )
       return {
         totalNilaiStok,
         barangMasukUnits: 480,
@@ -422,7 +430,9 @@ export function useDashboardData(selectedWarehouseId: string | null) {
       }
     }
 
-    const currentGudang = MASTER_GUDANG_LIST.find((g) => g.id === selectedWarehouseId)
+    const currentGudang = MASTER_GUDANG_LIST.find(
+      (g) => g.id === selectedWarehouseId
+    )
     const nilaiStok = currentGudang ? currentGudang.nilaiStok : 450000000
     return {
       totalNilaiStok: nilaiStok,
@@ -438,10 +448,38 @@ export function useDashboardData(selectedWarehouseId: string | null) {
   // Single Warehouse Storage Racks Breakdown
   const storageRacks = useMemo<RakStorageDetail[]>(() => {
     return [
-      { kodeRak: "RAK-A1 (Elektronik)", kategori: "Elektronik & Kabel", kapasitasMax: 500, terisi: 440, persen: 88, status: "Hampir Penuh" },
-      { kodeRak: "RAK-A2 (Sparepart)", kategori: "Komponen Mesin", kapasitasMax: 400, terisi: 280, persen: 70, status: "Normal" },
-      { kodeRak: "RAK-B1 (Kemasan)", kategori: "Kardus & Plastik", kapasitasMax: 800, terisi: 785, persen: 98, status: "Overcapacity" },
-      { kodeRak: "RAK-C1 (Tools)", kategori: "Peralatan Safety", kapasitasMax: 300, terisi: 135, persen: 45, status: "Normal" },
+      {
+        kodeRak: "RAK-A1 (Elektronik)",
+        kategori: "Elektronik & Kabel",
+        kapasitasMax: 500,
+        terisi: 440,
+        persen: 88,
+        status: "Hampir Penuh",
+      },
+      {
+        kodeRak: "RAK-A2 (Sparepart)",
+        kategori: "Komponen Mesin",
+        kapasitasMax: 400,
+        terisi: 280,
+        persen: 70,
+        status: "Normal",
+      },
+      {
+        kodeRak: "RAK-B1 (Kemasan)",
+        kategori: "Kardus & Plastik",
+        kapasitasMax: 800,
+        terisi: 785,
+        persen: 98,
+        status: "Overcapacity",
+      },
+      {
+        kodeRak: "RAK-C1 (Tools)",
+        kategori: "Peralatan Safety",
+        kapasitasMax: 300,
+        terisi: 135,
+        persen: 45,
+        status: "Normal",
+      },
     ]
   }, [])
 
@@ -458,7 +496,12 @@ export function useDashboardData(selectedWarehouseId: string | null) {
             role: "Owner",
             gudangNama: item.gudangNama,
             aksi: `Menyetujui ${item.tipe} ${item.kodeTransaksi} (Rp ${item.nilaiTotal.toLocaleString("id-ID")})`,
-            kategori: item.tipe === "Barang Masuk" ? "masuk" : item.tipe === "Barang Keluar" ? "keluar" : "mutasi",
+            kategori:
+              item.tipe === "Barang Masuk"
+                ? "masuk"
+                : item.tipe === "Barang Keluar"
+                  ? "keluar"
+                  : "mutasi",
           },
           ...acts,
         ])
@@ -504,7 +547,11 @@ export function useDashboardData(selectedWarehouseId: string | null) {
       approvalPending: filteredApprovals.length,
       selisihOpname: filteredOpname.length,
       izinPending: filteredIzin.length,
-      total: filteredStokKritis.length + filteredApprovals.length + filteredOpname.length + filteredIzin.length,
+      total:
+        filteredStokKritis.length +
+        filteredApprovals.length +
+        filteredOpname.length +
+        filteredIzin.length,
     },
     stokKritisList: filteredStokKritis,
     approvalsList: filteredApprovals,

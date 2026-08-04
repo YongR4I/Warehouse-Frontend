@@ -13,8 +13,8 @@ type InputType = "text" | "textarea" | "date" | "select" | "search" | "upload"
 
 type InputTypeProps =
   | ({ type: "textarea" } & React.ComponentProps<"textarea">)
-  | ({ type: "select"; options: SelectOption[]; placeholder?: string })
-  | ({ type: "upload"; accept?: string; children?: React.ReactNode })
+  | { type: "select"; options: SelectOption[]; placeholder?: string }
+  | { type: "upload"; accept?: string; children?: React.ReactNode }
   | ({ type: "text" | "date" | "search" } & React.ComponentProps<"input">)
 
 export type InputProps = {
@@ -43,7 +43,7 @@ function InputWrapper({
     >
       <Label
         className={cn(
-          "text-xs md:text-sm font-medium text-slate-600 dark:text-zinc-400 select-none",
+          "text-xs font-medium text-slate-600 select-none md:text-sm dark:text-zinc-400",
           required && "after:ml-0.5 after:text-destructive after:content-['*']"
         )}
       >
@@ -64,9 +64,19 @@ function Input({
   const renderInput = () => {
     switch (type) {
       case "textarea":
-        return <Textarea className={className} {...(props as React.ComponentProps<"textarea">)} />
+        return (
+          <Textarea
+            className={className}
+            {...(props as React.ComponentProps<"textarea">)}
+          />
+        )
       case "date":
-        return <DateInput className={className} {...(props as React.ComponentProps<"input">)} />
+        return (
+          <DateInput
+            className={className}
+            {...(props as React.ComponentProps<"input">)}
+          />
+        )
       case "select":
         return (
           <SelectInput
@@ -76,15 +86,25 @@ function Input({
           />
         )
       case "search":
-        return <SearchInput className={className} {...(props as React.ComponentProps<"input">)} />
+        return (
+          <SearchInput
+            className={className}
+            {...(props as React.ComponentProps<"input">)}
+          />
+        )
       case "upload":
-        return <UploadInput className={className} {...(props as React.ComponentProps<"input">)} />
+        return (
+          <UploadInput
+            className={className}
+            {...(props as React.ComponentProps<"input">)}
+          />
+        )
       default:
         return (
           <ShadcnInput
             data-slot="input"
             className={cn(
-              "h-10 bg-card border-border px-3.5 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
+              "h-10 border-border bg-card px-3.5 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
               className
             )}
             {...(props as React.ComponentProps<"input">)}

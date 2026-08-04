@@ -2,14 +2,11 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { StatusBadge } from "@/components/badge"
-
 import {
   BiPackage,
   BiSolidReport,
+  BiChevronLeft,
   BiChevronRight,
-  BiDotsVerticalRounded,
-  BiFile,
 } from "react-icons/bi"
 import {
   Table,
@@ -21,74 +18,79 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 
-const dummyData = [
+interface StockMovement {
+  tanggal: string
+  tipeTransaksi: "Stok Opname" | "Keluar Barang" | "Mutasi Stok" | "Terima Barang"
+  noReferensi: string
+  lokasiGudang: { asal: string; tujuan?: string }
+  pergerakanQty: number
+  saldoAkhir: number
+  satuan: string
+  dibuatOleh: string
+}
+
+const dummyData: StockMovement[] = [
   {
-    kodeBarang: "BRG-001",
-    namaBarang: "Semen Portland 50kg",
-    kategori: "Material Bangunan",
-    gudang: "Gudang Pusat",
-    stok: 500,
-    stokMinimal: 100,
-    satuan: "Sak",
-    status: "disetujui",
-    dokumen: "1 File",
+    tanggal: "27 Jul 2026 14:20 WIB",
+    tipeTransaksi: "Stok Opname",
+    noReferensi: "SO-2026070088",
+    lokasiGudang: { asal: "Gudang Pusat" },
+    pergerakanQty: 0,
+    saldoAkhir: 50,
+    satuan: "Unit",
+    dibuatOleh: "Andi Wijaya",
   },
   {
-    kodeBarang: "BRG-002",
-    namaBarang: "Besi Beton 10mm",
-    kategori: "Material Bangunan",
-    gudang: "Gudang Timur",
-    stok: 1200,
-    stokMinimal: 200,
-    satuan: "Batang",
-    status: "menunggu_approval",
-    dokumen: "-",
+    tanggal: "22 Jul 2026 09:15 WIB",
+    tipeTransaksi: "Keluar Barang",
+    noReferensi: "BK-2026070019",
+    lokasiGudang: { asal: "Gudang Pusat" },
+    pergerakanQty: -2,
+    saldoAkhir: 50,
+    satuan: "Unit",
+    dibuatOleh: "Andi Wijaya",
   },
   {
-    kodeBarang: "BRG-003",
-    namaBarang: "Cat Tembok 5L",
-    kategori: "Cat & Finishing",
-    gudang: "Gudang Selatan",
-    stok: 300,
-    stokMinimal: 50,
-    satuan: "Kaleng",
-    status: "draft",
-    dokumen: "-",
+    tanggal: "18 Jul 2026 11:00 WIB",
+    tipeTransaksi: "Mutasi Stok",
+    noReferensi: "MT-2026070031",
+    lokasiGudang: { asal: "Gudang Pusat", tujuan: "Timur" },
+    pergerakanQty: -3,
+    saldoAkhir: 52,
+    satuan: "Unit",
+    dibuatOleh: "Rina Sari",
   },
   {
-    kodeBarang: "BRG-004",
-    namaBarang: "Pipa PVC 3 inch",
-    kategori: "Pipa & Fitting",
-    gudang: "Gudang Pusat",
-    stok: 450,
-    stokMinimal: 100,
-    satuan: "Batang",
-    status: "ditolak",
-    dokumen: "1 File",
+    tanggal: "10 Jul 2026 08:30 WIB",
+    tipeTransaksi: "Terima Barang",
+    noReferensi: "BM-2026070002",
+    lokasiGudang: { asal: "Gudang Pusat" },
+    pergerakanQty: 10,
+    saldoAkhir: 55,
+    satuan: "Unit",
+    dibuatOleh: "Budi Hartono",
   },
   {
-    kodeBarang: "BRG-005",
-    namaBarang: "Paku Beton 5cm",
-    kategori: "Material Bangunan",
-    gudang: "Gudang Timur",
-    stok: 2500,
-    stokMinimal: 500,
-    satuan: "Kg",
-    status: "disetujui",
-    dokumen: "1 File",
+    tanggal: "05 Jul 2026 16:45 WIB",
+    tipeTransaksi: "Keluar Barang",
+    noReferensi: "BK-2026070008",
+    lokasiGudang: { asal: "Gudang Pusat" },
+    pergerakanQty: -5,
+    saldoAkhir: 45,
+    satuan: "Unit",
+    dibuatOleh: "Andi Wijaya",
   },
   {
-    kodeBarang: "BRG-006",
-    namaBarang: "Kabel NYM 2x1.5",
-    kategori: "Elektrikal",
-    gudang: "Gudang Pusat",
-    stok: 180,
-    stokMinimal: 50,
-    satuan: "Meter",
-    status: "menunggu_approval",
-    dokumen: "-",
+    tanggal: "01 Jul 2026 10:00 WIB",
+    tipeTransaksi: "Terima Barang",
+    noReferensi: "BM-2026070001",
+    lokasiGudang: { asal: "Gudang Timur" },
+    pergerakanQty: 50,
+    saldoAkhir: 50,
+    satuan: "Unit",
+    dibuatOleh: "Budi Hartono",
   },
-] as const
+]
 
 export default function StokPage() {
   return (
@@ -105,12 +107,11 @@ export default function StokPage() {
             icon={BiPackage}
             description="Lihat riwayat pergerakan stok tiap barang "
           />
-          <div className="flex items-center gap-2 mt-4">
+          <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black">
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
-            <Button variant="default">+ Tambah Barang</Button>
           </div>
         </div>
       </div>
@@ -141,117 +142,122 @@ export default function StokPage() {
 
       <div className="wrapper mt-[25px]">
         <Table>
-          <TableHeader className="bg-white border-b border-border/60">
+          <TableHeader className="border-b border-border/60 bg-white">
             <TableRow className="h-14 hover:bg-transparent">
-              <TableHead className="pl-6 text-xs font-semibold text-foreground normal-case tracking-normal">
-                Kode Barang
+              <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
+                Tanggal & Waktu
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Nama Barang
+              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                Tipe Transaksi
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Kategori
+              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                No. Referensi
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Gudang
+              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                Lokasi Gudang
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Stok
+              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                Pergerakan Qty
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Stok Minimal
+              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                Saldo Akhir
               </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal">
-                Satuan
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal text-center">
-                Status
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground normal-case tracking-normal text-center">
-                Dokumen
-              </TableHead>
-              <TableHead className="pr-6 text-xs font-semibold text-foreground normal-case tracking-normal text-right">
-                Aksi
+              <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
+                Dibuat Oleh
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="min-h-[300px]">
             {dummyData.map((row) => (
               <TableRow
-                key={row.kodeBarang}
-                className="h-16 hover:bg-muted/30 border-b border-border/40"
+                key={row.noReferensi}
+                className="h-16 border-b border-border/40 hover:bg-muted/30"
               >
-                <TableCell className="pl-6 text-sm font-sans text-foreground">
-                  {row.kodeBarang}
+                <TableCell className="pl-6 font-sans text-sm text-foreground">
+                  {row.tanggal}
                 </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.namaBarang}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.kategori}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.gudang}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.stok.toLocaleString("id-ID")}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.stokMinimal.toLocaleString("id-ID")}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-foreground">
-                  {row.satuan}
-                </TableCell>
-                <TableCell className="text-sm font-sans text-center">
-                  <StatusBadge status={row.status} />
-                </TableCell>
-                <TableCell className="text-sm font-sans text-center">
-                  {row.dokumen !== "-" ? (
-                    <span className="inline-flex items-center gap-0.5 border border-border/80 rounded-[4px] px-1.5 py-0.5 bg-card hover:bg-accent/10 transition-colors text-[11px] leading-none cursor-pointer text-muted-foreground whitespace-nowrap">
-                      <BiFile className="size-3 text-muted-foreground/80" />
-                      <span>{row.dokumen}</span>
+                <TableCell className="font-sans text-sm">
+                  {row.tipeTransaksi === "Stok Opname" && (
+                    <span className="inline-flex items-center rounded-[6px] bg-[#EEF2FF] px-2.5 py-1 text-xs font-semibold text-[#4F46E5]">
+                      Stok Opname
                     </span>
-                  ) : (
-                    <span className="text-muted-foreground font-sans">-</span>
+                  )}
+                  {row.tipeTransaksi === "Keluar Barang" && (
+                    <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
+                      Keluar Barang
+                    </span>
+                  )}
+                  {row.tipeTransaksi === "Mutasi Stok" && (
+                    <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-1 text-xs font-semibold text-[#9333EA]">
+                      Mutasi Stok
+                    </span>
+                  )}
+                  {row.tipeTransaksi === "Terima Barang" && (
+                    <span className="inline-flex items-center rounded-[6px] bg-[#D1FAE5] px-2.5 py-1 text-xs font-semibold text-[#065F46]">
+                      Terima Barang
+                    </span>
                   )}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="p-1 hover:bg-muted rounded-md transition-colors cursor-pointer">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <button className="p-1 hover:bg-muted rounded-md transition-colors cursor-pointer">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
-                  </div>
+                <TableCell className="font-sans text-sm">
+                  <span className="cursor-pointer font-medium text-[#3B82F6] transition-colors hover:text-[#2563EB] hover:underline">
+                    {row.noReferensi}
+                  </span>
+                </TableCell>
+                <TableCell className="font-sans text-sm text-foreground">
+                  {row.lokasiGudang.tujuan ? (
+                    <div className="flex items-center gap-1.5">
+                      <span>{row.lokasiGudang.asal}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <span>{row.lokasiGudang.tujuan}</span>
+                    </div>
+                  ) : (
+                    <span>{row.lokasiGudang.asal}</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-center font-sans text-sm font-semibold">
+                  {row.pergerakanQty > 0 ? (
+                    <span className="text-[#10B981]">{`+${row.pergerakanQty}`}</span>
+                  ) : row.pergerakanQty < 0 ? (
+                    <span className="text-[#F97316]">{row.pergerakanQty}</span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {row.pergerakanQty}
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-center font-sans text-sm">
+                  {`${row.saldoAkhir} ${row.satuan}`}
+                </TableCell>
+                <TableCell className="pr-6 text-right font-sans text-sm text-foreground">
+                  {row.dibuatOleh}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={10} className="p-0 align-middle">
-                <div className="bg-white h-14 px-6 flex items-center justify-between text-xs text-muted-foreground font-sans">
-                  <span>Menampilkan 1-6 dari 24 data</span>
+              <TableCell colSpan={7} className="p-0 align-middle">
+                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                  <span>Menampilkan 1-6 dari 19 data</span>
                   <div className="flex items-center">
-                    <div className="flex items-center border border-border/80 rounded-lg overflow-hidden bg-background">
-                      <button className="h-8 w-8 flex items-center justify-center hover:bg-muted text-muted-foreground border-r border-border/80 transition-colors cursor-pointer">
-                        &lt;
+                    <div className="flex items-center gap-1.5">
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted">
+                        <BiChevronLeft className="size-4" />
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center bg-muted/60 text-foreground font-medium border-r border-border/80 transition-colors cursor-pointer">
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-semibold text-foreground transition-colors hover:bg-muted">
                         1
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center hover:bg-muted text-muted-foreground border-r border-border/80 transition-colors cursor-pointer">
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-medium text-muted-foreground transition-colors hover:bg-muted">
                         2
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center hover:bg-muted text-muted-foreground border-r border-border/80 transition-colors cursor-pointer">
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-medium text-muted-foreground transition-colors hover:bg-muted">
                         3
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center hover:bg-muted text-muted-foreground border-r border-border/80 transition-colors cursor-pointer">
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-medium text-muted-foreground transition-colors hover:bg-muted">
                         4
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors cursor-pointer">
-                        &gt;
+                      <button className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted">
+                        <BiChevronRight className="size-4" />
                       </button>
                     </div>
                   </div>

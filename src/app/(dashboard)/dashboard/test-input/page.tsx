@@ -6,8 +6,8 @@ import { StatusBadge } from "@/components/badge"
 
 export default function TestInputPage() {
   return (
-    <div className="flex flex-col gap-8 max-w-xl">
-      <h1 className="text-2xl font-bold font-heading">Test Input Components</h1>
+    <div className="flex max-w-xl flex-col gap-8">
+      <h1 className="font-heading text-2xl font-bold">Test Input Components</h1>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Status Badge</h2>
@@ -71,8 +71,18 @@ export default function TestInputPage() {
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Dengan Label (Atas)</h2>
-        <Input label="Nama Barang" type="text" required placeholder="Nama barang" />
-        <Input label="Deskripsi" type="textarea" rows={3} placeholder="Deskripsi barang" />
+        <Input
+          label="Nama Barang"
+          type="text"
+          required
+          placeholder="Nama barang"
+        />
+        <Input
+          label="Deskripsi"
+          type="textarea"
+          rows={3}
+          placeholder="Deskripsi barang"
+        />
         <Input label="Tanggal" type="date" />
         <Input
           label="Kategori"

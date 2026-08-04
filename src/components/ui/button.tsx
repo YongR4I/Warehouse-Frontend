@@ -4,27 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent text-xs md:text-sm font-medium whitespace-nowrap transition-all duration-150 outline-none select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent text-xs font-medium whitespace-nowrap transition-all duration-150 outline-none select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 md:text-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-foreground text-background hover:bg-foreground/90 border-transparent shadow-xs font-medium",
+          "border-transparent bg-foreground font-medium text-background shadow-xs hover:bg-foreground/90",
         outline:
           "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        ghost: "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         "outline-black":
-          "border-black bg-transparent text-foreground hover:bg-accent/10 rounded-[12px] font-medium w-[181.42px] h-[42px]",
+          "h-[42px] w-[181.42px] rounded-[12px] border-black bg-transparent font-medium text-foreground hover:bg-accent/10",
         destructive:
-          "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20",
+          "border border-rose-500/20 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 dark:text-rose-400",
         link: "text-foreground underline-offset-4 hover:underline",
       },
       size: {
-        default:
-          "h-8.5 gap-1.5 px-4",
+        default: "h-8.5 gap-1.5 px-4",
         xs: "h-6.5 gap-1 px-2.5 text-[11px] [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7.5 gap-1 px-3 text-xs",
         lg: "h-9.5 gap-2 px-5 text-sm",

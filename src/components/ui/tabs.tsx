@@ -23,7 +23,9 @@ export function Tabs({
   children: React.ReactNode
   className?: string
 }) {
-  const [selectedTab, setSelectedTab] = React.useState(value || defaultValue || "")
+  const [selectedTab, setSelectedTab] = React.useState(
+    value || defaultValue || ""
+  )
 
   const activeTab = value !== undefined ? value : selectedTab
 
@@ -52,7 +54,7 @@ export function TabsList({
   return (
     <div
       className={cn(
-        "inline-flex h-9 items-center justify-center rounded-full bg-muted/60 border border-border/50 p-1 text-muted-foreground shadow-xs",
+        "inline-flex h-9 items-center justify-center rounded-full border border-border/50 bg-muted/60 p-1 text-muted-foreground shadow-xs",
         className
       )}
     >
@@ -80,10 +82,10 @@ export function TabsTrigger({
       type="button"
       onClick={() => context.setActiveTab(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-full px-3.5 py-1 text-xs md:text-sm font-medium transition-all duration-150 outline-none active:scale-[0.98]",
+        "inline-flex items-center justify-center rounded-full px-3.5 py-1 text-xs font-medium whitespace-nowrap transition-all duration-150 outline-none active:scale-[0.98] md:text-sm",
         isActive
-          ? "bg-card text-foreground shadow-xs border border-border/60"
-          : "hover:text-foreground hover:bg-background/50",
+          ? "border border-border/60 bg-card text-foreground shadow-xs"
+          : "hover:bg-background/50 hover:text-foreground",
         className
       )}
     >
@@ -109,7 +111,7 @@ export function TabsContent({
   return (
     <div
       className={cn(
-        "mt-3 transition-opacity duration-200 animate-in fade-in-50",
+        "mt-3 animate-in transition-opacity duration-200 fade-in-50",
         className
       )}
     >

@@ -8,7 +8,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
     <ShadcnTextarea
       data-slot="input-textarea"
       className={cn(
-        "bg-card border-border px-3.5 py-2.5 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
+        "border-border bg-card px-3.5 py-2.5 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
         className
       )}
       {...props}

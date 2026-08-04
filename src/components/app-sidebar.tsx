@@ -113,7 +113,11 @@ const navGroups: NavGroup[] = [
     label: "Pusat Laporan",
     icon: BiBarChartAlt2,
     items: [
-      { icon: BiBarChartAlt2, label: "Pergerakan Stok", path: "/pergerakan-stok" },
+      {
+        icon: BiBarChartAlt2,
+        label: "Pergerakan Stok",
+        path: "/pergerakan-stok",
+      },
       { icon: BiError, label: "Selisih Opname", path: "/laporan" },
       { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/laporan" },
     ],
