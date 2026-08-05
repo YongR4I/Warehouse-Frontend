@@ -118,8 +118,8 @@ const navGroups: NavGroup[] = [
         label: "Pergerakan Stok",
         path: "/pergerakan-stok",
       },
-      { icon: BiError, label: "Selisih Opname", path: "/laporan" },
-      { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/laporan" },
+      { icon: BiError, label: "Selisih Opname", path: "/selisih-opname" },
+      { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/absensi/rekap" },
     ],
   },
   {

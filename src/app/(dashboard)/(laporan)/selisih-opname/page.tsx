@@ -12,8 +12,8 @@ import {
   BiCalendar,
   BiTrendingDown,
   BiTrendingUp,
-  BiTransfer,
   BiPackage,
+  BiTargetLock,
 } from "react-icons/bi"
 import {
   TableHeader,
@@ -25,69 +25,78 @@ import {
 
 const dummyData = [
   {
-    waktuTanggal: "29 Jul 2026 - 10:15",
-    noReferensi: "TRX-IN-20260729-01",
-    tipeArus: "Barang Masuk",
-    kodeSku: "SKU-ELK-01",
+    tanggalAudit: "29 Jul 2026",
+    noOpname: "SO-20260729-01",
+    namaGudang: "Gudang Utama",
+    kodeRak: "RAK-A1",
+    kodeSku: "SKU-ELK-001",
     namaBarang: "Monitor LED 24 Inch",
-    lokasiAsal: "Pemasok Utama (External)",
-    lokasiTujuan: "Gudang Utama - Rak A1",
-    qty: 120,
+    kategori: "Electronics",
+    stokSistem: 50,
+    stokFisik: 42,
+    selisih: -8,
     satuan: "Unit",
-    petugas: "Budi Santoso",
+    statusRekons: "Defisit (Kurang)",
+    petugasAudit: "Budi Santoso",
   },
   {
-    waktuTanggal: "29 Jul 2026 - 09:40",
-    noReferensi: "TRX-OUT-20260729-04",
-    tipeArus: "Barang Keluar",
-    kodeSku: "SKU-FUR-03",
+    tanggalAudit: "29 Jul 2026",
+    noOpname: "SO-20260729-02",
+    namaGudang: "Gudang Utama",
+    kodeRak: "RAK-C2",
+    kodeSku: "SKU-FUR-012",
     namaBarang: "Kursi Kerja Ergonomis",
-    lokasiAsal: "Gudang Transit - Rak C2",
-    lokasiTujuan: "Pelanggan (PT Maju Jaya)",
-    qty: -12,
+    kategori: "Furniture",
+    stokSistem: 15,
+    stokFisik: 20,
+    selisih: 5,
     satuan: "Pcs",
-    petugas: "Dedi Kurniawan",
+    statusRekons: "Surplus (Lebih)",
+    petugasAudit: "Dedi Kurniawan",
   },
   {
-    waktuTanggal: "29 Jul 2026 - 08:30",
-    noReferensi: "MUT-20260729-02",
-    tipeArus: "Mutasi Rak",
-    kodeSku: "SKU-ATK-05",
+    tanggalAudit: "29 Jul 2026",
+    noOpname: "SO-20260729-03",
+    namaGudang: "Gudang Transit",
+    kodeRak: "RAK-B3",
+    kodeSku: "SKU-ATK-088",
     namaBarang: "Kertas HVS A4 80gsm",
-    lokasiAsal: "Gudang Utama - Rak B3",
-    lokasiTujuan: "Gudang Bahan - Rak C1",
-    qty: 100,
+    kategori: "ATK",
+    stokSistem: 100,
+    stokFisik: 90,
+    selisih: -10,
     satuan: "Rim",
-    petugas: "Ahmad Fauzi",
+    statusRekons: "Perlu Investigasi",
+    petugasAudit: "Ahmad Fauzi",
   },
   {
-    waktuTanggal: "28 Jul 2026 - 16:50",
-    noReferensi: "TRX-IN-20260728-12",
-    tipeArus: "Barang Masuk",
-    kodeSku: "SKU-MCH-02",
+    tanggalAudit: "28 Jul 2026",
+    noOpname: "SO-20260728-01",
+    namaGudang: "Gudang Utama",
+    kodeRak: "RAK-A3",
+    kodeSku: "SKU-ELK-005",
     namaBarang: "Keyboard Mekanikal Wireless",
-    lokasiAsal: "Vendor Import",
-    lokasiTujuan: "Gudang Utama - Rak A2",
-    qty: 50,
+    kategori: "Electronics",
+    stokSistem: 200,
+    stokFisik: 200,
+    selisih: 0,
     satuan: "Box",
-    petugas: "Eko Prasetyo",
+    statusRekons: "Akurat (Klop)",
+    petugasAudit: "Eko Prasetyo",
   },
 ] as const
 
-export default function LaporanPage() {
+export default function LaporanSelisihOpnamePage() {
   return (
     <>
       {/* Header Section */}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader
-            items={[
-              { label: "Aktivitas Gudang" },
-              { label: "Pergerakan Stok" },
-            ]}
-            title="Pergerakan Stok"
+            items={[{ label: "Aktivitas Gudang" }, { label: "Selisih Opname" }]}
+            title="Laporan Selisih Opname"
             icon={BiBarChartAlt2}
-            description="Laporan arus keluar-masuk dan mutasi stok barang secara real-time."
+            description="Laporan perbedaan stok sistem versus fisik."
           />
           <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black">
@@ -101,99 +110,99 @@ export default function LaporanPage() {
       {/* KPI Cards Section - Plain Boxes without color accents */}
       <div className="wrapper mt-6">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Card 1: Total Barang Masuk */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTrendingDown className="size-4 text-emerald-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Total Barang Masuk
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    1,240
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Unit / 8 PO
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Didominasi Kategori Electronics (65%)
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 2: Total Barang Keluar */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTrendingUp className="size-4 text-rose-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Total Barang Keluar
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    850
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Unit / 14 Surat Jalan
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  92% Pengiriman Siap Kumpul (Packed)
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 3: Internal Mutasi Rak */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTransfer className="size-4 text-blue-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Internal Mutasi Rak
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    320
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Pcs / 3 Sesi
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Restock Rak Atas Area Picking B2
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 4: Retur / Selisih Stok */}
+          {/* Card 1: Total Item Diperiksa */}
           <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
             <div className="flex h-full flex-col justify-between px-5 py-4">
               <div className="flex items-center gap-2">
                 <BiPackage className="size-4 text-zinc-500" />
                 <span className="text-sm font-medium text-foreground">
-                  Retur / Selisih Stok
+                  Total Item Diperiksa
                 </span>
               </div>
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">0</span>
+                  <span className="text-2xl font-bold text-foreground">
+                    450
+                  </span>
                   <span className="text-xs text-muted-foreground">
-                    Item Rusak
+                    SKU / 3 Gudang
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Semua barang terverifikasi akurat
+                  Sesi Audit Tanggal 29 Jul 2026
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 2: Total Selisih Minus (Defisit) */}
+          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div className="flex h-full flex-col justify-between px-5 py-4">
+              <div className="flex items-center gap-2">
+                <BiTrendingDown className="size-4 text-rose-500" />
+                <span className="text-sm font-medium text-foreground">
+                  Total Selisih Minus (Defisit)
+                </span>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    -18
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Unit (3 SKU)
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Estimasi Kerugian: Rp 2.450.000
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 3: Total Selisih Plus (Surplus) */}
+          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div className="flex h-full flex-col justify-between px-5 py-4">
+              <div className="flex items-center gap-2">
+                <BiTrendingUp className="size-4 text-emerald-500" />
+                <span className="text-sm font-medium text-foreground">
+                  Total Selisih Plus (Surplus)
+                </span>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">+5</span>
+                  <span className="text-xs text-muted-foreground">
+                    Unit (1 SKU)
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Potensi Salah Catat Penerimaan
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Card 4: Tingkat Akurasi Stok */}
+          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div className="flex h-full flex-col justify-between px-5 py-4">
+              <div className="flex items-center gap-2">
+                <BiTargetLock className="size-4 text-blue-500" />
+                <span className="text-sm font-medium text-foreground">
+                  Tingkat Akurasi Stok
+                </span>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    98.2%
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Sesuai Fisik
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  446 SKU Klop Sesuai Sistem
                 </p>
               </div>
             </div>
@@ -213,12 +222,13 @@ export default function LaporanPage() {
             <BiCalendar className="size-4 text-muted-foreground/80" />
           </button>
           <Opsion
-            placeholder="Semua Tipe Arus"
+            placeholder="Semua Status Selisih"
             options={[
-              { value: "all", label: "Semua Tipe Arus" },
-              { value: "masuk", label: "Barang Masuk" },
-              { value: "keluar", label: "Barang Keluar" },
-              { value: "mutasi", label: "Mutasi Rak" },
+              { value: "all", label: "Semua Status Selisih" },
+              { value: "defisit", label: "Defisit (Kurang)" },
+              { value: "surplus", label: "Surplus (Lebih)" },
+              { value: "akurat", label: "Akurat (Klop)" },
+              { value: "investigasi", label: "Perlu Investigasi" },
             ]}
           />
         </div>
@@ -228,38 +238,47 @@ export default function LaporanPage() {
       <div className="wrapper mt-[25px] w-full min-w-0">
         <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
           <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[1560px] table-fixed caption-bottom text-sm">
+            <table className="w-full min-w-[1756px] table-fixed caption-bottom text-sm">
               <TableHeader className="border-b border-border/60 bg-white">
                 <TableRow className="h-14 hover:bg-transparent">
-                  <TableHead className="w-[150px] pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Waktu & Tanggal
+                  <TableHead className="w-[120px] pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Tanggal Audit
                   </TableHead>
-                  <TableHead className="w-[180px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    No. Referensi
+                  <TableHead className="w-[160px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    No. Opname
                   </TableHead>
-                  <TableHead className="w-[130px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Tipe Arus
+                  <TableHead className="w-[140px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Nama Gudang
                   </TableHead>
                   <TableHead className="w-[110px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Kode Rak
+                  </TableHead>
+                  <TableHead className="w-[130px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     Kode SKU
                   </TableHead>
-                  <TableHead className="w-[180px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                  <TableHead className="w-[220px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     Nama Barang
                   </TableHead>
-                  <TableHead className="w-[200px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Lokasi Asal
+                  <TableHead className="w-[120px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Kategori
                   </TableHead>
-                  <TableHead className="w-[200px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Lokasi Tujuan
+                  <TableHead className="w-[100px] text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Stok Sistem
                   </TableHead>
-                  <TableHead className="w-[90px] text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Jumlah (Qty)
+                  <TableHead className="w-[100px] text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Stok Fisik
                   </TableHead>
-                  <TableHead className="w-[80px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                  <TableHead className="w-[100px] text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Selisih (Qty)
+                  </TableHead>
+                  <TableHead className="w-[90px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     Satuan
                   </TableHead>
-                  <TableHead className="w-[180px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Petugas Penanggung Jawab
+                  <TableHead className="w-[160px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Status Rekons.
+                  </TableHead>
+                  <TableHead className="w-[150px] text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Petugas Audit
                   </TableHead>
                   <TableHead className="w-[56px] pr-6 text-right text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     {/* Action column header */}
@@ -269,40 +288,20 @@ export default function LaporanPage() {
               <TableBody className="min-h-[300px]">
                 {dummyData.map((row) => (
                   <TableRow
-                    key={row.noReferensi}
+                    key={row.noOpname}
                     className="h-16 border-b border-border/40 hover:bg-muted/30"
                   >
                     <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.waktuTanggal}
+                      {row.tanggalAudit}
                     </TableCell>
                     <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                      {row.noReferensi}
+                      {row.noOpname}
                     </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap">
-                      {row.tipeArus === "Barang Masuk" && (
-                        <Badge
-                          variant="success"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Barang Masuk
-                        </Badge>
-                      )}
-                      {row.tipeArus === "Barang Keluar" && (
-                        <Badge
-                          variant="critical"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Barang Keluar
-                        </Badge>
-                      )}
-                      {row.tipeArus === "Mutasi Rak" && (
-                        <Badge
-                          variant="warning"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Mutasi Rak
-                        </Badge>
-                      )}
+                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                      {row.namaGudang}
+                    </TableCell>
+                    <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-muted-foreground">
+                      {row.kodeRak}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
                       {row.kodeSku}
@@ -310,26 +309,65 @@ export default function LaporanPage() {
                     <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
                       {row.namaBarang}
                     </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.lokasiAsal}
+                    <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
+                      {row.kategori}
                     </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.lokasiTujuan}
+                    <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
+                      {row.stokSistem}
+                    </TableCell>
+                    <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
+                      {row.stokFisik}
                     </TableCell>
                     <TableCell className="text-center font-sans text-sm font-semibold whitespace-nowrap">
-                      {row.qty > 0 ? (
-                        <span className="text-emerald-600">+{row.qty}</span>
-                      ) : row.qty < 0 ? (
-                        <span className="text-rose-600">{row.qty}</span>
+                      {row.selisih > 0 ? (
+                        <span className="text-blue-600">+{row.selisih}</span>
+                      ) : row.selisih < 0 ? (
+                        <span className="text-rose-600">{row.selisih}</span>
                       ) : (
-                        <span className="text-muted-foreground">{row.qty}</span>
+                        <span className="text-muted-foreground">
+                          {row.selisih}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
                       {row.satuan}
                     </TableCell>
+                    <TableCell className="font-sans text-sm whitespace-nowrap">
+                      {row.statusRekons === "Defisit (Kurang)" && (
+                        <Badge
+                          variant="critical"
+                          className="rounded-[6px] font-sans text-xs font-semibold"
+                        >
+                          Defisit (Kurang)
+                        </Badge>
+                      )}
+                      {row.statusRekons === "Surplus (Lebih)" && (
+                        <Badge
+                          variant="info"
+                          className="rounded-[6px] font-sans text-xs font-semibold"
+                        >
+                          Surplus (Lebih)
+                        </Badge>
+                      )}
+                      {row.statusRekons === "Perlu Investigasi" && (
+                        <Badge
+                          variant="warning"
+                          className="rounded-[6px] font-sans text-xs font-semibold"
+                        >
+                          Perlu Investigasi
+                        </Badge>
+                      )}
+                      {row.statusRekons === "Akurat (Klop)" && (
+                        <Badge
+                          variant="success"
+                          className="rounded-[6px] font-sans text-xs font-semibold"
+                        >
+                          Akurat (Klop)
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.petugas}
+                      {row.petugasAudit}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       <button className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
@@ -343,7 +381,7 @@ export default function LaporanPage() {
                     style={{ height: `${300 - dummyData.length * 64}px` }}
                     className="pointer-events-none border-none hover:bg-transparent"
                   >
-                    <TableCell colSpan={11} className="border-none p-0" />
+                    <TableCell colSpan={14} className="border-none p-0" />
                   </TableRow>
                 )}
               </TableBody>
