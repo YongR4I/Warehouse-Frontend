@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useOpnameStore, type OpnameSession } from "@/store"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -10,10 +12,17 @@ import {
   BiSolidReport,
   BiCheckCircle,
   BiTimeFive,
-  BiCalendar,
   BiShow,
   BiPlay,
+  BiPlusCircle,
 } from "react-icons/bi"
+import {
+  FormModal,
+  FormInput,
+  FormDate,
+  FormSelect,
+  FormTextarea,
+} from "@/components/forms"
 import {
   TableHeader,
   TableBody,
@@ -24,365 +33,79 @@ import {
 import { cn } from "@/lib/utils"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 
-interface OpnameItem {
-  id: string
-  noDokumen: string
-  tanggal: string
-  tanggalLabel: string
-  lokasi: string
-  scope: string
-  totalSku: string
-  varianceVal: string
-  varianceType: "red" | "green" | "orange" | "none"
-  petugas: string
-  status: "Dalam Proses" | "Selesai" | "Draft"
-  aksiType: "lanjutkan" | "detail" | "mulai"
-}
-
-const dummyData: OpnameItem[] = [
-  {
-    id: "1",
-    noDokumen: "SO-202608-001",
-    tanggal: "05 Agu 2026",
-    tanggalLabel: "05 Agu 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Semua Item",
-    totalSku: "6 SKU",
-    varianceVal: "4 SKU (-2.4M)",
-    varianceType: "red",
-    petugas: "Budi Santoso",
-    status: "Dalam Proses",
-    aksiType: "lanjutkan",
-  },
-  {
-    id: "2",
-    noDokumen: "SO-202608-002",
-    tanggal: "04 Agu 2026",
-    tanggalLabel: "04 Agu 2026",
-    lokasi: "Gudang Bahan Baku (GDG-02)",
-    scope: "Rak C1 - C4",
-    totalSku: "42 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Ahmad Dahlan",
-    status: "Dalam Proses",
-    aksiType: "lanjutkan",
-  },
-  {
-    id: "3",
-    noDokumen: "SO-202607-010",
-    tanggal: "31 Jul 2026",
-    tanggalLabel: "31 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Semen",
-    totalSku: "18 SKU",
-    varianceVal: "1 SKU (+150k)",
-    varianceType: "orange",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "4",
-    noDokumen: "SO-202607-009",
-    tanggal: "25 Jul 2026",
-    tanggalLabel: "25 Jul 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Semua Item",
-    totalSku: "110 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "5",
-    noDokumen: "SO-202608-003",
-    tanggal: "08 Agu 2026",
-    tanggalLabel: "08 Agu 2026 (Plan)",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Perkakas & Tools",
-    totalSku: "25 SKU",
-    varianceVal: "Belum Audit",
-    varianceType: "none",
-    petugas: "Siti Rahma",
-    status: "Draft",
-    aksiType: "mulai",
-  },
-  {
-    id: "6",
-    noDokumen: "SO-202607-008",
-    tanggal: "22 Jul 2026",
-    tanggalLabel: "22 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Semua Item",
-    totalSku: "30 SKU",
-    varianceVal: "2 SKU (-450k)",
-    varianceType: "red",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "7",
-    noDokumen: "SO-202607-007",
-    tanggal: "18 Jul 2026",
-    tanggalLabel: "18 Jul 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Rak A1 - A5",
-    totalSku: "15 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Ahmad Dahlan",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "8",
-    noDokumen: "SO-202607-006",
-    tanggal: "15 Jul 2026",
-    tanggalLabel: "15 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Cat",
-    totalSku: "12 SKU",
-    varianceVal: "1 SKU (+90k)",
-    varianceType: "orange",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "9",
-    noDokumen: "SO-202607-005",
-    tanggal: "10 Jul 2026",
-    tanggalLabel: "10 Jul 2026",
-    lokasi: "Gudang Bahan Baku (GDG-02)",
-    scope: "Semua Item",
-    totalSku: "85 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Siti Rahma",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "10",
-    noDokumen: "SO-202607-004",
-    tanggal: "08 Jul 2026",
-    tanggalLabel: "08 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Rak B1 - B4",
-    totalSku: "50 SKU",
-    varianceVal: "3 SKU (-1.2M)",
-    varianceType: "red",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "11",
-    noDokumen: "SO-202607-003",
-    tanggal: "05 Jul 2026",
-    tanggalLabel: "05 Jul 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Semua Item",
-    totalSku: "95 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "12",
-    noDokumen: "SO-202607-002",
-    tanggal: "02 Jul 2026",
-    tanggalLabel: "02 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Besi",
-    totalSku: "40 SKU",
-    varianceVal: "2 SKU (+1.8M)",
-    varianceType: "orange",
-    petugas: "Ahmad Dahlan",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "13",
-    noDokumen: "SO-202607-001",
-    tanggal: "01 Jul 2026",
-    tanggalLabel: "01 Jul 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Semua Item",
-    totalSku: "200 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "14",
-    noDokumen: "SO-202606-012",
-    tanggal: "28 Jun 2026",
-    tanggalLabel: "28 Jun 2026",
-    lokasi: "Gudang Bahan Baku (GDG-02)",
-    scope: "Rak D1 - D3",
-    totalSku: "60 SKU",
-    varianceVal: "1 SKU (-200k)",
-    varianceType: "red",
-    petugas: "Siti Rahma",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "15",
-    noDokumen: "SO-202606-011",
-    tanggal: "25 Jun 2026",
-    tanggalLabel: "25 Jun 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Semua Item",
-    totalSku: "75 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "16",
-    noDokumen: "SO-202606-010",
-    tanggal: "20 Jun 2026",
-    tanggalLabel: "20 Jun 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Kabel",
-    totalSku: "18 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "17",
-    noDokumen: "SO-202606-009",
-    tanggal: "15 Jun 2026",
-    tanggalLabel: "15 Jun 2026",
-    lokasi: "Gudang Bahan Baku (GDG-02)",
-    scope: "Semua Item",
-    totalSku: "90 SKU",
-    varianceVal: "2 SKU (-800k)",
-    varianceType: "red",
-    petugas: "Ahmad Dahlan",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "18",
-    noDokumen: "SO-202606-008",
-    tanggal: "12 Jun 2026",
-    tanggalLabel: "12 Jun 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Rak E1 - E4",
-    totalSku: "35 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Siti Rahma",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "19",
-    noDokumen: "SO-202606-007",
-    tanggal: "10 Jun 2026",
-    tanggalLabel: "10 Jun 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Semua Item",
-    totalSku: "120 SKU",
-    varianceVal: "4 SKU (+500k)",
-    varianceType: "orange",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "20",
-    noDokumen: "SO-202606-006",
-    tanggal: "08 Jun 2026",
-    tanggalLabel: "08 Jun 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Pipa",
-    totalSku: "25 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "21",
-    noDokumen: "SO-202606-005",
-    tanggal: "05 Jun 2026",
-    tanggalLabel: "05 Jun 2026",
-    lokasi: "Gudang Bahan Baku (GDG-02)",
-    scope: "Semua Item",
-    totalSku: "150 SKU",
-    varianceVal: "1 SKU (-350k)",
-    varianceType: "red",
-    petugas: "Ahmad Dahlan",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "22",
-    noDokumen: "SO-202606-004",
-    tanggal: "02 Jun 2026",
-    tanggalLabel: "02 Jun 2026",
-    lokasi: "Gudang Transit (GDG-03)",
-    scope: "Rak F1 - F4",
-    totalSku: "40 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Siti Rahma",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "23",
-    noDokumen: "SO-202606-003",
-    tanggal: "01 Jun 2026",
-    tanggalLabel: "01 Jun 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Semua Item",
-    totalSku: "180 SKU",
-    varianceVal: "2 SKU (+1.2M)",
-    varianceType: "orange",
-    petugas: "Budi Santoso",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-  {
-    id: "24",
-    noDokumen: "SO-202605-010",
-    tanggal: "28 Mei 2026",
-    tanggalLabel: "28 Mei 2026",
-    lokasi: "Gudang Utama (GDG-01)",
-    scope: "Kategori Paku",
-    totalSku: "30 SKU",
-    varianceVal: "0 SKU (Match)",
-    varianceType: "green",
-    petugas: "Rina Wijaya",
-    status: "Selesai",
-    aksiType: "detail",
-  },
-]
 
 export default function OpnamePage() {
+  const router = useRouter()
+  const { sessions: data, addSession, startAudit } = useOpnameStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [gudangFilter, setGudangFilter] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
+
+  // Modal form states
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [newNoDokumen, setNewNoDokumen] = useState("")
+  const [newTanggal, setNewTanggal] = useState("")
+  const [newLokasi, setNewLokasi] = useState("")
+  const [newPetugas, setNewPetugas] = useState("")
+  const [newScopeType, setNewScopeType] = useState<"full" | "partial">("full")
+  const [newScopePartialText, setNewScopePartialText] = useState("")
+  const [newCatatan, setNewCatatan] = useState("")
+
+  const handleOpenModal = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, "0")
+    const date = String(now.getDate()).padStart(2, "0")
+    const prefix = `SO-${year}${month}-`
+    const matchingDocs = data.filter((d) => d.noDokumen.startsWith(prefix))
+    const nextNum = matchingDocs.length + 1
+    const nextNoDoc = `${prefix}${String(nextNum).padStart(3, "0")}`
+
+    setNewNoDokumen(nextNoDoc)
+    setNewTanggal(`${year}-${month}-${date}`)
+    setNewLokasi("Gudang Utama (GDG-01)")
+    setNewPetugas("Budi Santoso (Lead Auditor)")
+    setNewScopeType("full")
+    setNewScopePartialText("")
+    setNewCatatan("")
+    setIsModalOpen(true)
+  }
+
+  const handleCreateOpname = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+      "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+    ]
+    const dateObj = new Date(newTanggal)
+    const day = dateObj.getDate()
+    const monthIndex = dateObj.getMonth()
+    const year = dateObj.getFullYear()
+    const tanggalLabel = `${String(day).padStart(2, "0")} ${months[monthIndex]} ${year}`
+
+    const petugasName = newPetugas.replace(/\s*\(.*\)/, "")
+
+    const newOpname: OpnameSession = {
+      id: String(data.length + 1),
+      noDokumen: newNoDokumen,
+      tanggal: tanggalLabel,
+      tanggalLabel: tanggalLabel + " (Plan)",
+      lokasi: newLokasi,
+      scope: newScopeType === "full" ? "Semua Item" : (newScopePartialText || "Parsial"),
+      totalSku: "3 SKU", // seeded details count
+      varianceVal: "Belum Audit",
+      varianceType: "none",
+      petugas: petugasName,
+      status: "Draft",
+      aksiType: "mulai"
+    }
+
+    addSession(newOpname)
+    setIsModalOpen(false)
+  }
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val)
@@ -394,8 +117,13 @@ export default function OpnamePage() {
     setCurrentPage(1)
   }
 
+  const handleGudangChange = (val: string | null) => {
+    setGudangFilter(val)
+    setCurrentPage(1)
+  }
+
   const filteredData = useMemo(() => {
-    return dummyData.filter((row) => {
+    return data.filter((row) => {
       const query = searchQuery.toLowerCase().trim()
       const matchesSearch =
         !query ||
@@ -407,9 +135,14 @@ export default function OpnamePage() {
       const matchesStatus =
         !statusFilter || statusFilter === "all" || row.status === statusFilter
 
-      return matchesSearch && matchesStatus
+      const matchesGudang =
+        !gudangFilter ||
+        gudangFilter === "all" ||
+        row.lokasi.toLowerCase().includes(gudangFilter.toLowerCase())
+
+      return matchesSearch && matchesStatus && matchesGudang
     })
-  }, [searchQuery, statusFilter])
+  }, [data, searchQuery, statusFilter, gudangFilter])
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage)
 
@@ -498,7 +231,7 @@ export default function OpnamePage() {
               <BiSolidReport className="mr-2" />
               Export (.excel/.pdf)
             </Button>
-            <Button variant="default">+ Opname Baru</Button>
+            <Button variant="default" onClick={handleOpenModal}>+ Opname Baru</Button>
           </div>
         </div>
       </div>
@@ -579,26 +312,35 @@ export default function OpnamePage() {
 
       {/* ─── FILTER ─── */}
       <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <InputSearch
-            placeholder="Cari NIK, nama, atau nomor HP..."
+            placeholder="Cari no. dokumen, lokasi, atau petugas..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="flex-1"
           />
-          <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-border/80 bg-card px-3.5 py-2 text-xs font-semibold whitespace-nowrap text-foreground/80">
-            <span>02 Agu 2026</span>
-            <BiCalendar className="size-4 text-muted-foreground" />
-          </div>
           <Opsion
             placeholder="Semua Status Selisih"
             value={statusFilter || undefined}
             onValueChange={handleStatusChange}
+            className="w-[245px]"
             options={[
               { value: "all", label: "Semua Status Selisih" },
               { value: "Dalam Proses", label: "Dalam Proses" },
               { value: "Selesai", label: "Selesai" },
               { value: "Draft", label: "Draft" },
+            ]}
+          />
+          <Opsion
+            placeholder="Semua Gudang"
+            value={gudangFilter || undefined}
+            onValueChange={handleGudangChange}
+            className="w-[245px]"
+            options={[
+              { value: "all", label: "Semua Gudang" },
+              { value: "GDG-01", label: "Gudang Utama (GDG-01)" },
+              { value: "GDG-02", label: "Gudang Bahan Baku (GDG-02)" },
+              { value: "GDG-03", label: "Gudang Transit (GDG-03)" },
             ]}
           />
         </div>
@@ -673,19 +415,31 @@ export default function OpnamePage() {
                     <TableCell className="pr-6 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end">
                         {row.aksiType === "lanjutkan" && (
-                          <button className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] bg-[#18181B] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-black/90">
+                          <button
+                            onClick={() => router.push(`/inventory/opname/${row.noDokumen}?mode=edit`)}
+                            className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] bg-[#18181B] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-black/90"
+                          >
                             <span>Lanjutkan</span>
                             <span className="text-sm font-light">→</span>
                           </button>
                         )}
                         {row.aksiType === "detail" && (
-                          <button className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-card px-3.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground">
+                          <button
+                            onClick={() => router.push(`/inventory/opname/${row.noDokumen}?mode=view`)}
+                            className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-card px-3.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+                          >
                             <BiShow className="size-4 text-muted-foreground/90" />
                             <span>Detail</span>
                           </button>
                         )}
                         {row.aksiType === "mulai" && (
-                          <button className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-card px-3.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground">
+                          <button
+                            onClick={() => {
+                              startAudit(row.noDokumen)
+                              router.push(`/inventory/opname/${row.noDokumen}?mode=edit`)
+                            }}
+                            className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-card px-3.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+                          >
                             <BiPlay className="size-4 text-muted-foreground/90" />
                             <span>Mulai Audit</span>
                           </button>
@@ -739,6 +493,145 @@ export default function OpnamePage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Buat Sesi Opname Baru */}
+      <FormModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Buat Sesi Opname Baru"
+        description="Inisiasi jadwal audit fisik barang di gudang"
+        icon={BiPlusCircle}
+      >
+        <form onSubmit={handleCreateOpname}>
+          <FormModal.Body>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput
+                label="Nomor Referensi (Auto)"
+                value={newNoDokumen}
+                disabled
+                className="opacity-75 cursor-not-allowed bg-slate-50"
+              />
+              <FormDate
+                label="Tanggal Audit"
+                required
+                value={newTanggal}
+                onChange={(e) => setNewTanggal(e.target.value)}
+              />
+              <FormSelect
+                label="Lokasi Gudang"
+                required
+                value={newLokasi}
+                onValueChange={(val) => setNewLokasi(val || "")}
+                options={[
+                  { value: "Gudang Utama (GDG-01)", label: "Gudang Utama (GDG-01)" },
+                  { value: "Gudang Bahan Baku (GDG-02)", label: "Gudang Bahan Baku (GDG-02)" },
+                  { value: "Gudang Transit (GDG-03)", label: "Gudang Transit (GDG-03)" },
+                ]}
+              />
+              <FormSelect
+                label="Petugas Auditor"
+                required
+                value={newPetugas}
+                onValueChange={(val) => setNewPetugas(val || "")}
+                options={[
+                  { value: "Budi Santoso (Lead Auditor)", label: "Budi Santoso (Lead Auditor)" },
+                  { value: "Ahmad Dahlan (Auditor)", label: "Ahmad Dahlan (Auditor)" },
+                  { value: "Rina Wijaya (Auditor)", label: "Rina Wijaya (Auditor)" },
+                  { value: "Siti Rahma (Auditor)", label: "Siti Rahma (Auditor)" },
+                ]}
+              />
+              <div className="col-span-1 md:col-span-2 flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[#4c4546] after:ml-0.5 after:text-rose-500 after:content-['*']">
+                  Cakupan (Scope) Audit
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Semua Item Card */}
+                  <button
+                    type="button"
+                    onClick={() => setNewScopeType("full")}
+                    className={cn(
+                      "flex items-start gap-3 rounded-xl border p-4 text-left transition-all cursor-pointer",
+                      newScopeType === "full"
+                        ? "border-blue-500 bg-blue-50/5 ring-1 ring-blue-500"
+                        : "border-border hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full border border-slate-300">
+                      {newScopeType === "full" && (
+                        <div className="size-2.5 rounded-full bg-blue-500" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm text-foreground">Semua Item (Full Audit)</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Audit seluruh barang di gudang</div>
+                    </div>
+                  </button>
+                  {/* Parsial Card */}
+                  <button
+                    type="button"
+                    onClick={() => setNewScopeType("partial")}
+                    className={cn(
+                      "flex items-start gap-3 rounded-xl border p-4 text-left transition-all cursor-pointer",
+                      newScopeType === "partial"
+                        ? "border-blue-500 bg-blue-50/5 ring-1 ring-blue-500"
+                        : "border-border hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full border border-slate-300">
+                      {newScopeType === "partial" && (
+                        <div className="size-2.5 rounded-full bg-blue-500" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm text-foreground">Parsial (Kategori/Rak)</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Pilih rak atau kategori tertentu</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Conditional Partial Input */}
+              {newScopeType === "partial" && (
+                <FormInput
+                  label="Detail Cakupan (Kategori/Rak)"
+                  required
+                  placeholder="Contoh: Rak C1 - C4, Kategori Semen"
+                  value={newScopePartialText}
+                  onChange={(e) => setNewScopePartialText(e.target.value)}
+                  className="col-span-1 md:col-span-2"
+                />
+              )}
+
+              <FormTextarea
+                label="Catatan / Instruksi Audit"
+                placeholder="Masukkan catatan khusus untuk petugas lapangan..."
+                value={newCatatan}
+                onChange={(e) => setNewCatatan(e.target.value)}
+                className="col-span-1 md:col-span-2"
+                rows={3}
+              />
+            </div>
+          </FormModal.Body>
+          <FormModal.Footer>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              className="h-10 min-h-10 px-6 font-semibold"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              className="h-10 min-h-10 px-6 font-semibold flex items-center gap-1.5"
+            >
+              <BiPlay className="size-4" />
+              <span>Buat & Mulai Audit</span>
+            </Button>
+          </FormModal.Footer>
+        </form>
+      </FormModal>
     </>
   )
 }

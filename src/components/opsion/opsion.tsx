@@ -47,13 +47,13 @@ function Opsion({
       disabled={disabled}
       required={required}
       name={name}
+      items={options}
     >
       <SelectTrigger
         className={cn(
-          "h-[42px] border-border bg-card px-3.5 text-sm transition-colors focus:border-ring focus:ring-3 focus:ring-ring/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 data-[size=default]:h-10",
+          "h-[42px] w-[158.47px] border-border bg-card px-3.5 text-sm transition-colors focus:border-ring focus:ring-3 focus:ring-ring/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 data-[size=default]:h-10",
           className
         )}
-        style={{ width: "158.47px" }}
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

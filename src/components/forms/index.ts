@@ -25,3 +25,11 @@ export type { FormUploadProps } from "./form-upload"
 
 export { FormSection } from "./form-section"
 export type { FormSectionProps } from "./form-section"
+
+export { FormModal } from "./form-modal"
+export type {
+  FormModalProps,
+  FormModalBodyProps,
+  FormModalFooterProps,
+} from "./form-modal"
+

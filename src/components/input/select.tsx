@@ -47,6 +47,7 @@ function SelectInput({
       disabled={disabled}
       required={required}
       name={name}
+      items={options}
     >
       <SelectTrigger
         className={cn(

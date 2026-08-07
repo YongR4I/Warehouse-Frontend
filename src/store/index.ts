@@ -2,3 +2,6 @@ export { useAuthStore } from "./use-auth-store"
 export { useFilterStore } from "./use-filter-store"
 export { useScanBufferStore } from "./use-scan-buffer-store"
 export { useDSBStore } from "./use-dsb-store"
+export { useOpnameStore } from "./use-opname-store"
+export type { OpnameSession, OpnameDetailItem } from "./use-opname-store"
+
