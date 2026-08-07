@@ -1,6 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import {
   BiError,
   BiTimeFive,
@@ -48,12 +48,12 @@ export function ExceptionAlertStrip({
             </p>
           </div>
         </div>
-        <Badge
-          variant="success"
+        <ColoredBadge
+          color="green"
           className="hidden shrink-0 px-3 py-1 text-xs sm:inline-flex"
         >
           100% Operational OK
-        </Badge>
+        </ColoredBadge>
       </div>
     )
   }

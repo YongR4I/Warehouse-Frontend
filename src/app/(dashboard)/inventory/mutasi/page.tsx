@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { StatusBadge } from "@/components/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 import {
   BiTransfer,
@@ -202,7 +202,25 @@ export default function MutasiPage() {
                   {row.dibuatOleh}
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm whitespace-nowrap">
-                  <StatusBadge status={row.status} />
+                  <ColoredBadge
+                    color={
+                      row.status === "disetujui"
+                        ? "green"
+                        : row.status === "menunggu_approval"
+                          ? "yellow"
+                          : row.status === "ditolak"
+                            ? "red"
+                            : "gray"
+                    }
+                  >
+                    {row.status === "disetujui"
+                      ? "Disetujui"
+                      : row.status === "menunggu_approval"
+                        ? "Menunggu Approval"
+                        : row.status === "ditolak"
+                          ? "Ditolak"
+                          : "Draft"}
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm whitespace-nowrap">
                   {row.dokumen !== "-" ? (

@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Card } from "@/components/ui/card"
 import {
   BiSolidReport,
@@ -280,28 +280,13 @@ export default function LaporanPage() {
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap">
                       {row.tipeArus === "Barang Masuk" && (
-                        <Badge
-                          variant="success"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Barang Masuk
-                        </Badge>
+                        <ColoredBadge color="green">Barang Masuk</ColoredBadge>
                       )}
                       {row.tipeArus === "Barang Keluar" && (
-                        <Badge
-                          variant="critical"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Barang Keluar
-                        </Badge>
+                        <ColoredBadge color="red">Barang Keluar</ColoredBadge>
                       )}
                       {row.tipeArus === "Mutasi Rak" && (
-                        <Badge
-                          variant="warning"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Mutasi Rak
-                        </Badge>
+                        <ColoredBadge color="purple">Mutasi Rak</ColoredBadge>
                       )}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">

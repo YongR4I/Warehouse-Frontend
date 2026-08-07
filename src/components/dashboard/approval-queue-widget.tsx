@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Button } from "@/components/ui/button"
 import type { PendingApprovalItem } from "@/hooks/use-dashboard-data"
 import { BiTimeFive, BiCheckCircle, BiRightArrowAlt } from "react-icons/bi"
@@ -61,18 +61,18 @@ export function ApprovalQueueWidget({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge
-                    variant={
+                  <ColoredBadge
+                    color={
                       app.tipe === "Barang Masuk"
-                        ? "success"
+                        ? "green"
                         : app.tipe === "Barang Keluar"
-                          ? "warning"
-                          : "info"
+                          ? "yellow"
+                          : "blue"
                     }
                     className="text-[10px]"
                   >
                     {app.tipe}
-                  </Badge>
+                  </ColoredBadge>
                   <span className="truncate font-mono text-xs font-bold text-foreground">
                     {app.kodeTransaksi}
                   </span>

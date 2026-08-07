@@ -22,6 +22,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface AttendanceItem {
   id: string
@@ -409,24 +410,12 @@ export default function RekapPage() {
 
   const renderShiftBadge = (shift: string) => {
     if (shift.includes("Pagi")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#E0F2FE] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#0284C7]">
-          {shift}
-        </span>
-      )
+      return <ColoredBadge color="sky">{shift}</ColoredBadge>
     }
     if (shift.includes("Siang")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-          {shift}
-        </span>
-      )
+      return <ColoredBadge color="yellow">{shift}</ColoredBadge>
     }
-    return (
-      <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#9333EA]">
-        {shift}
-      </span>
-    )
+    return <ColoredBadge color="purple">{shift}</ColoredBadge>
   }
 
   const renderStatusBadge = (
@@ -434,29 +423,13 @@ export default function RekapPage() {
   ) => {
     switch (status) {
       case "Hadir":
-        return (
-          <span className="inline-flex items-center rounded-[6px] bg-[#E2FBE9] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1E824C]">
-            Hadir
-          </span>
-        )
+        return <ColoredBadge color="green">Hadir</ColoredBadge>
       case "Terlambat":
-        return (
-          <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-            Terlambat
-          </span>
-        )
+        return <ColoredBadge color="yellow">Terlambat</ColoredBadge>
       case "Izin / Cuti":
-        return (
-          <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#9333EA]">
-            Izin / Cuti
-          </span>
-        )
+        return <ColoredBadge color="purple">Izin / Cuti</ColoredBadge>
       case "Mangkir":
-        return (
-          <span className="inline-flex items-center rounded-[6px] bg-[#FEE2E2] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#DC2626]">
-            Mangkir
-          </span>
-        )
+        return <ColoredBadge color="red">Mangkir</ColoredBadge>
       default:
         return null
     }
@@ -698,9 +671,7 @@ export default function RekapPage() {
                       {row.tanggal}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      <span className="inline-flex animate-none items-center rounded-[6px] border border-border/80 bg-muted/40 px-2.5 py-0.5 font-sans text-[11px] font-semibold text-muted-foreground">
-                        {row.nik}
-                      </span>
+                      <ColoredBadge color="gray">{row.nik}</ColoredBadge>
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
                       {row.nama}

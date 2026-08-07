@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import type { ActivityLogItem } from "@/hooks/use-dashboard-data"
 import { BiHistory } from "react-icons/bi"
@@ -112,12 +112,12 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                     <span className="font-mono text-[10px] text-muted-foreground">
                       ({act.role})
                     </span>
-                    <Badge
-                      variant="outline"
+                    <ColoredBadge
+                      color="gray"
                       className="px-1.5 py-0 font-mono text-[9px]"
                     >
                       {act.gudangNama.replace("Gudang ", "")}
-                    </Badge>
+                    </ColoredBadge>
                   </div>
                   <span className="shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">
                     {act.timestamp}

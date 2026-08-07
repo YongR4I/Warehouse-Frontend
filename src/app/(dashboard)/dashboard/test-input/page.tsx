@@ -2,7 +2,7 @@
 
 import { Input, InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { StatusBadge } from "@/components/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 export default function TestInputPage() {
   return (
@@ -12,10 +12,10 @@ export default function TestInputPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Status Badge</h2>
         <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge status="disetujui" />
-          <StatusBadge status="menunggu_approval" />
-          <StatusBadge status="ditolak" />
-          <StatusBadge status="draft" />
+          <ColoredBadge color="green">Disetujui</ColoredBadge>
+          <ColoredBadge color="yellow">Menunggu Approval</ColoredBadge>
+          <ColoredBadge color="red">Ditolak</ColoredBadge>
+          <ColoredBadge color="gray">Draft</ColoredBadge>
         </div>
       </section>
 

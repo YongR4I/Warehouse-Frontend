@@ -22,6 +22,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface OpnameItem {
   id: string
@@ -421,23 +422,11 @@ export default function OpnamePage() {
   const renderStatusBadge = (status: "Dalam Proses" | "Selesai" | "Draft") => {
     switch (status) {
       case "Dalam Proses":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#FEF3C7] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-            Dalam Proses
-          </span>
-        )
+        return <ColoredBadge color="yellow">Dalam Proses</ColoredBadge>
       case "Selesai":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#E2FBE9] bg-[#E2FBE9] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1E824C]">
-            Selesai
-          </span>
-        )
+        return <ColoredBadge color="green">Selesai</ColoredBadge>
       case "Draft":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#F3F4F6] bg-[#F3F4F6] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#4B5563]">
-            Draft
-          </span>
-        )
+        return <ColoredBadge color="gray">Draft</ColoredBadge>
       default:
         return null
     }
@@ -449,23 +438,11 @@ export default function OpnamePage() {
   ) => {
     switch (type) {
       case "red":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#FEE2E2] bg-[#FEE2E2] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#DC2626]">
-            {val}
-          </span>
-        )
+        return <ColoredBadge color="red">{val}</ColoredBadge>
       case "green":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#E2FBE9] bg-[#E2FBE9] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1E824C]">
-            {val}
-          </span>
-        )
+        return <ColoredBadge color="green">{val}</ColoredBadge>
       case "orange":
-        return (
-          <span className="inline-flex items-center rounded-[6px] border border-[#FEF3C7] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-            {val}
-          </span>
-        )
+        return <ColoredBadge color="yellow">{val}</ColoredBadge>
       case "none":
       default:
         return (
@@ -679,9 +656,7 @@ export default function OpnamePage() {
                       {row.lokasi}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap">
-                      <span className="inline-flex items-center rounded-[6px] border border-border/80 bg-muted/40 px-2.5 py-0.5 text-[11px] font-semibold text-[#4B5563]">
-                        {row.scope}
-                      </span>
+                      <ColoredBadge color="gray">{row.scope}</ColoredBadge>
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
                       {row.totalSku}

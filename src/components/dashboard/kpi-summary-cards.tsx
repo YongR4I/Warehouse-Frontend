@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import {
   BiWallet,
   BiDownload,
@@ -58,9 +58,9 @@ export function KPISummaryCards({ data }: KPISummaryCardsProps) {
               {formatRp(data.totalNilaiStok)}
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              <Badge variant="success" className="text-[10px]">
+              <ColoredBadge color="green" className="text-[10px]">
                 <BiTrendingUp className="size-3" /> +4.8% MoM
-              </Badge>
+              </ColoredBadge>
               <span className="font-mono text-[11px] text-muted-foreground">
                 Real-time Balance
               </span>
@@ -91,9 +91,9 @@ export function KPISummaryCards({ data }: KPISummaryCardsProps) {
               </span>
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              <Badge variant="neutral" className="text-[10px]">
+              <ColoredBadge color="gray" className="text-[10px]">
                 Nilai: {formatRp(data.barangMasukRp)}
-              </Badge>
+              </ColoredBadge>
             </div>
           </div>
         </CardContent>
@@ -121,9 +121,9 @@ export function KPISummaryCards({ data }: KPISummaryCardsProps) {
               </span>
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              <Badge variant="neutral" className="text-[10px]">
+              <ColoredBadge color="gray" className="text-[10px]">
                 Nilai: {formatRp(data.barangKeluarRp)}
-              </Badge>
+              </ColoredBadge>
             </div>
           </div>
         </CardContent>
@@ -154,12 +154,12 @@ export function KPISummaryCards({ data }: KPISummaryCardsProps) {
               </span>
             </div>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
-              <Badge
-                variant={attendancePercent >= 90 ? "success" : "warning"}
+              <ColoredBadge
+                color={attendancePercent >= 90 ? "green" : "yellow"}
                 className="text-[10px]"
               >
                 {attendancePercent}% Attendance Rate
-              </Badge>
+              </ColoredBadge>
             </div>
           </div>
         </CardContent>
