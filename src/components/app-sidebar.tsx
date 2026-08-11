@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -35,6 +34,7 @@ import {
   BiPulse,
   BiChevronDown,
   BiHomeAlt,
+  BiGridAlt,
 } from "react-icons/bi"
 import type { IconType } from "react-icons"
 
@@ -225,6 +225,48 @@ export function AppSidebar() {
         ref={contentRef}
         className="min-h-0 flex-1 [scrollbar-width:thin] gap-0 overflow-y-auto overscroll-contain px-3 [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
       >
+        {/* Dashboard — Special Featured Nav Item */}
+        <SidebarGroup className="pt-2 pb-3">
+          <button
+            type="button"
+            onClick={() => router.push(dashboardItem.path)}
+            className={cn(
+              "group relative flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200 active:scale-[0.98]",
+              pathname === dashboardItem.path
+                ? "bg-foreground text-background shadow-xs font-semibold"
+                : "border border-border/70 bg-muted/30 text-foreground hover:bg-muted/70 hover:border-border"
+            )}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={cn(
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+                  pathname === dashboardItem.path
+                    ? "bg-background/20 text-background"
+                    : "bg-background text-foreground border border-border/40 shadow-2xs"
+                )}
+              >
+                <BiGridAlt className="size-4" />
+              </span>
+              <div className="flex flex-col items-start text-left">
+                <span className="text-xs font-bold leading-none tracking-tight">
+                  Dashboard
+                </span>
+                <span
+                  className={cn(
+                    "mt-1 text-[10px] font-medium leading-none",
+                    pathname === dashboardItem.path
+                      ? "text-background/70"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  Overview
+                </span>
+              </div>
+            </div>
+          </button>
+        </SidebarGroup>
+
         {navGroups.map((group) => {
           const isExpanded = expandedGroups.has(group.label)
 

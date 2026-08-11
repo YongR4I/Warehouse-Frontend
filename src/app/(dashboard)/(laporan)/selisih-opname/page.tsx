@@ -214,7 +214,7 @@ export default function LaporanSelisihOpnamePage() {
       <div className="wrapper mt-8">
         <div className="flex items-center gap-2">
           <InputSearch
-            placeholder="Cari NIK, nama, atau nomor HP..."
+            placeholder="Cari no. opname, nama barang, SKU, atau kode rak..."
             className="flex-1"
           />
           <button className="flex h-[42px] shrink-0 items-center gap-2 rounded-2xl border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/30">

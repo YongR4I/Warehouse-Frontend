@@ -123,7 +123,7 @@ export default function BarangMasukPage() {
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
-          <InputSearch placeholder="Cari barang..." className="flex-1" />
+          <InputSearch placeholder="Cari no. referensi atau supplier..." className="flex-1" />
           <Opsion
             options={[
               { value: "all", label: "Semua Gudang" },

@@ -586,7 +586,7 @@ export default function RekapPage() {
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
           <InputSearch
-            placeholder="Cari NIK, nama, atau nomor HP..."
+            placeholder="Cari NIK atau nama petugas..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="flex-1"
@@ -596,11 +596,11 @@ export default function RekapPage() {
             <BiCalendar className="size-4 text-muted-foreground" />
           </div>
           <Opsion
-            placeholder="Semua Status Selisih"
+            placeholder="Semua Status Kehadiran"
             value={statusFilter || undefined}
             onValueChange={handleStatusChange}
             options={[
-              { value: "all", label: "Semua Status Selisih" },
+              { value: "all", label: "Semua Status Kehadiran" },
               { value: "Hadir", label: "Hadir" },
               { value: "Terlambat", label: "Terlambat" },
               { value: "Izin / Cuti", label: "Izin / Cuti" },
