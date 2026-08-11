@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Opsion } from "@/components/opsion"
@@ -16,6 +19,9 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
+import { GudangForm } from "@/components/gudang/gudang-form"
+import { RakForm } from "@/components/gudang/rak-form"
 
 interface WarehouseItem {
   kode: string
@@ -82,6 +88,9 @@ const rakData: RackItem[] = [
 ]
 
 export default function GudangPage() {
+  const [gudangDrawerOpen, setGudangDrawerOpen] = useState(false)
+  const [rakDrawerOpen, setRakDrawerOpen] = useState(false)
+
   const totalGudang = gudangData.length
   const aktifGudang = gudangData.filter((g) => g.status === "aktif").length
   const nonAktifGudang = totalGudang - aktifGudang
@@ -107,7 +116,9 @@ export default function GudangPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default">+ Tambah Gudang</Button>
+        <Button variant="default" onClick={() => setGudangDrawerOpen(true)}>
+          + Tambah Gudang
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -153,15 +164,11 @@ export default function GudangPage() {
                   {row.penanggungJawab}
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm">
-                  <span
-                    className={`inline-flex items-center rounded-[6px] px-2.5 py-0.5 text-xs font-semibold ${
-                      row.status === "aktif"
-                        ? "bg-[#E2FBE9] text-[#1E824C]"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+                  <ColoredBadge
+                    color={row.status === "aktif" ? "green" : "gray"}
                   >
                     {row.status === "aktif" ? "Aktif" : "Non-Aktif"}
-                  </span>
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
@@ -193,7 +200,9 @@ export default function GudangPage() {
 
       <div className="wrapper mt-[40px]">
         <div className="flex items-center gap-2">
-          <Button variant="default">+ Tambah Rak</Button>
+          <Button variant="default" onClick={() => setRakDrawerOpen(true)}>
+            + Tambah Rak
+          </Button>
           <Opsion
             placeholder="Semua gudang"
             options={[
@@ -275,6 +284,9 @@ export default function GudangPage() {
           </TableFooter>
         </Table>
       </div>
+
+      <GudangForm open={gudangDrawerOpen} onOpenChange={setGudangDrawerOpen} />
+      <RakForm open={rakDrawerOpen} onOpenChange={setRakDrawerOpen} />
     </>
   )
 }

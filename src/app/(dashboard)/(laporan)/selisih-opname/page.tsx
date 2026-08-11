@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Card } from "@/components/ui/card"
 import {
   BiSolidReport,
@@ -334,36 +334,22 @@ export default function LaporanSelisihOpnamePage() {
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap">
                       {row.statusRekons === "Defisit (Kurang)" && (
-                        <Badge
-                          variant="critical"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
+                        <ColoredBadge color="red">
                           Defisit (Kurang)
-                        </Badge>
+                        </ColoredBadge>
                       )}
                       {row.statusRekons === "Surplus (Lebih)" && (
-                        <Badge
-                          variant="info"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
+                        <ColoredBadge color="blue">
                           Surplus (Lebih)
-                        </Badge>
+                        </ColoredBadge>
                       )}
                       {row.statusRekons === "Perlu Investigasi" && (
-                        <Badge
-                          variant="warning"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
+                        <ColoredBadge color="yellow">
                           Perlu Investigasi
-                        </Badge>
+                        </ColoredBadge>
                       )}
                       {row.statusRekons === "Akurat (Klop)" && (
-                        <Badge
-                          variant="success"
-                          className="rounded-[6px] font-sans text-xs font-semibold"
-                        >
-                          Akurat (Klop)
-                        </Badge>
+                        <ColoredBadge color="green">Akurat (Klop)</ColoredBadge>
                       )}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">

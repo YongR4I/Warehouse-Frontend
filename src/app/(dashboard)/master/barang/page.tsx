@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -19,6 +22,8 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
+import { BarangForm } from "@/components/barang/barang-form"
 
 interface ProductItem {
   id: string
@@ -85,6 +90,8 @@ const dummyData: ProductItem[] = [
 ]
 
 export default function BarangPage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   return (
     <>
       <div className="wrapper">
@@ -97,12 +104,14 @@ export default function BarangPage() {
           />
           <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black">Export Excel/Pdf</Button>
-            <Button variant="default">
+            <Button variant="default" onClick={() => setDrawerOpen(true)}>
               <BiCartAdd className="mr-2" />+ Tambah Barang
             </Button>
           </div>
         </div>
       </div>
+
+      <BarangForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
@@ -202,11 +211,11 @@ export default function BarangPage() {
                   )}
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm">
-                  <span
-                    className={`inline-flex items-center rounded-[6px] px-2.5 py-0.5 text-xs font-semibold ${row.status === "aktif" ? "bg-[#E2FBE9] text-[#1E824C]" : "bg-muted text-muted-foreground"}`}
+                  <ColoredBadge
+                    color={row.status === "aktif" ? "green" : "gray"}
                   >
                     {row.status === "aktif" ? "Aktif" : "Nonaktif"}
-                  </span>
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">

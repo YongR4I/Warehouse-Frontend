@@ -14,6 +14,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface ShiftSchedule {
   id: string
@@ -93,29 +94,38 @@ export default function JadwalShiftPage() {
   const renderShiftBadge = (shift: string) => {
     if (shift === "Shift 1") {
       return (
-        <span className="inline-flex min-w-[55px] items-center justify-center rounded-[6px] bg-[#E0F2FE] px-2.5 py-1 text-[11px] font-semibold text-[#0284C7]">
+        <ColoredBadge color="sky" className="min-w-[55px] justify-center py-1">
           Shift 1
-        </span>
+        </ColoredBadge>
       )
     }
     if (shift === "Shift 2") {
       return (
-        <span className="inline-flex min-w-[55px] items-center justify-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-1 text-[11px] font-semibold text-[#D97706]">
+        <ColoredBadge
+          color="yellow"
+          className="min-w-[55px] justify-center py-1"
+        >
           Shift 2
-        </span>
+        </ColoredBadge>
       )
     }
     if (shift === "Shift 3") {
       return (
-        <span className="inline-flex min-w-[55px] items-center justify-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-1 text-[11px] font-semibold text-[#9333EA]">
+        <ColoredBadge
+          color="purple"
+          className="min-w-[55px] justify-center py-1"
+        >
           Shift 3
-        </span>
+        </ColoredBadge>
       )
     }
     return (
-      <span className="inline-flex min-w-[55px] items-center justify-center rounded-[6px] bg-[#F3F4F6] px-2.5 py-1 text-[11px] font-medium text-[#6B7280]">
+      <ColoredBadge
+        color="gray"
+        className="min-w-[55px] justify-center py-1 font-medium"
+      >
         OFF
-      </span>
+      </ColoredBadge>
     )
   }
 
@@ -200,9 +210,12 @@ export default function JadwalShiftPage() {
                   {row.nama}
                 </TableCell>
                 <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  <span className="inline-flex items-center rounded-full border border-border/80 bg-muted/40 px-2.5 py-0.5 text-[10px] font-medium whitespace-nowrap text-muted-foreground">
+                  <ColoredBadge
+                    color="gray"
+                    className="text-[10px] font-medium"
+                  >
                     {row.tanggungJawab}
-                  </span>
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm">
                   {renderShiftBadge(row.jadwal.sen)}

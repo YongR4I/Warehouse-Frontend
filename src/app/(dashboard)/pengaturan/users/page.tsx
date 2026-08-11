@@ -10,6 +10,7 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface UserItem {
   id: string
@@ -112,15 +113,11 @@ export default function UsersPage() {
                   {row.role}
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm">
-                  <span
-                    className={`inline-flex items-center rounded-[6px] px-2.5 py-0.5 text-xs font-semibold ${
-                      row.status === "aktif"
-                        ? "bg-[#E2FBE9] text-[#1E824C]"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+                  <ColoredBadge
+                    color={row.status === "aktif" ? "green" : "gray"}
                   >
                     {row.status === "aktif" ? "Aktif" : "Nonaktif"}
-                  </span>
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">

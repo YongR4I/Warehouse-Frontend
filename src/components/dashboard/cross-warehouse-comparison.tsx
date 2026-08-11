@@ -15,7 +15,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Progress } from "@/components/ui/progress"
 import type { MasterGudang, RakStorageDetail } from "@/hooks/use-dashboard-data"
 import { BiBuilding, BiGridAlt, BiRightArrowAlt } from "react-icons/bi"
@@ -55,12 +55,12 @@ export function CrossWarehouseComparison({
               gudang untuk drill-down detail.
             </CardDescription>
           </div>
-          <Badge
-            variant="outline"
+          <ColoredBadge
+            color="gray"
             className="shrink-0 self-start font-mono text-xs sm:self-auto"
           >
             {warehouses.length} Active Nodes
-          </Badge>
+          </ColoredBadge>
         </CardHeader>
 
         <CardContent className="pt-4">
@@ -127,13 +127,13 @@ export function CrossWarehouseComparison({
 
                   <TableCell className="text-center">
                     {wh.kritisCount > 0 ? (
-                      <Badge variant="critical" className="text-[10px]">
+                      <ColoredBadge color="red" className="text-[10px]">
                         {wh.kritisCount} Alert
-                      </Badge>
+                      </ColoredBadge>
                     ) : (
-                      <Badge variant="success" className="text-[10px]">
+                      <ColoredBadge color="green" className="text-[10px]">
                         Normal
-                      </Badge>
+                      </ColoredBadge>
                     )}
                   </TableCell>
 
@@ -202,18 +202,18 @@ export function CrossWarehouseComparison({
                     {rack.kategori}
                   </p>
                 </div>
-                <Badge
-                  variant={
+                <ColoredBadge
+                  color={
                     rack.status === "Overcapacity"
-                      ? "critical"
+                      ? "red"
                       : rack.status === "Hampir Penuh"
-                        ? "warning"
-                        : "success"
+                        ? "yellow"
+                        : "green"
                   }
                   className="text-[10px]"
                 >
                   {rack.status}
-                </Badge>
+                </ColoredBadge>
               </div>
 
               <div className="space-y-1.5">

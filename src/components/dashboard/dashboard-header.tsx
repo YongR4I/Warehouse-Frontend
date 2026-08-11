@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useDSBStore, useFilterStore, useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import type { MasterGudang } from "@/hooks/use-dashboard-data"
 import {
   BiBuilding,
@@ -74,12 +74,12 @@ export function DashboardHeader({
               <h1 className="font-heading text-xl font-light tracking-tight text-foreground md:text-2xl">
                 Operational Command
               </h1>
-              <Badge
-                variant="neutral"
+              <ColoredBadge
+                color="gray"
                 className="font-mono text-[10px] tracking-wider uppercase"
               >
                 Multi-Gudang
-              </Badge>
+              </ColoredBadge>
             </div>
             <p className="mt-0.5 text-xs text-pretty text-muted-foreground">
               Ringkasan eksekutif & exception control center seluruh lokasi
@@ -126,9 +126,9 @@ export function DashboardHeader({
                     }`}
                   >
                     <span>🏢 Semua Gudang (Agregat)</span>
-                    <Badge variant="neutral" className="text-[10px]">
+                    <ColoredBadge color="gray" className="text-[10px]">
                       {warehouses.length} Gudang
-                    </Badge>
+                    </ColoredBadge>
                   </button>
 
                   <div className="my-1 border-t border-border/30" />
@@ -153,12 +153,12 @@ export function DashboardHeader({
                         </div>
                       </div>
                       {wh.kritisCount > 0 && (
-                        <Badge
-                          variant="critical"
+                        <ColoredBadge
+                          color="red"
                           className="shrink-0 text-[10px]"
                         >
                           {wh.kritisCount}
-                        </Badge>
+                        </ColoredBadge>
                       )}
                     </button>
                   ))}
@@ -230,9 +230,9 @@ export function DashboardHeader({
                       Diagnostic Alerts
                     </span>
                   </div>
-                  <Badge variant="critical" className="text-[10px]">
+                  <ColoredBadge color="red" className="text-[10px]">
                     {totalExceptions} Actions Required
-                  </Badge>
+                  </ColoredBadge>
                 </div>
                 <div className="max-h-72 space-y-2 overflow-y-auto py-2 text-xs">
                   {totalExceptions > 0 ? (

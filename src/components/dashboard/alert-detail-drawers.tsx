@@ -25,7 +25,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import type {
@@ -170,12 +170,12 @@ export function AlertDetailDrawers({
                         </span>
                       </TableCell>
                       <TableCell className="text-xs">
-                        <Badge
-                          variant="outline"
+                        <ColoredBadge
+                          color="gray"
                           className="font-mono text-[10px]"
                         >
                           {item.gudangNama.replace("Gudang ", "")}
-                        </Badge>
+                        </ColoredBadge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="font-mono text-xs font-bold text-rose-600 tabular-nums dark:text-rose-400">
@@ -252,18 +252,18 @@ export function AlertDetailDrawers({
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant={
+                      <ColoredBadge
+                        color={
                           app.tipe === "Barang Masuk"
-                            ? "success"
+                            ? "green"
                             : app.tipe === "Barang Keluar"
-                              ? "warning"
-                              : "info"
+                              ? "yellow"
+                              : "blue"
                         }
                         className="text-[10px]"
                       >
                         {app.tipe}
-                      </Badge>
+                      </ColoredBadge>
                       <span className="font-mono text-sm font-bold text-foreground">
                         {app.kodeTransaksi}
                       </span>
@@ -398,12 +398,12 @@ export function AlertDetailDrawers({
                       </div>
                     </TableCell>
                     <TableCell className="text-xs">
-                      <Badge
-                        variant="outline"
+                      <ColoredBadge
+                        color="gray"
                         className="font-mono text-[10px]"
                       >
                         {op.gudangNama.replace("Gudang ", "")}
-                      </Badge>
+                      </ColoredBadge>
                     </TableCell>
                     <TableCell className="text-xs font-medium text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -421,13 +421,13 @@ export function AlertDetailDrawers({
                       </strong>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge
-                        variant={op.selisih < 0 ? "critical" : "warning"}
+                      <ColoredBadge
+                        color={op.selisih < 0 ? "red" : "yellow"}
                         className="font-mono text-[10px]"
                       >
                         {op.selisih > 0 ? `+${op.selisih}` : op.selisih}{" "}
                         {op.satuan}
-                      </Badge>
+                      </ColoredBadge>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs font-bold tabular-nums">
                       <span
@@ -482,9 +482,9 @@ export function AlertDetailDrawers({
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="info" className="text-[10px]">
+                    <ColoredBadge color="blue" className="text-[10px]">
                       {iz.tipe}
-                    </Badge>
+                    </ColoredBadge>
                     <span className="text-sm font-bold text-foreground">
                       {iz.namaPetugas}
                     </span>
@@ -492,9 +492,9 @@ export function AlertDetailDrawers({
                       ({iz.nip})
                     </span>
                   </div>
-                  <Badge variant="outline" className="font-mono text-[10px]">
+                  <ColoredBadge color="gray" className="font-mono text-[10px]">
                     {iz.gudangNama}
-                  </Badge>
+                  </ColoredBadge>
                 </div>
 
                 <div className="font-mono text-xs text-muted-foreground">

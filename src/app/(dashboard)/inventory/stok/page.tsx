@@ -17,6 +17,7 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface StockMovement {
   tanggal: string
@@ -179,24 +180,16 @@ export default function StokPage() {
                 </TableCell>
                 <TableCell className="font-sans text-sm">
                   {row.tipeTransaksi === "Stok Opname" && (
-                    <span className="inline-flex items-center rounded-[6px] bg-[#EEF2FF] px-2.5 py-1 text-xs font-semibold text-[#4F46E5]">
-                      Stok Opname
-                    </span>
+                    <ColoredBadge color="blue">Stok Opname</ColoredBadge>
                   )}
                   {row.tipeTransaksi === "Keluar Barang" && (
-                    <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
-                      Keluar Barang
-                    </span>
+                    <ColoredBadge color="yellow">Keluar Barang</ColoredBadge>
                   )}
                   {row.tipeTransaksi === "Mutasi Stok" && (
-                    <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-1 text-xs font-semibold text-[#9333EA]">
-                      Mutasi Stok
-                    </span>
+                    <ColoredBadge color="purple">Mutasi Stok</ColoredBadge>
                   )}
                   {row.tipeTransaksi === "Terima Barang" && (
-                    <span className="inline-flex items-center rounded-[6px] bg-[#D1FAE5] px-2.5 py-1 text-xs font-semibold text-[#065F46]">
-                      Terima Barang
-                    </span>
+                    <ColoredBadge color="green">Terima Barang</ColoredBadge>
                   )}
                 </TableCell>
                 <TableCell className="font-sans text-sm">

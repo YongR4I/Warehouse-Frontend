@@ -16,6 +16,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { ColoredBadge } from "@/components/ui/colored-badge"
 
 interface AttendanceItem {
   id: string
@@ -74,53 +75,25 @@ const dummyData: AttendanceItem[] = [
 export default function PetugasPage() {
   const renderShiftBadge = (shift: string) => {
     if (shift.startsWith("Pagi")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#E0F2FE] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#0284C7]">
-          {shift}
-        </span>
-      )
+      return <ColoredBadge color="sky">{shift}</ColoredBadge>
     }
     if (shift.startsWith("Siang")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-          {shift}
-        </span>
-      )
+      return <ColoredBadge color="yellow">{shift}</ColoredBadge>
     }
-    return (
-      <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#9333EA]">
-        {shift}
-      </span>
-    )
+    return <ColoredBadge color="purple">{shift}</ColoredBadge>
   }
 
   const renderKeteranganBadge = (keterangan: string) => {
     if (keterangan === "Tepat Waktu") {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#E2FBE9] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#1E824C]">
-          Tepat Waktu
-        </span>
-      )
+      return <ColoredBadge color="green">Tepat Waktu</ColoredBadge>
     }
     if (keterangan.startsWith("Terlambat")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#FEF3C7] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#D97706]">
-          {keterangan}
-        </span>
-      )
+      return <ColoredBadge color="yellow">{keterangan}</ColoredBadge>
     }
     if (keterangan.startsWith("Izin")) {
-      return (
-        <span className="inline-flex items-center rounded-[6px] bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#9333EA]">
-          {keterangan}
-        </span>
-      )
+      return <ColoredBadge color="purple">{keterangan}</ColoredBadge>
     }
-    return (
-      <span className="inline-flex items-center rounded-[6px] bg-[#FEE2E2] px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-[#DC2626]">
-        Tanpa Keterangan
-      </span>
-    )
+    return <ColoredBadge color="red">Tanpa Keterangan</ColoredBadge>
   }
 
   return (

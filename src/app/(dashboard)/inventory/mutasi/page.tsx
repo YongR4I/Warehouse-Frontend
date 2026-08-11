@@ -1,8 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
-import { StatusBadge } from "@/components/badge"
+import { ColoredBadge } from "@/components/ui/colored-badge"
+import { MutasiForm } from "@/components/mutasi/mutasi-form"
 
 import {
   BiTransfer,
@@ -92,6 +96,8 @@ const dummyData = [
 ] as const
 
 export default function MutasiPage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   return (
     <>
       <div className="wrapper">
@@ -111,10 +117,14 @@ export default function MutasiPage() {
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
-            <Button variant="default">+ Mutasi Baru</Button>
+            <Button variant="default" onClick={() => setDrawerOpen(true)}>
+              + Mutasi Baru
+            </Button>
           </div>
         </div>
       </div>
+
+      <MutasiForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
@@ -202,7 +212,25 @@ export default function MutasiPage() {
                   {row.dibuatOleh}
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm whitespace-nowrap">
-                  <StatusBadge status={row.status} />
+                  <ColoredBadge
+                    color={
+                      row.status === "disetujui"
+                        ? "green"
+                        : row.status === "menunggu_approval"
+                          ? "yellow"
+                          : row.status === "ditolak"
+                            ? "red"
+                            : "gray"
+                    }
+                  >
+                    {row.status === "disetujui"
+                      ? "Disetujui"
+                      : row.status === "menunggu_approval"
+                        ? "Menunggu Approval"
+                        : row.status === "ditolak"
+                          ? "Ditolak"
+                          : "Draft"}
+                  </ColoredBadge>
                 </TableCell>
                 <TableCell className="text-center font-sans text-sm whitespace-nowrap">
                   {row.dokumen !== "-" ? (

@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +18,8 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { KategoriForm } from "@/components/kategori/kategori-form"
+import { SatuanForm } from "@/components/kategori/satuan-form"
 
 interface CategoryItem {
   id: string
@@ -69,6 +74,9 @@ const satuanData: UnitItem[] = [
 ]
 
 export default function KategoriPage() {
+  const [kategoriDrawerOpen, setKategoriDrawerOpen] = useState(false)
+  const [satuanDrawerOpen, setSatuanDrawerOpen] = useState(false)
+
   const totalKategori = kategoriData.length
   const totalItem = kategoriData.reduce((sum, item) => sum + item.jumlahItem, 0)
   const totalSatuan = satuanData.length
@@ -96,7 +104,9 @@ export default function KategoriPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default">+ Tambah Kategori</Button>
+        <Button variant="default" onClick={() => setKategoriDrawerOpen(true)}>
+          + Tambah Kategori
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -161,7 +171,9 @@ export default function KategoriPage() {
       </div>
 
       <div className="wrapper mt-[40px]">
-        <Button variant="default">+ Tambah Satuan Unit (UOM)</Button>
+        <Button variant="default" onClick={() => setSatuanDrawerOpen(true)}>
+          + Tambah Satuan Unit (UOM)
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -215,6 +227,9 @@ export default function KategoriPage() {
           </TableFooter>
         </Table>
       </div>
+
+      <KategoriForm open={kategoriDrawerOpen} onOpenChange={setKategoriDrawerOpen} />
+      <SatuanForm open={satuanDrawerOpen} onOpenChange={setSatuanDrawerOpen} />
     </>
   )
 }
