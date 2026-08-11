@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Opsion } from "@/components/opsion"
@@ -17,6 +20,8 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { GudangForm } from "@/components/gudang/gudang-form"
+import { RakForm } from "@/components/gudang/rak-form"
 
 interface WarehouseItem {
   kode: string
@@ -83,6 +88,9 @@ const rakData: RackItem[] = [
 ]
 
 export default function GudangPage() {
+  const [gudangDrawerOpen, setGudangDrawerOpen] = useState(false)
+  const [rakDrawerOpen, setRakDrawerOpen] = useState(false)
+
   const totalGudang = gudangData.length
   const aktifGudang = gudangData.filter((g) => g.status === "aktif").length
   const nonAktifGudang = totalGudang - aktifGudang
@@ -108,7 +116,9 @@ export default function GudangPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default">+ Tambah Gudang</Button>
+        <Button variant="default" onClick={() => setGudangDrawerOpen(true)}>
+          + Tambah Gudang
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -190,7 +200,9 @@ export default function GudangPage() {
 
       <div className="wrapper mt-[40px]">
         <div className="flex items-center gap-2">
-          <Button variant="default">+ Tambah Rak</Button>
+          <Button variant="default" onClick={() => setRakDrawerOpen(true)}>
+            + Tambah Rak
+          </Button>
           <Opsion
             placeholder="Semua gudang"
             options={[
@@ -272,6 +284,9 @@ export default function GudangPage() {
           </TableFooter>
         </Table>
       </div>
+
+      <GudangForm open={gudangDrawerOpen} onOpenChange={setGudangDrawerOpen} />
+      <RakForm open={rakDrawerOpen} onOpenChange={setRakDrawerOpen} />
     </>
   )
 }

@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +18,8 @@ import {
   TableCell,
   TableFooter,
 } from "@/components/ui/table"
+import { SupplierForm } from "@/components/partner/supplier-form"
+import { CustomerForm } from "@/components/partner/customer-form"
 
 interface SupplierItem {
   kode: string
@@ -89,6 +94,9 @@ const customerData: CustomerItem[] = [
 ]
 
 export default function SupplierPage() {
+  const [supplierDrawerOpen, setSupplierDrawerOpen] = useState(false)
+  const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false)
+
   const totalSupplier = supplierData.length
   const totalCustomer = customerData.length
 
@@ -112,7 +120,9 @@ export default function SupplierPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default">+ Tambah Supplier</Button>
+        <Button variant="default" onClick={() => setSupplierDrawerOpen(true)}>
+          + Tambah Supplier
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -196,7 +206,9 @@ export default function SupplierPage() {
       </div>
 
       <div className="wrapper mt-[40px]">
-        <Button variant="default">+ Tambah Customer</Button>
+        <Button variant="default" onClick={() => setCustomerDrawerOpen(true)}>
+          + Tambah Customer
+        </Button>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -278,6 +290,9 @@ export default function SupplierPage() {
           </TableFooter>
         </Table>
       </div>
+
+      <SupplierForm open={supplierDrawerOpen} onOpenChange={setSupplierDrawerOpen} />
+      <CustomerForm open={customerDrawerOpen} onOpenChange={setCustomerDrawerOpen} />
     </>
   )
 }
