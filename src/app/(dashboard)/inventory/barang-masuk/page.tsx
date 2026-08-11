@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -90,6 +91,7 @@ const dummyData = [
 
 export default function BarangMasukPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <>
@@ -235,7 +237,14 @@ export default function BarangMasukPage() {
                 </TableCell>
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                    <button
+                      className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                      onClick={() =>
+                        router.push(
+                          `/inventory/barang-masuk/detail/${row.noReferensi}`
+                        )
+                      }
+                    >
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
