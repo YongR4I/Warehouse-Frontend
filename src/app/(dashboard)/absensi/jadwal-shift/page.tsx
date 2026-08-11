@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
   BiCalendar,
+  BiChevronLeft,
   BiChevronRight,
   BiDotsVerticalRounded,
   BiSolidReport,
-  } from "react-icons/bi"
+} from "react-icons/bi"
 import {
   Table,
   TableHeader,
@@ -19,20 +20,96 @@ import {
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { JadwalShiftForm } from "@/components/jadwal-shift/jadwal-shift-form"
+import { cn } from "@/lib/utils"
+
+// ─── Date Utilities ──────────────────────────────────────────────────────────
+
+function getMonday(date: Date): Date {
+  const d = new Date(date)
+  const day = d.getDay()
+  // Sunday = 0, shift so Monday = 0
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+const HARI_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
+const HARI_KEYS = ["sen", "sel", "rab", "kam", "jum", "sab", "min"] as const
+
+type HariKey = (typeof HARI_KEYS)[number]
+
+interface WeekDay {
+  label: string
+  key: HariKey
+  date: Date
+  dayNum: number
+  isToday: boolean
+}
+
+function generateWeekDays(weekStart: Date, today: Date): WeekDay[] {
+  return HARI_LABELS.map((label, i) => {
+    const date = addDays(weekStart, i)
+    return {
+      label,
+      key: HARI_KEYS[i],
+      date,
+      dayNum: date.getDate(),
+      isToday: isSameDay(date, today),
+    }
+  })
+}
+
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+]
+
+function formatWeekRange(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 6)
+  const startDay = weekStart.getDate()
+  const startMonth = MONTH_SHORT[weekStart.getMonth()]
+  const endDay = weekEnd.getDate()
+  const endMonth = MONTH_SHORT[weekEnd.getMonth()]
+  const endYear = weekEnd.getFullYear()
+
+  if (weekStart.getMonth() === weekEnd.getMonth()) {
+    return `${startDay} – ${endDay} ${endMonth} ${endYear}`
+  }
+  return `${startDay} ${startMonth} – ${endDay} ${endMonth} ${endYear}`
+}
+
+// ─── Types & Dummy Data ───────────────────────────────────────────────────────
 
 interface ShiftSchedule {
   id: string
   nama: string
   tanggungJawab: string
-  jadwal: {
-    sen: string
-    sel: string
-    rab: string
-    kam: string
-    jum: string
-    sab: string
-    min: string
-  }
+  jadwal: Record<HariKey, string>
 }
 
 const dummyData: ShiftSchedule[] = [
@@ -94,8 +171,46 @@ const dummyData: ShiftSchedule[] = [
   },
 ]
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function JadwalShiftPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const thisMonday = useMemo(() => getMonday(today), [today])
+
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(thisMonday)
+
+  const weekDays = useMemo(
+    () => generateWeekDays(currentWeekStart, today),
+    [currentWeekStart, today],
+  )
+
+  const isThisWeek = isSameDay(currentWeekStart, thisMonday)
+
+  // Limit forward navigation to 4 weeks ahead
+  const maxWeekStart = addDays(thisMonday, 4 * 7)
+  const isAtMaxWeek =
+    currentWeekStart.getTime() >= maxWeekStart.getTime()
+
+  function handlePrevWeek() {
+    setCurrentWeekStart((d) => addDays(d, -7))
+  }
+
+  function handleNextWeek() {
+    if (!isAtMaxWeek) {
+      setCurrentWeekStart((d) => addDays(d, 7))
+    }
+  }
+
+  function handleThisWeek() {
+    setCurrentWeekStart(thisMonday)
+  }
 
   const renderShiftBadge = (shift: string) => {
     if (shift === "Shift 1") {
@@ -158,18 +273,54 @@ export default function JadwalShiftPage() {
         </div>
       </div>
 
+      {/* ── Week Navigator ── */}
       <div className="wrapper mt-[35px]">
-        <div className="flex w-fit items-center gap-1 rounded-lg border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground/80 select-none">
-          <button className="cursor-pointer pr-1 hover:text-foreground">
-            &lt;
-          </button>
-          <span>27 Jul - 02 Agu 2026</span>
-          <button className="cursor-pointer pl-1 hover:text-foreground">
-            &gt;
-          </button>
+        <div className="flex items-center gap-2">
+          {/* Prev / Label / Next */}
+          <div className="flex items-center rounded-lg border border-border/80 bg-card text-xs font-semibold text-foreground/80 select-none overflow-hidden">
+            <button
+              onClick={handlePrevWeek}
+              title="Minggu sebelumnya"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <BiChevronLeft className="size-4" />
+            </button>
+
+            <div className="flex items-center gap-1.5 border-x border-border/80 px-3 h-9">
+              <BiCalendar className="size-3.5 text-muted-foreground" />
+              <span className="tabular-nums">{formatWeekRange(currentWeekStart)}</span>
+            </div>
+
+            <button
+              onClick={handleNextWeek}
+              disabled={isAtMaxWeek}
+              title={isAtMaxWeek ? "Tidak dapat maju lebih jauh" : "Minggu berikutnya"}
+              className={cn(
+                "flex h-9 w-9 cursor-pointer items-center justify-center transition-colors",
+                isAtMaxWeek
+                  ? "cursor-not-allowed text-foreground/30"
+                  : "hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <BiChevronRight className="size-4" />
+            </button>
+          </div>
+
+          {/* "Minggu Ini" reset button — only shown when not on current week */}
+          {!isThisWeek && (
+            <button
+              onClick={handleThisWeek}
+              title="Kembali ke minggu ini"
+              className="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 hover:border-primary/60"
+            >
+              <BiCalendar className="size-3.5" />
+              Minggu Ini
+            </button>
+          )}
         </div>
       </div>
 
+      {/* ── Schedule Table ── */}
       <div className="wrapper mt-[25px]">
         <Table>
           <TableHeader className="border-b border-border/60 bg-white">
@@ -180,27 +331,26 @@ export default function JadwalShiftPage() {
               <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
                 Tanggung Jawab
               </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Sen (27)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Sel (28)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Rab (29)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Kam (30)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jum (31)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Sab (01)
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Min (02)
-              </TableHead>
+
+              {weekDays.map((day) => (
+                <TableHead
+                  key={day.key}
+                  className={cn(
+                    "text-center text-xs font-semibold tracking-normal normal-case",
+                    day.isToday ? "text-primary" : "text-foreground",
+                  )}
+                >
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span>
+                      {day.label} ({String(day.dayNum).padStart(2, "0")})
+                    </span>
+                    {day.isToday && (
+                      <span className="h-1 w-1 rounded-full bg-primary" />
+                    )}
+                  </div>
+                </TableHead>
+              ))}
+
               <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
                 Aksi
               </TableHead>
@@ -223,27 +373,19 @@ export default function JadwalShiftPage() {
                     {row.tanggungJawab}
                   </ColoredBadge>
                 </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.sen)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.sel)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.rab)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.kam)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.jum)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.sab)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderShiftBadge(row.jadwal.min)}
-                </TableCell>
+
+                {weekDays.map((day) => (
+                  <TableCell
+                    key={day.key}
+                    className={cn(
+                      "text-center font-sans text-sm",
+                      day.isToday && "bg-primary/[0.03]",
+                    )}
+                  >
+                    {renderShiftBadge(row.jadwal[day.key])}
+                  </TableCell>
+                ))}
+
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
