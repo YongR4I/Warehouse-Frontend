@@ -1,12 +1,15 @@
+"use client"
+
+import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import {
-  BiUserCheck,
-  BiChevronRight,
+  BiUser,
+  BiUserPlus,
+  BiDownload,
   BiDotsVerticalRounded,
-  BiSolidReport,
-  BiCalendar,
+  BiChevronRight,
 } from "react-icons/bi"
 import {
   Table,
@@ -17,83 +20,125 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { PetugasForm } from "@/components/petugas/petugas-form"
 
-interface AttendanceItem {
+interface PetugasGudang {
   id: string
   kodePegawai: string
-  namaLengkap: string
   tanggungJawab: string
-  shiftKerja: string
-  jamMasuk: string
-  jamKeluar: string
-  keterangan: string
+  namaLengkap: string
+  areaKerja: string
+  nomorTelepon: string
+  tanggalBergabung: string
+  statusOperasional: "Aktif" | "Cuti" | "Non-Aktif"
 }
 
-const dummyData: AttendanceItem[] = [
+const initialData: PetugasGudang[] = [
   {
     id: "1",
     kodePegawai: "PG-001",
-    namaLengkap: "Ahmad Fauzi",
     tanggungJawab: "Operator Forklift",
-    shiftKerja: "Pagi (07:00 - 15:00)",
-    jamMasuk: "06:52",
-    jamKeluar: "15:05",
-    keterangan: "Tepat Waktu",
+    namaLengkap: "Ahmad Fauzi",
+    areaKerja: "Area Inbound - Rak A",
+    nomorTelepon: "0812-3456-7890",
+    tanggalBergabung: "12 Jan 2024",
+    statusOperasional: "Aktif",
   },
   {
     id: "2",
     kodePegawai: "PG-002",
-    namaLengkap: "Budi Santoso",
     tanggungJawab: "Admin Inbound",
-    shiftKerja: "Pagi (07:00 - 15:00)",
-    jamMasuk: "07:14",
-    jamKeluar: "15:02",
-    keterangan: "Terlambat (14m)",
+    namaLengkap: "Budi Santoso",
+    areaKerja: "Meja Penerimaan Barang",
+    nomorTelepon: "0813-9876-5432",
+    tanggalBergabung: "05 Mar 2024",
+    statusOperasional: "Aktif",
   },
   {
     id: "3",
     kodePegawai: "PG-003",
-    namaLengkap: "Dedi Kurniawan",
     tanggungJawab: "Packer Outbound",
-    shiftKerja: "Siang (15:00 - 23:00)",
-    jamMasuk: "-",
-    jamKeluar: "-",
-    keterangan: "Izin (Sakit)",
+    namaLengkap: "Dedi Kurniawan",
+    areaKerja: "Area Packing 2",
+    nomorTelepon: "0857-1122-3344",
+    tanggalBergabung: "10 Agu 2024",
+    statusOperasional: "Cuti",
   },
   {
     id: "4",
     kodePegawai: "PG-004",
-    namaLengkap: "Eko Prasetyo",
     tanggungJawab: "Staff Quality Control",
-    shiftKerja: "Malam (23:00 - 07:00)",
-    jamMasuk: "-",
-    jamKeluar: "-",
-    keterangan: "Tanpa Keterangan",
+    namaLengkap: "Eko Prasetyo",
+    areaKerja: "Area Inspeksi QC",
+    nomorTelepon: "0878-5566-7788",
+    tanggalBergabung: "01 Nov 2024",
+    statusOperasional: "Non-Aktif",
   },
 ]
 
-export default function PetugasPage() {
-  const renderShiftBadge = (shift: string) => {
-    if (shift.startsWith("Pagi")) {
-      return <ColoredBadge color="sky">{shift}</ColoredBadge>
-    }
-    if (shift.startsWith("Siang")) {
-      return <ColoredBadge color="yellow">{shift}</ColoredBadge>
-    }
-    return <ColoredBadge color="purple">{shift}</ColoredBadge>
+export default function DaftarPetugasPage() {
+  const [data] = useState<PetugasGudang[]>(initialData)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const itemsPerPage = 10
+
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const query = searchQuery.toLowerCase()
+      return (
+        item.namaLengkap.toLowerCase().includes(query) ||
+        item.kodePegawai.toLowerCase().includes(query) ||
+        item.tanggungJawab.toLowerCase().includes(query) ||
+        item.areaKerja.toLowerCase().includes(query)
+      )
+    })
+  }, [data, searchQuery])
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return filteredData.slice(start, start + itemsPerPage)
+  }, [filteredData, currentPage])
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1)
   }
 
-  const renderKeteranganBadge = (keterangan: string) => {
-    if (keterangan === "Tepat Waktu") {
-      return <ColoredBadge color="green">Tepat Waktu</ColoredBadge>
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+  }
+
+  const renderStatusBadge = (status: PetugasGudang["statusOperasional"]) => {
+    switch (status) {
+      case "Aktif":
+        return <ColoredBadge color="green">Aktif</ColoredBadge>
+      case "Cuti":
+        return <ColoredBadge color="yellow">Cuti</ColoredBadge>
+      case "Non-Aktif":
+        return <ColoredBadge color="gray">Non-Aktif</ColoredBadge>
     }
-    if (keterangan.startsWith("Terlambat")) {
-      return <ColoredBadge color="yellow">{keterangan}</ColoredBadge>
+  }
+
+  const renderPaginationButtons = () => {
+    const buttons = []
+    for (let i = 1; i <= totalPages; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => setCurrentPage(i)}
+          className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
+            currentPage === i
+              ? "bg-muted/60 text-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {i}
+        </button>
+      )
     }
-    if (keterangan.startsWith("Izin")) {
-      return <ColoredBadge color="purple">{keterangan}</ColoredBadge>
-    }
-    return <ColoredBadge color="red">Tanpa Keterangan</ColoredBadge>
+    return buttons
   }
 
   return (
@@ -101,19 +146,22 @@ export default function PetugasPage() {
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader
-            items={[{ label: "SDM & Kehadiran" }, { label: "Presensi Harian" }]}
-            title="Presensi Harian"
-            icon={BiUserCheck}
-            description="Rekam kehadiran harian petugas via absensi."
+            items={[
+              { label: "SDM & Kehadiran" },
+              { label: "Daftar Petugas Gudang" },
+            ]}
+            title="Daftar Petugas Gudang"
+            icon={BiUser}
+            description="Kelola data karyawan dan status operasional."
           />
           <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black">
-              <BiSolidReport className="mr-2" />
-              Export Excel/Pdf
+              <BiDownload className="mr-2" />
+              Export (.excel/.pdf)
             </Button>
-            <Button variant="default">
-              <BiUserCheck className="mr-2" />
-              Catat Absensi
+            <Button variant="default" onClick={() => setDrawerOpen(true)}>
+              <BiUserPlus className="mr-2" />
+              Tambah Petugas
             </Button>
           </div>
         </div>
@@ -122,88 +170,134 @@ export default function PetugasPage() {
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
           <InputSearch
-            placeholder="Cari NIK, nama, atau nomor HP..."
+            placeholder="Cari nama, kode petugas, atau area..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setCurrentPage(1)
+            }}
             className="flex-1"
           />
-          <div className="flex cursor-pointer items-center gap-2 rounded-lg border border-border/80 bg-card px-3.5 py-2 text-xs font-semibold whitespace-nowrap text-foreground/80">
-            <span>02 Agu 2026</span>
-            <BiCalendar className="size-4 text-muted-foreground" />
-          </div>
         </div>
       </div>
 
       <div className="wrapper mt-[25px]">
-        <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
-            <TableRow className="h-14 hover:bg-transparent">
-              <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
-                Kode Pegawai
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Nama Lengkap
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Tanggung Jawab
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Shift Kerja
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jam Masuk
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jam Keluar
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Keterangan Kehadiran
-              </TableHead>
-              <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dummyData.map((row) => (
-              <TableRow
-                key={row.id}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.kodePegawai}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.namaLengkap}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.tanggungJawab}
-                </TableCell>
-                <TableCell className="font-sans text-sm">
-                  {renderShiftBadge(row.shiftKerja)}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.jamMasuk}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.jamKeluar}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  {renderKeteranganBadge(row.keterangan)}
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
-                  </div>
-                </TableCell>
+        <div className="rounded-[15px] border border-zinc-200 bg-white shadow-xs overflow-hidden">
+          <Table>
+            <TableHeader className="border-b border-border/60 bg-white">
+              <TableRow className="h-14 hover:bg-transparent">
+                <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Kode Pegawai
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Tanggung Jawab
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Nama Lengkap
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Area Kerja
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Nomor Telepon
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Tanggal Bergabung
+                </TableHead>
+                <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Status Operasional
+                </TableHead>
+                <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
+                  Aksi
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm text-foreground">
+                    {row.kodePegawai}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm">
+                    <ColoredBadge color="gray">{row.tanggungJawab}</ColoredBadge>
+                  </TableCell>
+                  <TableCell className="font-sans text-sm whitespace-nowrap text-foreground font-medium">
+                    {row.namaLengkap}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.areaKerja}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.nomorTelepon}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.tanggalBergabung}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm">
+                    {renderStatusBadge(row.statusOperasional)}
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                        <BiChevronRight className="size-4 text-foreground/75" />
+                      </button>
+                      <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {paginatedData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
+                    Tidak ada data petugas ditemukan.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+
+          {/* Pagination Footer */}
+          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+            <span>
+              Menampilkan{" "}
+              {filteredData.length > 0
+                ? (currentPage - 1) * itemsPerPage + 1
+                : 0}
+              -{Math.min(currentPage * itemsPerPage, filteredData.length)} dari{" "}
+              {filteredData.length} data
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center">
+                <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
+                  <button
+                    onClick={handlePrev}
+                    disabled={currentPage === 1}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    &lt;
+                  </button>
+                  {renderPaginationButtons()}
+                  <button
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              </div>
+            )}
+            <span>10 per halaman</span>
+          </div>
+        </div>
       </div>
+
+      <PetugasForm open={drawerOpen} onOpenChange={setDrawerOpen} />
     </>
   )
 }

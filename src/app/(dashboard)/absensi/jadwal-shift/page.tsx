@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +18,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { JadwalShiftForm } from "@/components/jadwal-shift/jadwal-shift-form"
 
 interface ShiftSchedule {
   id: string
@@ -91,6 +95,8 @@ const dummyData: ShiftSchedule[] = [
 ]
 
 export default function JadwalShiftPage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   const renderShiftBadge = (shift: string) => {
     if (shift === "Shift 1") {
       return (
@@ -144,7 +150,7 @@ export default function JadwalShiftPage() {
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
-            <Button variant="default">
+            <Button variant="default" onClick={() => setDrawerOpen(true)}>
               <BiCalendar className="mr-2" />
               Atur Shift
             </Button>
@@ -253,6 +259,8 @@ export default function JadwalShiftPage() {
           </TableBody>
         </Table>
       </div>
+
+      <JadwalShiftForm open={drawerOpen} onOpenChange={setDrawerOpen} />
     </>
   )
 }

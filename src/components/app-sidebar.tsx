@@ -101,11 +101,16 @@ const navGroups: NavGroup[] = [
     icon: BiUserCheck,
     items: [
       {
+        icon: BiUser,
+        label: "Daftar Petugas",
+        path: "/absensi/petugas",
+      },
+      {
         icon: BiCalendar,
         label: "Jadwal Shift",
         path: "/absensi/jadwal-shift",
       },
-      { icon: BiUserCheck, label: "Presensi Harian", path: "/absensi/petugas" },
+      { icon: BiUserCheck, label: "Presensi Harian", path: "/absensi/presensi" },
       { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/rekap" },
     ],
   },
