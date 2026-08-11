@@ -5,7 +5,7 @@ import {
   BiChevronRight,
   BiDotsVerticalRounded,
   BiSolidReport,
-} from "react-icons/bi"
+  } from "react-icons/bi"
 import {
   Table,
   TableHeader,

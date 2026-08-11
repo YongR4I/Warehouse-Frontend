@@ -91,7 +91,7 @@ export default function BarangPage() {
         <div className="flex items-end justify-between">
           <PageHeader
             items={[{ label: "Data Master" }, { label: "Daftar Barang & SKU" }]}
-            title="Daftar Barang & SKU"
+            title="Daftar Barang & SKU "
             icon={BiPackage}
             description="Kelola data barang dan SKU di gudang."
           />
