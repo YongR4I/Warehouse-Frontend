@@ -27,68 +27,84 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-const dummyData = [
+interface SelisihOpnameItem {
+  tanggalAudit: string
+  noOpname: string
+  namaGudang: string
+  kodeRak: string
+  kodeSku: string
+  namaBarang: string
+  kategori: string
+  stokSistem: number
+  stokFisik: number
+  selisih: number
+  satuan: string
+  statusRekons: "Defisit (Kurang)" | "Surplus (Lebih)" | "Perlu Investigasi" | "Akurat (Klop)"
+  petugasAudit: string
+}
+
+const dummyData: SelisihOpnameItem[] = [
   {
-    tanggalAudit: "29 Jul 2026",
-    noOpname: "SO-20260729-01",
-    namaGudang: "Gudang Utama",
-    kodeRak: "RAK-A1",
-    kodeSku: "SKU-ELK-001",
-    namaBarang: "Monitor LED 24 Inch",
-    kategori: "Electronics",
-    stokSistem: 50,
-    stokFisik: 42,
-    selisih: -8,
-    satuan: "Unit",
+    tanggalAudit: "05 Agu 2026",
+    noOpname: "SO-202608-001",
+    namaGudang: "Gudang Utama (Pusat)",
+    kodeRak: "RAK-A-01",
+    kodeSku: "MIK-MON-50",
+    namaBarang: "Mikonos Monaco 50ml",
+    kategori: "Parfum",
+    stokSistem: 100,
+    stokFisik: 95,
+    selisih: -5,
+    satuan: "Pcs",
     statusRekons: "Defisit (Kurang)",
     petugasAudit: "Budi Santoso",
   },
   {
-    tanggalAudit: "29 Jul 2026",
-    noOpname: "SO-20260729-02",
-    namaGudang: "Gudang Utama",
-    kodeRak: "RAK-C2",
-    kodeSku: "SKU-FUR-012",
-    namaBarang: "Kursi Kerja Ergonomis",
-    kategori: "Furniture",
-    stokSistem: 15,
-    stokFisik: 20,
-    selisih: 5,
+    tanggalAudit: "05 Agu 2026",
+    noOpname: "SO-202608-001",
+    namaGudang: "Gudang Utama (Pusat)",
+    kodeRak: "RAK-A-02",
+    kodeSku: "SOM-NIA-20",
+    namaBarang: "Somethinc Niacinamide 20ml",
+    kategori: "Kosmetik",
+    stokSistem: 150,
+    stokFisik: 148,
+    selisih: -2,
     satuan: "Pcs",
-    statusRekons: "Surplus (Lebih)",
-    petugasAudit: "Dedi Kurniawan",
+    statusRekons: "Defisit (Kurang)",
+    petugasAudit: "Budi Santoso",
   },
   {
-    tanggalAudit: "29 Jul 2026",
-    noOpname: "SO-20260729-03",
-    namaGudang: "Gudang Transit",
-    kodeRak: "RAK-B3",
-    kodeSku: "SKU-ATK-088",
-    namaBarang: "Kertas HVS A4 80gsm",
-    kategori: "ATK",
-    stokSistem: 100,
-    stokFisik: 90,
-    selisih: -10,
-    satuan: "Rim",
-    statusRekons: "Perlu Investigasi",
-    petugasAudit: "Ahmad Fauzi",
-  },
-  {
-    tanggalAudit: "28 Jul 2026",
-    noOpname: "SO-20260728-01",
-    namaGudang: "Gudang Utama",
-    kodeRak: "RAK-A3",
-    kodeSku: "SKU-ELK-005",
-    namaBarang: "Keyboard Mekanikal Wireless",
-    kategori: "Electronics",
-    stokSistem: 200,
-    stokFisik: 200,
-    selisih: 0,
+    tanggalAudit: "05 Agu 2026",
+    noOpname: "SO-202608-001",
+    namaGudang: "Gudang Utama (Pusat)",
+    kodeRak: "RAK-C-01",
+    kodeSku: "SNS-MSK-3P",
+    namaBarang: "Sensi Mask 3-Ply Earloop",
+    kategori: "Alat Kesehatan",
+    stokSistem: 50,
+    stokFisik: 52,
+    selisih: 2,
     satuan: "Box",
-    statusRekons: "Akurat (Klop)",
-    petugasAudit: "Eko Prasetyo",
+    statusRekons: "Surplus (Lebih)",
+    petugasAudit: "Budi Santoso",
   },
-] as const
+  {
+    tanggalAudit: "05 Agu 2026",
+    noOpname: "SO-202608-001",
+    namaGudang: "Gudang Utama (Pusat)",
+    kodeRak: "RAK-B-01",
+    kodeSku: "KHF-FW-100",
+    namaBarang: "Kahf Face Wash 100ml",
+    kategori: "Perawatan Tubuh",
+    stokSistem: 200,
+    stokFisik: 165,
+    selisih: -35,
+    satuan: "Pcs",
+    statusRekons: "Defisit (Kurang)",
+    petugasAudit: "Budi Santoso",
+  },
+]
 
 export default function LaporanSelisihOpnamePage() {
   const [exportOpen, setExportOpen] = useState(false)
