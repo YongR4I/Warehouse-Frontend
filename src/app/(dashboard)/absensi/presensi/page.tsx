@@ -1,3 +1,7 @@
+"use client"
+
+import { useState } from "react"
+import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -73,6 +77,7 @@ const dummyData: AttendanceItem[] = [
 ]
 
 export default function PresensiPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const renderShiftBadge = (shift: string) => {
     if (shift.startsWith("Pagi")) {
       return <ColoredBadge color="sky">{shift}</ColoredBadge>
@@ -107,7 +112,7 @@ export default function PresensiPage() {
             description="Rekam kehadiran harian petugas via absensi."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -204,6 +209,39 @@ export default function PresensiPage() {
           </TableBody>
         </Table>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Data Presensi"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Kehadiran"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama & NIP",
+          "defaultChecked": true
+        },
+        {
+          "id": "jadwal",
+          "label": "Jadwal Shift",
+          "defaultChecked": true
+        },
+        {
+          "id": "jamMasuk",
+          "label": "Jam Masuk & Keluar",
+          "defaultChecked": true
+        },
+        {
+          "id": "status",
+          "label": "Status Kehadiran",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

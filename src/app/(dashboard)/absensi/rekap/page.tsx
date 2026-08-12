@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -369,6 +370,7 @@ const dummyData: AttendanceItem[] = [
 ]
 
 export default function RekapPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -495,7 +497,7 @@ export default function RekapPage() {
             description="Ringkasan laporan kehadiran karyawan per periode."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export (.excel/.pdf)
             </Button>
@@ -773,6 +775,34 @@ export default function RekapPage() {
           </div>
         </div>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Rekap Absensi"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Rekap"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama & NIP",
+          "defaultChecked": true
+        },
+        {
+          "id": "kehadiran",
+          "label": "Ringkasan Hadir/Sakit/Izin/Alfa",
+          "defaultChecked": true
+        },
+        {
+          "id": "persentase",
+          "label": "Persentase Kehadiran",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

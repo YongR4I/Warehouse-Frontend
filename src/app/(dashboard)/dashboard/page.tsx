@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import { DashboardInsightsPanel } from "@/components/dashboard/dashboard-insight
 import { BiBuilding, BiDownload, BiRefresh } from "react-icons/bi"
 
 export default function DashboardPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [selectedGudang, setSelectedGudang] = useState("all")
 
   return (
@@ -40,7 +42,7 @@ export default function DashboardPage() {
               onValueChange={(val) => setSelectedGudang(val || "all")}
             />
 
-            <Button variant="outline-black" className="gap-1 text-xs">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)} className="gap-1 text-xs">
               <BiRefresh className="size-4" /> Refresh
             </Button>
 
@@ -71,6 +73,34 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Ringkasan Dashboard"
+        totalItemsCount={"Semua"}
+        totalItemsLabel="Total Gudang"
+        filterLabel="Semua Gudang"
+        checkboxes={[
+        {
+          "id": "kpi",
+          "label": "Angka Indikator Utama (KPI)",
+          "defaultChecked": true
+        },
+        {
+          "id": "charts",
+          "label": "Data Grafik & Tren",
+          "defaultChecked": true
+        },
+        {
+          "id": "log",
+          "label": "Log Aktivitas Terbaru",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

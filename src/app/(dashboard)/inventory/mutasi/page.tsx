@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -96,6 +97,7 @@ const dummyData = [
 ] as const
 
 export default function MutasiPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -113,7 +115,7 @@ export default function MutasiPage() {
             description="Catat perpindahan stok barang antar gudang."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -288,6 +290,39 @@ export default function MutasiPage() {
           </TableFooter>
         </Table>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Mutasi Barang"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Mutasi"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "noMutasi",
+          "label": "No. Mutasi",
+          "defaultChecked": true
+        },
+        {
+          "id": "gudang",
+          "label": "Gudang Asal & Tujuan",
+          "defaultChecked": true
+        },
+        {
+          "id": "barang",
+          "label": "Detail Barang & Qty",
+          "defaultChecked": true
+        },
+        {
+          "id": "petugas",
+          "label": "Petugas Pelaksana",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

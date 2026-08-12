@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useOpnameStore, type OpnameSession } from "@/store"
@@ -35,6 +36,7 @@ import { ColoredBadge } from "@/components/ui/colored-badge"
 
 
 export default function OpnamePage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const router = useRouter()
   const { sessions: data, addSession, startAudit } = useOpnameStore()
   const [searchQuery, setSearchQuery] = useState("")
@@ -227,7 +229,7 @@ export default function OpnamePage() {
             description="Cocokkan stok sistem dengan stok fisik aktual."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export (.excel/.pdf)
             </Button>
@@ -632,6 +634,39 @@ export default function OpnamePage() {
           </FormModal.Footer>
         </form>
       </FormModal>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Laporan Opname"
+        totalItemsCount={data.length}
+        totalItemsLabel="Total Opname"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "noOpname",
+          "label": "No. Opname",
+          "defaultChecked": true
+        },
+        {
+          "id": "gudang",
+          "label": "Lokasi Gudang",
+          "defaultChecked": true
+        },
+        {
+          "id": "barang",
+          "label": "Detail Barang & SKU",
+          "defaultChecked": true
+        },
+        {
+          "id": "status",
+          "label": "Status Opname",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }
