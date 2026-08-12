@@ -2,22 +2,22 @@
 
 import Link from "next/link"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="flex min-h-screen w-full bg-white font-sans text-[#111111] max-[900px]:flex-col">
-      {/* LEFT: LOGIN FORM */}
+      {/* LEFT: REGISTER FORM */}
       <div className="mx-auto flex max-w-[560px] flex-1 flex-col justify-center px-16 py-12 max-[900px]:max-w-full max-[900px]:px-6 max-[900px]:py-10">
-        <div className="mb-16 text-xl font-bold tracking-[-0.02em]">adon</div>
+        <div className="mb-12 text-xl font-bold tracking-[-0.02em]">adon</div>
 
         <h1 className="mb-3 text-[32px] font-bold leading-[1.25] tracking-[-0.01em]">
-          Welcome back,
+          Buat akun,
           <br />
-          Olivia!
+          mulai sekarang!
         </h1>
         <p className="mb-7 text-[14.5px] leading-[1.5] text-[#8a8a8a]">
-          We are glad to see you again!
+          Selamat datang! Lengkapi data di bawah
           <br />
-          Please, enter your details
+          untuk membuat akun baru.
         </p>
 
         <div className="mb-6 flex gap-3">
@@ -43,7 +43,7 @@ export default function LoginPage() {
                 d="M12 4.75c1.76 0 3.34.6 4.59 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.25 2.7 1.27 6.6l4 3.1C6.22 6.86 8.87 4.75 12 4.75z"
               />
             </svg>
-            Login with Google
+            Daftar dengan Google
           </button>
           <button
             className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-3 text-sm font-medium text-[#111111] transition hover:border-[#d8d8d8] hover:bg-[#fafafa]"
@@ -55,79 +55,119 @@ export default function LoginPage() {
                 d="M16.36 1.43c0 1.14-.46 2.2-1.2 2.98-.8.85-2.1 1.5-3.2 1.42-.14-1.1.42-2.24 1.16-3 .8-.85 2.2-1.5 3.24-1.4zM20.5 17.2c-.5 1.15-.74 1.66-1.4 2.67-.9 1.4-2.18 3.14-3.75 3.15-1.4.02-1.76-.9-3.65-.9-1.9 0-2.3.88-3.7.92-1.57.05-2.77-1.5-3.67-2.9-2.02-3.1-2.24-6.75-.99-8.7.9-1.4 2.3-2.24 3.6-2.24 1.35 0 2.2.9 3.3.9 1.08 0 1.75-.92 3.3-.92 1.08 0 2.24.6 3.05 1.63-2.68 1.47-2.25 5.33.86 6.4z"
               />
             </svg>
-            Login with Apple
+            Daftar dengan Apple
           </button>
         </div>
 
-        <div className="my-[22px] text-center text-xs text-[#c9c9c9]">OR</div>
+        <div className="my-5 text-center text-xs text-[#c9c9c9]">ATAU</div>
 
         <form onSubmit={(e) => e.preventDefault()}>
-          <div className="mb-[18px]">
+          <div className="mb-4">
             <label
               className="mb-2 block text-[13.5px] font-semibold"
-              htmlFor="login-email"
+              htmlFor="register-name"
+            >
+              Nama Lengkap <span className="text-[#ff7a30]">*</span>
+            </label>
+            <input
+              id="register-name"
+              type="text"
+              name="name"
+              placeholder="Masukkan nama lengkap"
+              required
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label
+              className="mb-2 block text-[13.5px] font-semibold"
+              htmlFor="register-email"
             >
               Email <span className="text-[#ff7a30]">*</span>
             </label>
             <input
-              id="login-email"
+              id="register-email"
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder="Masukkan email"
               required
               className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
-          <div className="mb-[18px]">
+          <div className="mb-4">
             <label
               className="mb-2 block text-[13.5px] font-semibold"
-              htmlFor="login-password"
+              htmlFor="register-password"
             >
               Password <span className="text-[#ff7a30]">*</span>
             </label>
             <input
-              id="login-password"
+              id="register-password"
               type="password"
               name="password"
-              placeholder="Enter your password"
+              placeholder="Buat password"
+              minLength={8}
+              required
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+            />
+            <small className="mt-1.5 block text-xs text-[#8a8a8a]">
+              Minimal 8 karakter
+            </small>
+          </div>
+
+          <div className="mb-4">
+            <label
+              className="mb-2 block text-[13.5px] font-semibold"
+              htmlFor="register-confirm-password"
+            >
+              Konfirmasi Password <span className="text-[#ff7a30]">*</span>
+            </label>
+            <input
+              id="register-confirm-password"
+              type="password"
+              name="confirm_password"
+              placeholder="Ulangi password"
+              minLength={8}
               required
               className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
-          <div className="mb-[26px] mt-1 flex items-center justify-between text-[13.5px]">
-            <label className="flex cursor-pointer items-center gap-2 text-[#111111]">
+          <div className="mb-[22px] mt-1 flex items-start justify-between text-[13.5px]">
+            <label className="flex cursor-pointer items-start gap-2 leading-[1.4] text-[#111111]">
               <input
                 type="checkbox"
-                name="remember"
-                className="size-4 shrink-0 cursor-pointer accent-[#ff7a30]"
+                name="terms"
+                required
+                className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#ff7a30]"
               />
-              Remember me
+              Saya menyetujui{" "}
+              <a
+                className="font-semibold text-[#ff7a30] no-underline hover:underline"
+                href="#"
+              >
+                Syarat &amp; Ketentuan
+              </a>
             </label>
-            <a
-              className="font-medium text-[#111111] no-underline hover:underline"
-              href="#"
-            >
-              Forgot Password?
-            </a>
           </div>
 
           <button
             className="w-full cursor-pointer rounded-[10px] bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#252525] active:translate-y-px"
             type="submit"
           >
-            Login
+            Daftar
           </button>
         </form>
 
         <p className="mt-[22px] text-center text-[13.5px] text-[#8a8a8a]">
-          Don&apos;t have an account?{" "}
+          Sudah punya akun?{" "}
           <Link
             className="font-semibold text-[#111111] no-underline hover:underline"
-            href="/register"
+            href="/login"
           >
-            Sign up
+            Masuk
           </Link>
         </p>
       </div>
