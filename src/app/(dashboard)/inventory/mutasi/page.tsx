@@ -2,6 +2,7 @@
 
 import { ExportModal } from "@/components/export-modal"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -99,6 +100,7 @@ const dummyData = [
 export default function MutasiPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <>
@@ -248,7 +250,12 @@ export default function MutasiPage() {
                 </TableCell>
                 <TableCell className="pr-6 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                    <button
+                      className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                      onClick={() =>
+                        router.push(`/inventory/mutasi/detail/${row.noReferensi}`)
+                      }
+                    >
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -98,8 +99,22 @@ const dummyData: StockMovement[] = [
   },
 ]
 
+function getDetailHref(tipeTransaksi: StockMovement["tipeTransaksi"], noReferensi: string) {
+  switch (tipeTransaksi) {
+    case "Stok Opname":
+      return `/inventory/opname/${noReferensi}`
+    case "Keluar Barang":
+      return `/inventory/stok/keluar-barang/${noReferensi}`
+    case "Mutasi Stok":
+      return `/inventory/mutasi/detail/${noReferensi}`
+    case "Terima Barang":
+      return `/inventory/barang-masuk/detail/${noReferensi}`
+  }
+}
+
 export default function StokPage() {
   const [exportOpen, setExportOpen] = useState(false)
+  const router = useRouter()
   return (
     <>
       <div className="wrapper">
@@ -178,7 +193,8 @@ export default function StokPage() {
             {dummyData.map((row) => (
               <TableRow
                 key={row.noReferensi}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
+                className="h-16 border-b border-border/40 hover:bg-muted/30 cursor-pointer"
+                onClick={() => router.push(getDetailHref(row.tipeTransaksi, row.noReferensi))}
               >
                 <TableCell className="pl-6 font-sans text-sm text-foreground">
                   {row.tanggal}
@@ -197,10 +213,8 @@ export default function StokPage() {
                     <ColoredBadge color="green">Terima Barang</ColoredBadge>
                   )}
                 </TableCell>
-                <TableCell className="font-sans text-sm">
-                  <span className="cursor-pointer font-medium text-[#3B82F6] transition-colors hover:text-[#2563EB] hover:underline">
-                    {row.noReferensi}
-                  </span>
+                <TableCell className="font-sans text-sm font-medium text-[#3B82F6]">
+                  {row.noReferensi}
                 </TableCell>
                 <TableCell className="font-sans text-sm text-foreground">
                   {row.lokasiGudang.tujuan ? (

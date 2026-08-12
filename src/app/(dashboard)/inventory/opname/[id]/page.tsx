@@ -287,7 +287,7 @@ export default function AuditOpnamePage() {
           
           <Opsion
             placeholder="Semua Status Selisih"
-            value={selisihFilter || undefined}
+            value={selisihFilter || ""}
             onValueChange={(val) => {
               setSelisihFilter(val)
               setCurrentPage(1)
@@ -426,7 +426,7 @@ export default function AuditOpnamePage() {
                         {mode === "edit" && session.status !== "Selesai" ? (
                           <Opsion
                             placeholder="Alasan..."
-                            value={row.reasonCode || undefined}
+                            value={row.reasonCode || ""}
                             onValueChange={(val) => handleItemUpdate(row.id, "reasonCode", val || "Tidak ada selisih")}
                             className="w-[180px] h-[38px] rounded-lg border-border"
                             options={[

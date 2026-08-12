@@ -599,7 +599,7 @@ export default function RekapPage() {
           </div>
           <Opsion
             placeholder="Semua Status Kehadiran"
-            value={statusFilter || undefined}
+            value={statusFilter || ""}
             onValueChange={handleStatusChange}
             options={[
               { value: "all", label: "Semua Status Kehadiran" },

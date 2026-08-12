@@ -28,10 +28,10 @@ src/app/(dashboard)/inventory/
 ```
 /inventory/barang-masuk/detail/BM-2026070001
 /inventory/barang-keluar/detail/BK-2026070014
-/inventory/mutasi/detail/MU-2026070001
+/inventory/mutasi/detail/MT-2026070031
 ```
 
-**Penting:** `[id]` berisi **nomor referensi** dokumen (contoh: `BM-2026070001`), bukan id numerik database. Sesuaikan dengan prefix tiap modul (BM = Barang Masuk, BK = Barang Keluar, MU = Mutasi, dst.).
+**Penting:** `[id]` berisi **nomor referensi** dokumen (contoh: `BM-2026070001`), bukan id numerik database. Sesuaikan dengan prefix tiap modul (BM = Barang Masuk, BK = Barang Keluar, MT = Mutasi, dst.).
 
 ### Membaca `params` di Next.js 16
 
@@ -175,14 +175,14 @@ import { cn } from "@/lib/utils"
 |---|---|---|---|---|---|---|
 | Barang Masuk | `/inventory/barang-masuk/detail/[id]` | Terima Barang (In) | Gudang Asal | Supplier | No. Referensi, Gudang Asal, Supplier, Tanggal, Status, Dokumen | SKU & Info Barang, Lokasi Rak, Satuan, Qty Diterima, Harga Satuan, Total |
 | Barang Keluar | `/inventory/barang-keluar/detail/[id]` | Keluar Barang (Out) | Gudang Tujuan | Customer | No. Referensi, Gudang Tujuan, Customer, Tanggal, Status, Dokumen | SKU & Info Barang, Lokasi Rak, Satuan, Qty Keluar, Harga Satuan, Total |
-| Mutasi | `/inventory/mutasi/detail/[id]` | Mutasi Stok | Gudang Asal → Tujuan | (tidak ada) | No. Referensi, Gudang Asal, Gudang Tujuan, Tanggal, Status, Dokumen | SKU & Info Barang, Lokasi Rak, Satuan, Qty Mutasi, Stok Sistem |
+| Mutasi | `/inventory/mutasi/detail/[id]` | Mutasi Stok | Gudang Asal → Tujuan | (tidak ada) | No. Referensi, Gudang Asal, Gudang Tujuan, Tanggal, Status, Dokumen | Barang (gambar+deskripsi), SKU, Kategori, Qty Mutasi, Satuan, Catatan Item |
 | Stok Opname | `/inventory/opname/[id]` | Stok Opname | Lokasi Gudang | Petugas Audit | No. Referensi, Lokasi, Tanggal, Petugas | (sudah ada — jangan tumpang tindih) |
 
 ### Mapping per modul:
 
 - **Barang Masuk (`BM-`)**: gudang asal + supplier, item = qty diterima + harga satuan.
 - **Barang Keluar (`BK-`)**: gudang tujuan + customer, item = qty keluar + harga satuan.
-- **Mutasi (`MU-`)**: gudang asal → gudang tujuan (2 field), item = qty mutasi (tanpa harga).
+- **Mutasi (`MT-`)**: gudang asal → gudang tujuan (2 field), item = qty mutasi (tanpa harga).
 - **Stok Opname (`OP-`)**: sudah ada pola sendiri (`opname/[id]`), jangan ubah.
 
 ### Ikon per modul (`react-icons/bi`):
@@ -421,7 +421,7 @@ export default function DetailPage() {
 - [ ] Buat folder `src/app/(dashboard)/inventory/{modul}/detail/[id]/`
 - [ ] Salin `page.tsx` dari `barang-masuk/detail/[id]` (atau gunakan template section 9)
 - [ ] Sesuaikan dengan tabel **section 6**:
-  - [ ] Prefix no. referensi (BM/BK/MU) + ikon modul
+  - [ ] Prefix no. referensi (BM/BK/MT) + ikon modul
   - [ ] Label gudang (Asal / Tujuan / Asal→Tujuan)
   - [ ] Pihak terkait (Supplier / Customer / tanpa)
   - [ ] Kolom item table sesuai modul

@@ -323,7 +323,7 @@ export default function OpnamePage() {
           />
           <Opsion
             placeholder="Semua Status Selisih"
-            value={statusFilter || undefined}
+            value={statusFilter || ""}
             onValueChange={handleStatusChange}
             className="w-[245px]"
             options={[
@@ -335,7 +335,7 @@ export default function OpnamePage() {
           />
           <Opsion
             placeholder="Semua Gudang"
-            value={gudangFilter || undefined}
+            value={gudangFilter || ""}
             onValueChange={handleGudangChange}
             className="w-[245px]"
             options={[
