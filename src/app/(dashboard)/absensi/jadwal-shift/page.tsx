@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -174,6 +175,7 @@ const dummyData: ShiftSchedule[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function JadwalShiftPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const today = useMemo(() => {
@@ -261,7 +263,7 @@ export default function JadwalShiftPage() {
             description="Atur dan pantau pembagian jam kerja harian petugas operasional gudang."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -403,6 +405,39 @@ export default function JadwalShiftPage() {
       </div>
 
       <JadwalShiftForm open={drawerOpen} onOpenChange={setDrawerOpen} />
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Jadwal Shift"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Jadwal"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "petugas",
+          "label": "Nama Petugas",
+          "defaultChecked": true
+        },
+        {
+          "id": "shift",
+          "label": "Shift & Jam Kerja",
+          "defaultChecked": true
+        },
+        {
+          "id": "tanggal",
+          "label": "Tanggal Jadwal",
+          "defaultChecked": true
+        },
+        {
+          "id": "keterangan",
+          "label": "Keterangan Tambahan",
+          "defaultChecked": false
+        }
+      ]}
+      />
     </>
   )
 }

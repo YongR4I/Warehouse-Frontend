@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
@@ -90,6 +91,7 @@ const dummyData = [
 ] as const
 
 export default function BarangMasukPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const router = useRouter()
 
@@ -108,7 +110,7 @@ export default function BarangMasukPage() {
             description="Catat penerimaan stok barang masuk ke gudang."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -297,6 +299,40 @@ export default function BarangMasukPage() {
           </TableFooter>
         </Table>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Barang Masuk"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Penerimaan"
+        filterLabel="Filter Aktif"
+        exportUrl="/barang-masuk/export/excel"
+        checkboxes={[
+        {
+          "id": "noPo",
+          "label": "No. Purchase Order",
+          "defaultChecked": true
+        },
+        {
+          "id": "supplier",
+          "label": "Supplier Asal",
+          "defaultChecked": true
+        },
+        {
+          "id": "barang",
+          "label": "Detail Barang & Qty",
+          "defaultChecked": true
+        },
+        {
+          "id": "petugas",
+          "label": "Petugas Penerima",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

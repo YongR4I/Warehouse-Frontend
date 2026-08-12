@@ -1,5 +1,8 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
+
+
 import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -74,6 +77,7 @@ const satuanData: UnitItem[] = [
 ]
 
 export default function KategoriPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [kategoriDrawerOpen, setKategoriDrawerOpen] = useState(false)
   const [satuanDrawerOpen, setSatuanDrawerOpen] = useState(false)
 
@@ -95,7 +99,7 @@ export default function KategoriPage() {
             description="Atur kategori barang dan satuan ukurnya."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -230,6 +234,34 @@ export default function KategoriPage() {
 
       <KategoriForm open={kategoriDrawerOpen} onOpenChange={setKategoriDrawerOpen} />
       <SatuanForm open={satuanDrawerOpen} onOpenChange={setSatuanDrawerOpen} />
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Daftar Kategori"
+        totalItemsCount={kategoriData.length}
+        totalItemsLabel="Total Kategori"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama Kategori",
+          "defaultChecked": true
+        },
+        {
+          "id": "kode",
+          "label": "Kode Kategori",
+          "defaultChecked": true
+        },
+        {
+          "id": "deskripsi",
+          "label": "Keterangan / Deskripsi",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

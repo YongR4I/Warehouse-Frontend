@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -88,6 +89,7 @@ const rakData: RackItem[] = [
 ]
 
 export default function GudangPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [gudangDrawerOpen, setGudangDrawerOpen] = useState(false)
   const [rakDrawerOpen, setRakDrawerOpen] = useState(false)
 
@@ -107,7 +109,7 @@ export default function GudangPage() {
             description="Kelola data gudang dan lokasi rak."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -287,6 +289,34 @@ export default function GudangPage() {
 
       <GudangForm open={gudangDrawerOpen} onOpenChange={setGudangDrawerOpen} />
       <RakForm open={rakDrawerOpen} onOpenChange={setRakDrawerOpen} />
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Daftar Gudang"
+        totalItemsCount={gudangData.length}
+        totalItemsLabel="Total Gudang"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama Gudang",
+          "defaultChecked": true
+        },
+        {
+          "id": "lokasi",
+          "label": "Alamat / Lokasi",
+          "defaultChecked": true
+        },
+        {
+          "id": "kapasitas",
+          "label": "Kapasitas Unit",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

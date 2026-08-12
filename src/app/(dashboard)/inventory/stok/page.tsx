@@ -1,3 +1,7 @@
+"use client"
+
+import { useState } from "react"
+import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -95,6 +99,7 @@ const dummyData: StockMovement[] = [
 ]
 
 export default function StokPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   return (
     <>
       <div className="wrapper">
@@ -110,7 +115,7 @@ export default function StokPage() {
             description="Lihat riwayat pergerakan stok tiap barang "
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -262,6 +267,34 @@ export default function StokPage() {
           </TableFooter>
         </Table>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Ringkasan Stok Barang"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Stok"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "sku",
+          "label": "Kode SKU & Barcode",
+          "defaultChecked": true
+        },
+        {
+          "id": "kategori",
+          "label": "Kategori & Unit",
+          "defaultChecked": true
+        },
+        {
+          "id": "stok",
+          "label": "Rincian Stok Min/Max",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

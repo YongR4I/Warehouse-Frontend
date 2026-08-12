@@ -1,3 +1,7 @@
+"use client"
+
+import { useState } from "react"
+import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -87,6 +91,7 @@ const dummyData = [
 ] as const
 
 export default function LaporanSelisihOpnamePage() {
+  const [exportOpen, setExportOpen] = useState(false)
   return (
     <>
       {/* Header Section */}
@@ -99,7 +104,7 @@ export default function LaporanSelisihOpnamePage() {
             description="Laporan perbedaan stok sistem versus fisik."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export (.excel/.pdf)
             </Button>
@@ -401,6 +406,44 @@ export default function LaporanSelisihOpnamePage() {
           </div>
         </div>
       </div>
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Laporan Selisih Opname"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total Selisih"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "noDokumen",
+          "label": "No. Dokumen Opname",
+          "defaultChecked": true
+        },
+        {
+          "id": "barang",
+          "label": "Detail Barang & SKU",
+          "defaultChecked": true
+        },
+        {
+          "id": "selisih",
+          "label": "Kuantitas Selisih",
+          "defaultChecked": true
+        },
+        {
+          "id": "nominal",
+          "label": "Nilai Selisih (Rupiah)",
+          "defaultChecked": true
+        },
+        {
+          "id": "keterangan",
+          "label": "Keterangan / Alasan",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

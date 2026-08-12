@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangForm } from "@/components/barang/barang-form"
+import { ExportModal } from "@/components/export-modal"
 
 interface ProductItem {
   id: string
@@ -91,6 +92,7 @@ const dummyData: ProductItem[] = [
 
 export default function BarangPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   return (
     <>
@@ -103,7 +105,7 @@ export default function BarangPage() {
             description="Kelola data barang dan SKU di gudang."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">Export Excel/Pdf</Button>
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>Export Excel/Pdf</Button>
             <Button variant="default" onClick={() => setDrawerOpen(true)}>
               <BiCartAdd className="mr-2" />+ Tambah Barang
             </Button>
@@ -112,6 +114,7 @@ export default function BarangPage() {
       </div>
 
       <BarangForm open={drawerOpen} onOpenChange={setDrawerOpen} />
+      
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
@@ -241,6 +244,38 @@ export default function BarangPage() {
           </TableFooter>
         </Table>
       </div>
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Data Barang & SKU"
+        totalItemsCount={dummyData.length}
+        totalItemsLabel="Total SKU"
+        filterLabel="Semua Gudang"
+        exportUrl="/barang/export/excel"
+        checkboxes={[
+        {
+          "id": "sku",
+          "label": "Kode SKU & Barcode",
+          "defaultChecked": true
+        },
+        {
+          "id": "category",
+          "label": "Kategori & Unit",
+          "defaultChecked": true
+        },
+        {
+          "id": "stock",
+          "label": "Rincian Stok Min/Max",
+          "defaultChecked": true
+        },
+        {
+          "id": "attachment",
+          "label": "Lampiran Dokumen",
+          "defaultChecked": false
+        }
+      ]}
+      />
     </>
   )
 }

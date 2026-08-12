@@ -1,5 +1,8 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
+
+
 import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -94,6 +97,7 @@ const customerData: CustomerItem[] = [
 ]
 
 export default function SupplierPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [supplierDrawerOpen, setSupplierDrawerOpen] = useState(false)
   const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false)
 
@@ -111,7 +115,7 @@ export default function SupplierPage() {
             description="Kelola data pemasok dan pelanggan."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
@@ -293,6 +297,34 @@ export default function SupplierPage() {
 
       <SupplierForm open={supplierDrawerOpen} onOpenChange={setSupplierDrawerOpen} />
       <CustomerForm open={customerDrawerOpen} onOpenChange={setCustomerDrawerOpen} />
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Daftar Supplier"
+        totalItemsCount={supplierData.length}
+        totalItemsLabel="Total Supplier"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama Supplier",
+          "defaultChecked": true
+        },
+        {
+          "id": "kontak",
+          "label": "No. Telp / Email",
+          "defaultChecked": true
+        },
+        {
+          "id": "alamat",
+          "label": "Alamat Perusahaan",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { ExportModal } from "@/components/export-modal"
 import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -77,6 +78,7 @@ const initialData: PetugasGudang[] = [
 ]
 
 export default function DaftarPetugasPage() {
+  const [exportOpen, setExportOpen] = useState(false)
   const [data] = useState<PetugasGudang[]>(initialData)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -155,7 +157,7 @@ export default function DaftarPetugasPage() {
             description="Kelola data karyawan dan status operasional."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
               <BiDownload className="mr-2" />
               Export (.excel/.pdf)
             </Button>
@@ -298,6 +300,34 @@ export default function DaftarPetugasPage() {
       </div>
 
       <PetugasForm open={drawerOpen} onOpenChange={setDrawerOpen} />
+    
+      
+    
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Ekspor Daftar Petugas"
+        totalItemsCount={initialData.length}
+        totalItemsLabel="Total Petugas"
+        filterLabel="Filter Aktif"
+        checkboxes={[
+        {
+          "id": "nama",
+          "label": "Nama & NIP",
+          "defaultChecked": true
+        },
+        {
+          "id": "kontak",
+          "label": "Informasi Kontak",
+          "defaultChecked": true
+        },
+        {
+          "id": "status",
+          "label": "Status Keaktifan",
+          "defaultChecked": true
+        }
+      ]}
+      />
     </>
   )
 }

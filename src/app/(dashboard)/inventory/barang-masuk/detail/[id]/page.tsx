@@ -21,6 +21,7 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import api from "@/lib/api"
 
 interface BarangMasukDetailItem {
   sku: string
@@ -303,6 +304,32 @@ export default function BarangMasukDetailPage() {
     return items.slice(start, end)
   }, [items, currentPage])
 
+  const [isPrinting, setIsPrinting] = useState(false)
+
+  const handlePrint = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsPrinting(true)
+    try {
+      const response = await api.get(`/barang-masuk/${noReferensi}/print-surat-jalan`, {
+        responseType: "blob",
+      })
+      const blob = new Blob([response.data], { type: "application/pdf" })
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, "_blank")
+    } catch (error: any) {
+      console.error("Print error:", error)
+      if (error.response?.status === 403) {
+        alert("Anda tidak memiliki izin (permission: barang-masuk-print) untuk mencetak surat jalan.")
+      } else if (error.response?.status === 401) {
+        alert("Sesi Anda telah berakhir. Silakan login kembali.")
+      } else {
+        alert("Gagal mengunduh PDF Surat Jalan. Mohon coba beberapa saat lagi.")
+      }
+    } finally {
+      setIsPrinting(false)
+    }
+  }
+
   if (!info) {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-4">
@@ -392,12 +419,15 @@ export default function BarangMasukDetailPage() {
             {info.dokumen.nama !== "-" ? (
               <a
                 href="#"
-                onClick={(e) => e.preventDefault()}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-[#0284C7] hover:underline"
+                onClick={handlePrint}
+                className={cn(
+                  "inline-flex items-center gap-1 text-sm font-semibold text-[#0284C7] hover:underline",
+                  isPrinting && "opacity-50 pointer-events-none"
+                )}
               >
                 <BiFileBlank className="size-4 shrink-0 text-[#0284C7]" />
-                <span>{info.dokumen.nama}</span>
-                {info.dokumen.extraCount ? (
+                <span>{isPrinting ? "Membuka PDF..." : info.dokumen.nama}</span>
+                {info.dokumen.extraCount && !isPrinting ? (
                   <span className="font-semibold text-xs text-[#0284C7]">
                     +{info.dokumen.extraCount}
                   </span>
