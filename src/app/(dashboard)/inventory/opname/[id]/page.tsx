@@ -1,6 +1,6 @@
 "use client"
-import { useState, useMemo, use } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useMemo } from "react"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import { useOpnameStore, type OpnameDetailItem } from "@/store"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -25,17 +25,12 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 
-interface PageProps {
-  params: Promise<{ id: string }> | { id: string }
-}
-
-export default function AuditOpnamePage({ params }: PageProps) {
+export default function AuditOpnamePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const mode = searchParams.get("mode") || "edit" // "edit" or "view"
 
-  const unwrappedParams = use(Promise.resolve(params))
-  const noDokumen = unwrappedParams.id
+  const noDokumen = useParams<{ id: string }>().id
 
   const { sessions, details, updateDetailItem, finalizeSession } = useOpnameStore()
 

@@ -7,7 +7,7 @@ interface BreadcrumbItem {
 
 interface PageHeaderProps {
   items: BreadcrumbItem[]
-  title: string
+  title: React.ReactNode
   icon?: IconType
   description?: string
 }
@@ -52,3 +52,4 @@ export function PageHeader({
     </div>
   )
 }
+

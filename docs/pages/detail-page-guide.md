@@ -35,19 +35,18 @@ src/app/(dashboard)/inventory/
 
 ### Membaca `params` di Next.js 16
 
-Di Next.js 16, `params` adalah **Promise**. Gunakan pola yang sama dengan `opname/[id]/page.tsx`:
+Di halaman **client component**, `params` dari prop adalah Promise dan `use(Promise.resolve(params))` **tidak didukung** (error: "suspended by an uncached promise"). Gunakan hook **`useParams()`** dari `next/navigation`:
 
 ```tsx
-interface PageProps {
-  params: Promise<{ id: string }> | { id: string }
-}
+import { useParams } from "next/navigation"
 
-export default function DetailPage({ params }: PageProps) {
-  const unwrappedParams = use(Promise.resolve(params))
-  const noReferensi = unwrappedParams.id
+export default function DetailPage() {
+  const noReferensi = useParams<{ id: string }>().id
   ...
 }
 ```
+
+> Catatan: pola `use(Promise.resolve(params))` (yang dipakai `opname/[id]` sebelumnya) sudah diganti ke `useParams()` — jangan dipakai lagi untuk halaman baru.
 
 ---
 
@@ -267,8 +266,8 @@ PaginatedResponse<T> → { data: T[]; meta: { currentPage, totalPages, totalItem
 ```tsx
 "use client"
 
-import { useState, useMemo, use } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useMemo } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
@@ -279,10 +278,6 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 // import { useApiDetail } from "@/hooks/use-api"   // jika real API
-
-interface PageProps {
-  params: Promise<{ id: string }> | { id: string }
-}
 
 // ── GANTI: dummy info per dokumen ────────────────────────────
 const detailInfo: Record<string, any> = {
@@ -296,10 +291,9 @@ const detailItems: Record<string, any[]> = {
   ],
 }
 
-export default function DetailPage({ params }: PageProps) {
+export default function DetailPage() {
   const router = useRouter()
-  const unwrappedParams = use(Promise.resolve(params))
-  const noReferensi = unwrappedParams.id
+  const noReferensi = useParams<{ id: string }>().id
 
   const info = detailInfo[noReferensi]
   const items = detailItems[noReferensi] || []

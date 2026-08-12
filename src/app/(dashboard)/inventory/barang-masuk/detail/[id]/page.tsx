@@ -1,12 +1,17 @@
 "use client"
 
-import { useState, useMemo, use } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useMemo } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch } from "@/components/input"
-import { ColoredBadge } from "@/components/ui/colored-badge"
-import { BiDownArrowCircle, BiFile } from "react-icons/bi"
+import {
+  BiStoreAlt,
+  BiCheck,
+  BiTimeFive,
+  BiX,
+  BiFile,
+  BiFileBlank,
+} from "react-icons/bi"
 import {
   TableHeader,
   TableBody,
@@ -17,361 +22,286 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 
-interface PageProps {
-  params: Promise<{ id: string }> | { id: string }
-}
-
 interface BarangMasukDetailItem {
   sku: string
   nama: string
-  kategori: string
   rak: string
-  satuan: string
   qty: number
   hargaSatuan: number
+  subtotal: number
 }
 
 interface BarangMasukDetailInfo {
-  gudangAsal: string
+  gudangTujuan: string
   supplier: string
+  disetujuiOleh: string
   tanggal: string
   waktu: string
   dibuatOleh: string
   status: "disetujui" | "menunggu_approval" | "ditolak" | "draft"
-  dokumen: string
+  dokumen: {
+    nama: string
+    extraCount?: number
+  }
 }
 
 const detailInfo: Record<string, BarangMasukDetailInfo> = {
   "BM-2026070001": {
-    gudangAsal: "Gudang Pusat",
+    gudangTujuan: "Gudang Pusat",
     supplier: "PT Sumber Makmur",
+    disetujuiOleh: "Budi Hartono",
     tanggal: "21 Jul 2026",
     waktu: "10:15 WIB",
     dibuatOleh: "Andi Wijaya",
     status: "disetujui",
-    dokumen: "2 file",
+    dokumen: {
+      nama: "surat-jalan.pdf",
+      extraCount: 2,
+    },
   },
   "BM-2026070002": {
-    gudangAsal: "Gudang Timur",
+    gudangTujuan: "Gudang Timur",
     supplier: "CV Indo Perkasa",
+    disetujuiOleh: "Andi Wijaya",
     tanggal: "21 Jul 2026",
     waktu: "09:40 WIB",
     dibuatOleh: "Rina Sari",
     status: "menunggu_approval",
-    dokumen: "1 file",
+    dokumen: {
+      nama: "faktur-pengiriman.pdf",
+      extraCount: 1,
+    },
   },
   "BM-2026070003": {
-    gudangAsal: "Gudang Pusat",
+    gudangTujuan: "Gudang Pusat",
     supplier: "PT Sumber Makmur",
+    disetujuiOleh: "-",
     tanggal: "22 Jul 2026",
     waktu: "14:05 WIB",
     dibuatOleh: "Andi Wijaya",
     status: "draft",
-    dokumen: "-",
+    dokumen: {
+      nama: "-",
+    },
   },
   "BM-2026070004": {
-    gudangAsal: "Gudang Selatan",
+    gudangTujuan: "Gudang Selatan",
     supplier: "PT Karya Baja",
+    disetujuiOleh: "Budi Hartono",
     tanggal: "22 Jul 2026",
     waktu: "11:30 WIB",
     dibuatOleh: "Budi Hartono",
     status: "ditolak",
-    dokumen: "3 file",
+    dokumen: {
+      nama: "lampiran-retur.pdf",
+      extraCount: 3,
+    },
   },
   "BM-2026070005": {
-    gudangAsal: "Gudang Pusat",
+    gudangTujuan: "Gudang Pusat",
     supplier: "CV Indo Perkasa",
+    disetujuiOleh: "Budi Hartono",
     tanggal: "23 Jul 2026",
     waktu: "08:50 WIB",
     dibuatOleh: "Rina Sari",
     status: "disetujui",
-    dokumen: "2 file",
+    dokumen: {
+      nama: "surat-jalan.pdf",
+      extraCount: 2,
+    },
   },
   "BM-2026070006": {
-    gudangAsal: "Gudang Timur",
+    gudangTujuan: "Gudang Timur",
     supplier: "PT Karya Baja",
+    disetujuiOleh: "Andi Wijaya",
     tanggal: "24 Jul 2026",
     waktu: "13:20 WIB",
     dibuatOleh: "Budi Hartono",
     status: "menunggu_approval",
-    dokumen: "-",
+    dokumen: {
+      nama: "-",
+    },
   },
 }
 
 const detailItems: Record<string, BarangMasukDetailItem[]> = {
   "BM-2026070001": [
     {
-      sku: "SKU-A-001",
-      nama: "Laptop ThinkPad T14",
-      kategori: "Elektronik",
-      rak: "A-01-02",
-      satuan: "Unit",
-      qty: 10,
-      hargaSatuan: 12500000,
+      sku: "BRG-00121",
+      nama: "Semen Portland 50kg",
+      rak: "PT Sumber Makmur",
+      qty: 100,
+      hargaSatuan: 65000,
+      subtotal: 6500000,
     },
     {
-      sku: "SKU-A-002",
-      nama: "Monitor LG 27 inch",
-      kategori: "Elektronik",
-      rak: "A-01-04",
-      satuan: "Unit",
-      qty: 8,
-      hargaSatuan: 3400000,
+      sku: "BRG-00087",
+      nama: "Besi Beton 10mm",
+      rak: "CV Indo Perkasa",
+      qty: 250,
+      hargaSatuan: 82000,
+      subtotal: 20500000,
     },
     {
-      sku: "SKU-B-001",
-      nama: "Keyboard Mechanical",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 25,
-      hargaSatuan: 850000,
-    },
-    {
-      sku: "SKU-B-002",
-      nama: "Mouse Wireless Logitech",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 30,
-      hargaSatuan: 275000,
-    },
-    {
-      sku: "SKU-C-001",
-      nama: "Kabel HDMI 2m",
-      kategori: "Aksesoris",
-      rak: "B-02-03",
-      satuan: "Pcs",
-      qty: 50,
-      hargaSatuan: 45000,
-    },
-    {
-      sku: "SKU-C-002",
-      nama: "Router TP-Link AX1500",
-      kategori: "Elektronik",
-      rak: "A-01-06",
-      satuan: "Unit",
-      qty: 5,
-      hargaSatuan: 620000,
-    },
-    {
-      sku: "SKU-D-001",
-      nama: "UPS APC 650VA",
-      kategori: "Elektronik",
-      rak: "A-02-01",
-      satuan: "Unit",
-      qty: 3,
-      hargaSatuan: 1450000,
-    },
-    {
-      sku: "SKU-D-002",
-      nama: "Meja Kerja 120cm",
-      kategori: "Furnitur",
-      rak: "C-01-01",
-      satuan: "Unit",
-      qty: 2,
-      hargaSatuan: 750000,
-    },
-  ],
-  "BM-2026070002": [
-    {
-      sku: "SKU-B-001",
-      nama: "Keyboard Mechanical",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 15,
-      hargaSatuan: 850000,
-    },
-    {
-      sku: "SKU-C-001",
-      nama: "Kabel HDMI 2m",
-      kategori: "Aksesoris",
-      rak: "B-02-03",
-      satuan: "Pcs",
-      qty: 20,
-      hargaSatuan: 45000,
-    },
-    {
-      sku: "SKU-C-002",
-      nama: "Router TP-Link AX1500",
-      kategori: "Elektronik",
-      rak: "A-01-06",
-      satuan: "Unit",
-      qty: 2,
-      hargaSatuan: 620000,
-    },
-  ],
-  "BM-2026070003": [
-    {
-      sku: "SKU-A-001",
-      nama: "Laptop ThinkPad T14",
-      kategori: "Elektronik",
-      rak: "A-01-02",
-      satuan: "Unit",
-      qty: 5,
-      hargaSatuan: 12500000,
-    },
-    {
-      sku: "SKU-B-002",
-      nama: "Mouse Wireless Logitech",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 12,
-      hargaSatuan: 275000,
-    },
-  ],
-  "BM-2026070004": [
-    {
-      sku: "SKU-D-001",
-      nama: "UPS APC 650VA",
-      kategori: "Elektronik",
-      rak: "A-02-01",
-      satuan: "Unit",
-      qty: 4,
-      hargaSatuan: 1450000,
-    },
-    {
-      sku: "SKU-D-002",
-      nama: "Meja Kerja 120cm",
-      kategori: "Furnitur",
-      rak: "C-01-01",
-      satuan: "Unit",
-      qty: 3,
-      hargaSatuan: 750000,
-    },
-    {
-      sku: "SKU-A-002",
-      nama: "Monitor LG 27 inch",
-      kategori: "Elektronik",
-      rak: "A-01-04",
-      satuan: "Unit",
-      qty: 2,
-      hargaSatuan: 3400000,
-    },
-  ],
-  "BM-2026070005": [
-    {
-      sku: "SKU-A-001",
-      nama: "Laptop ThinkPad T14",
-      kategori: "Elektronik",
-      rak: "A-01-02",
-      satuan: "Unit",
-      qty: 6,
-      hargaSatuan: 12500000,
-    },
-    {
-      sku: "SKU-B-001",
-      nama: "Keyboard Mechanical",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 18,
-      hargaSatuan: 850000,
-    },
-    {
-      sku: "SKU-C-001",
-      nama: "Kabel HDMI 2m",
-      kategori: "Aksesoris",
-      rak: "B-02-03",
-      satuan: "Pcs",
+      sku: "BRG-00045",
+      nama: "Cat Tembok 5L",
+      rak: "PT Sumber Makmur",
       qty: 40,
+      hargaSatuan: 145000,
+      subtotal: 5800000,
+    },
+    {
+      sku: "BRG-00203",
+      nama: "Paku Beton 5cm",
+      rak: "PT Karya Baja",
+      qty: 80,
+      hargaSatuan: 18000,
+      subtotal: 1440000,
+    },
+    {
+      sku: "BRG-00156",
+      nama: "Pipa PVC 3 Inch",
+      rak: "CV Indo Perkasa",
+      qty: 60,
+      hargaSatuan: 52000,
+      subtotal: 3120000,
+    },
+    {
+      sku: "BRG-00092",
+      nama: "Lem Pipa 500ml",
+      rak: "PT Karya Baja",
+      qty: 30,
+      hargaSatuan: 27000,
+      subtotal: 810000,
+    },
+    {
+      sku: "BRG-00311",
+      nama: "Pasir Silika 25kg",
+      rak: "PT Sumber Makmur",
+      qty: 50,
+      hargaSatuan: 35000,
+      subtotal: 1750000,
+    },
+    {
+      sku: "BRG-00412",
+      nama: "Keramik 40x40 Putih",
+      rak: "CV Indo Perkasa",
+      qty: 120,
+      hargaSatuan: 58000,
+      subtotal: 6960000,
+    },
+    {
+      sku: "BRG-00518",
+      nama: "Triplek 12mm 4x8",
+      rak: "PT Sumber Makmur",
+      qty: 45,
+      hargaSatuan: 115000,
+      subtotal: 5175000,
+    },
+    {
+      sku: "BRG-00620",
+      nama: "Seng Gelombang 1.8m",
+      rak: "PT Karya Baja",
+      qty: 70,
+      hargaSatuan: 62000,
+      subtotal: 4340000,
+    },
+    {
+      sku: "BRG-00714",
+      nama: "Kawat Bendrat 10kg",
+      rak: "CV Indo Perkasa",
+      qty: 25,
+      hargaSatuan: 185000,
+      subtotal: 4625000,
+    },
+    {
+      sku: "BRG-00822",
+      nama: "Genteng Metal Pasir",
+      rak: "PT Karya Baja",
+      qty: 150,
+      hargaSatuan: 42000,
+      subtotal: 6300000,
+    },
+    {
+      sku: "BRG-00905",
+      nama: "Kuas Cat 3 Inch",
+      rak: "PT Sumber Makmur",
+      qty: 80,
+      hargaSatuan: 12000,
+      subtotal: 960000,
+    },
+    {
+      sku: "BRG-01011",
+      nama: "Thinner High Gloss 1L",
+      rak: "CV Indo Perkasa",
+      qty: 40,
+      hargaSatuan: 38000,
+      subtotal: 1520000,
+    },
+    {
+      sku: "BRG-01123",
+      nama: "Baut Roofing 5cm",
+      rak: "PT Karya Baja",
+      qty: 500,
+      hargaSatuan: 500,
+      subtotal: 250000,
+    },
+    {
+      sku: "BRG-01235",
+      nama: "Semen Putih 40kg",
+      rak: "PT Sumber Makmur",
+      qty: 35,
+      hargaSatuan: 88000,
+      subtotal: 3080000,
+    },
+    {
+      sku: "BRG-01340",
+      nama: "Gypsum Board 9mm",
+      rak: "CV Indo Perkasa",
+      qty: 60,
+      hargaSatuan: 72000,
+      subtotal: 4320000,
+    },
+    {
+      sku: "BRG-01452",
+      nama: "Hollow Baja Ringan 4x4",
+      rak: "PT Karya Baja",
+      qty: 90,
+      hargaSatuan: 32000,
+      subtotal: 2880000,
+    },
+    {
+      sku: "BRG-01560",
+      nama: "Sealant Silicone Clear",
+      rak: "PT Sumber Makmur",
+      qty: 24,
       hargaSatuan: 45000,
-    },
-    {
-      sku: "SKU-D-002",
-      nama: "Meja Kerja 120cm",
-      kategori: "Furnitur",
-      rak: "C-01-01",
-      satuan: "Unit",
-      qty: 4,
-      hargaSatuan: 750000,
+      subtotal: 1080000,
     },
   ],
-  "BM-2026070006": [
-    {
-      sku: "SKU-A-002",
-      nama: "Monitor LG 27 inch",
-      kategori: "Elektronik",
-      rak: "A-01-04",
-      satuan: "Unit",
-      qty: 6,
-      hargaSatuan: 3400000,
-    },
-    {
-      sku: "SKU-B-002",
-      nama: "Mouse Wireless Logitech",
-      kategori: "Aksesoris",
-      rak: "B-02-01",
-      satuan: "Pcs",
-      qty: 10,
-      hargaSatuan: 275000,
-    },
-  ],
-}
-
-const statusLabel: Record<BarangMasukDetailInfo["status"], string> = {
-  disetujui: "Disetujui",
-  menunggu_approval: "Menunggu Approval",
-  ditolak: "Ditolak",
-  draft: "Draft",
-}
-
-const statusColor: Record<
-  BarangMasukDetailInfo["status"],
-  "green" | "yellow" | "red" | "gray"
-> = {
-  disetujui: "green",
-  menunggu_approval: "yellow",
-  ditolak: "red",
-  draft: "gray",
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(val)
+  return `Rp${val.toLocaleString("id-ID")}`
 }
 
-export default function BarangMasukDetailPage({ params }: PageProps) {
+export default function BarangMasukDetailPage() {
   const router = useRouter()
-  const unwrappedParams = use(Promise.resolve(params))
-  const noReferensi = unwrappedParams.id
+  const { id: noReferensi } = useParams() as { id: string }
 
   const info = detailInfo[noReferensi]
   const items = useMemo(() => detailItems[noReferensi] || [], [noReferensi])
 
-  const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 6
 
-  const filteredData = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim()
-    return items.filter((row) => {
-      if (!query) return true
-      return (
-        row.nama.toLowerCase().includes(query) ||
-        row.sku.toLowerCase().includes(query) ||
-        row.rak.toLowerCase().includes(query)
-      )
-    })
-  }, [items, searchQuery])
-
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage))
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
     const end = start + itemsPerPage
-    return filteredData.slice(start, end)
-  }, [filteredData, currentPage])
-
-  const grandTotal = useMemo(() => {
-    return filteredData.reduce((sum, row) => sum + row.qty * row.hargaSatuan, 0)
-  }, [filteredData])
+    return items.slice(start, end)
+  }, [items, currentPage])
 
   if (!info) {
     return (
@@ -391,163 +321,188 @@ export default function BarangMasukDetailPage({ params }: PageProps) {
   }
 
   return (
-    <>
+    <div className="font-sans">
+      {/* ─── HEADER ─── */}
       <div className="wrapper">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <PageHeader
             items={[
-              { label: "Aktivitas Gudang" },
-              { label: "Terima Barang (In)", href: "/inventory/barang-masuk" },
+              { label: "AKTIVITAS GUDANG" },
+              { label: "TERIMA BARANG (IN)", href: "/inventory/barang-masuk" },
               { label: noReferensi },
             ]}
-            title={noReferensi}
-            icon={BiDownArrowCircle}
+            title={
+              <span className="flex items-center gap-2.5">
+                <span>{noReferensi}</span>
+                <span
+                  className={cn(
+                    "inline-block size-3 rounded-full shrink-0",
+                    info.status === "disetujui" && "bg-[#22C55E]",
+                    info.status === "menunggu_approval" && "bg-amber-500",
+                    info.status === "ditolak" && "bg-rose-500",
+                    info.status === "draft" && "bg-slate-400"
+                  )}
+                />
+              </span>
+            }
+            icon={BiStoreAlt}
             description={`Dibuat oleh ${info.dibuatOleh} · ${info.tanggal} · ${info.waktu}`}
           />
-          <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black">
-              <BiFile className="mr-2" />
-              Unduh Dokumen
-            </Button>
-          </div>
         </div>
       </div>
 
-      <div className="wrapper mt-8 grid grid-cols-2 gap-x-8 gap-y-4 rounded-2xl border border-border/50 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.01)] md:grid-cols-3">
+      {/* ─── METADATA SECTION ─── */}
+      <div className="wrapper mt-10 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Gudang Tujuan */}
         <div>
-          <div className="text-xs font-medium text-muted-foreground">
-            No. Referensi
+          <div className="text-xs font-normal text-[#857F78]">
+            Gudang Tujuan
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
-            {noReferensi}
+            {info.gudangTujuan}
           </div>
         </div>
+
+        {/* Supplier */}
         <div>
-          <div className="text-xs font-medium text-muted-foreground">
-            Gudang Asal
-          </div>
-          <div className="mt-1 text-sm font-bold text-foreground">
-            {info.gudangAsal}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-muted-foreground">
+          <div className="text-xs font-normal text-[#857F78]">
             Supplier
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {info.supplier}
           </div>
         </div>
+
+        {/* Disetujui oleh */}
         <div>
-          <div className="text-xs font-medium text-muted-foreground">
-            Tanggal
+          <div className="text-xs font-normal text-[#857F78]">
+            Disetujui oleh
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
-            {info.tanggal} · {info.waktu}
+            {info.disetujuiOleh}
           </div>
         </div>
+
+        {/* Dokumen */}
         <div>
-          <div className="text-xs font-medium text-muted-foreground">
-            Status
-          </div>
-          <div className="mt-1.5">
-            <ColoredBadge color={statusColor[info.status]}>
-              {statusLabel[info.status]}
-            </ColoredBadge>
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-muted-foreground">
+          <div className="text-xs font-normal text-[#857F78]">
             Dokumen
           </div>
-          <div className="mt-1 text-sm font-bold text-foreground">
-            {info.dokumen}
+          <div className="mt-1">
+            {info.dokumen.nama !== "-" ? (
+              <a
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-[#0284C7] hover:underline"
+              >
+                <BiFileBlank className="size-4 shrink-0 text-[#0284C7]" />
+                <span>{info.dokumen.nama}</span>
+                {info.dokumen.extraCount ? (
+                  <span className="font-semibold text-xs text-[#0284C7]">
+                    +{info.dokumen.extraCount}
+                  </span>
+                ) : null}
+              </a>
+            ) : (
+              <span className="text-sm font-bold text-foreground">-</span>
+            )}
+          </div>
+        </div>
+
+        {/* Status */}
+        <div>
+          <div className="text-xs font-normal text-[#857F78]">
+            Status
+          </div>
+          <div className="mt-1">
+            {info.status === "disetujui" && (
+              <div className="flex items-center gap-1 text-sm font-bold text-[#16A34A]">
+                <BiCheck className="size-5 stroke-[1.5]" />
+                <span>Disetujui</span>
+              </div>
+            )}
+            {info.status === "menunggu_approval" && (
+              <div className="flex items-center gap-1 text-sm font-bold text-amber-600">
+                <BiTimeFive className="size-4.5" />
+                <span>Menunggu Approval</span>
+              </div>
+            )}
+            {info.status === "ditolak" && (
+              <div className="flex items-center gap-1 text-sm font-bold text-rose-600">
+                <BiX className="size-5 stroke-[1.5]" />
+                <span>Ditolak</span>
+              </div>
+            )}
+            {info.status === "draft" && (
+              <div className="flex items-center gap-1 text-sm font-bold text-slate-500">
+                <BiFile className="size-4.5" />
+                <span>Draft</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-3">
-          <InputSearch
-            placeholder="Cari nama barang, SKU, atau lokasi rak..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="flex-1"
-          />
-        </div>
-      </div>
-
-      <div className="wrapper mt-[25px]">
-        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card">
+      {/* ─── TABLE ─── */}
+      <div className="wrapper mt-[45px]">
+        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-white shadow-xs">
           <div className="w-full overflow-x-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="border-b border-border/60 bg-white">
+              <TableHeader className="border-b border-border/40 bg-white">
                 <TableRow className="h-14 hover:bg-transparent">
-                  <TableHead className="pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    SKU & Informasi Barang
+                  <TableHead className="pl-6 text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    SKU
                   </TableHead>
-                  <TableHead className="text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Lokasi Rak
+                  <TableHead className="text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Nama barang
                   </TableHead>
-                  <TableHead className="text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Satuan
+                  <TableHead className="text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Lokasi rak
                   </TableHead>
-                  <TableHead className="text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Qty Diterima
+                  <TableHead className="text-center text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Qty
                   </TableHead>
-                  <TableHead className="text-right text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Harga Satuan
+                  <TableHead className="text-right text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Harga satuan
                   </TableHead>
-                  <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
-                    Total
+                  <TableHead className="pr-6 text-right text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
+                    Subtotal
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((row) => {
-                  const total = row.qty * row.hargaSatuan
-                  return (
-                    <TableRow
-                      key={row.sku}
-                      className="h-16 border-b border-border/40 hover:bg-muted/30"
-                    >
-                      <TableCell className="pl-6 whitespace-nowrap">
-                        <div className="text-sm leading-none font-semibold text-foreground">
-                          {row.nama}
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {row.sku} <span className="mx-1">•</span>{" "}
-                          {row.kategori}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm font-semibold whitespace-nowrap text-foreground">
-                        {row.rak}
-                      </TableCell>
-                      <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
-                        {row.satuan}
-                      </TableCell>
-                      <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.qty}
-                      </TableCell>
-                      <TableCell className="text-right font-sans text-sm whitespace-nowrap text-foreground">
-                        {formatCurrency(row.hargaSatuan)}
-                      </TableCell>
-                      <TableCell className="pr-6 text-right font-sans text-sm font-semibold whitespace-nowrap text-foreground">
-                        {formatCurrency(total)}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                {paginatedData.map((row) => (
+                  <TableRow
+                    key={row.sku}
+                    className="h-16 border-b border-border/40 hover:bg-muted/20 transition-colors"
+                  >
+                    <TableCell className="pl-6 font-sans text-sm font-medium whitespace-nowrap text-foreground">
+                      {row.sku}
+                    </TableCell>
+                    <TableCell className="font-sans text-sm font-semibold whitespace-nowrap text-foreground">
+                      {row.nama}
+                    </TableCell>
+                    <TableCell className="font-sans text-sm whitespace-pre-line leading-tight text-[#857F78]">
+                      {row.rak}
+                    </TableCell>
+                    <TableCell className="font-sans text-center text-sm whitespace-nowrap text-foreground">
+                      {row.qty}
+                    </TableCell>
+                    <TableCell className="font-sans text-right text-sm whitespace-nowrap text-foreground tabular-nums">
+                      {formatCurrency(row.hargaSatuan)}
+                    </TableCell>
+                    <TableCell className="font-sans pr-6 text-right text-sm font-normal whitespace-nowrap text-foreground tabular-nums">
+                      {formatCurrency(row.subtotal)}
+                    </TableCell>
+                  </TableRow>
+                ))}
                 {paginatedData.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="h-48 text-center text-sm text-muted-foreground"
+                      className="font-sans h-48 text-center text-sm text-muted-foreground"
                     >
-                      Tidak ada item yang cocok dengan pencarian Anda.
+                      Tidak ada data barang.
                     </TableCell>
                   </TableRow>
                 )}
@@ -563,21 +518,21 @@ export default function BarangMasukDetailPage({ params }: PageProps) {
                     </TableRow>
                   )}
               </TableBody>
-              <TableFooter className="border-t border-border/50 bg-white">
+              <TableFooter className="border-t border-border/40 bg-white">
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="p-0 align-middle">
                     <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground select-none">
                       <span>
                         Menampilkan{" "}
-                        {filteredData.length > 0
+                        {items.length > 0
                           ? (currentPage - 1) * itemsPerPage + 1
                           : 0}
                         -
                         {Math.min(
                           currentPage * itemsPerPage,
-                          filteredData.length
+                          items.length
                         )}{" "}
-                        dari {filteredData.length} data
+                        dari {items.length} data
                       </span>
                       <div className="flex items-center">
                         <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
@@ -621,7 +576,7 @@ export default function BarangMasukDetailPage({ params }: PageProps) {
                           </button>
                         </div>
                       </div>
-                      <span>10 per halaman</span>
+                      <span>{itemsPerPage} per halaman</span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -630,27 +585,6 @@ export default function BarangMasukDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-
-      <div className="wrapper mt-[25px]">
-        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card px-6 py-4">
-          <div>
-            <div className="text-xs font-medium text-muted-foreground">
-              Total Item
-            </div>
-            <div className="mt-1 text-lg font-bold text-foreground">
-              {filteredData.reduce((sum, row) => sum + row.qty, 0)} item
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs font-medium text-muted-foreground">
-              Total Nilai
-            </div>
-            <div className="mt-1 text-lg font-bold text-foreground">
-              {formatCurrency(grandTotal)}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   )
 }
