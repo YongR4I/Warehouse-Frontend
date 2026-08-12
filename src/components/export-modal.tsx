@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { BiDownload, BiCheck } from "react-icons/bi"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
+import axios from "axios"
 
 export interface ExportCheckboxOption {
   id: string
@@ -50,18 +51,26 @@ export function ExportModal({
 }: ExportModalProps) {
   const [format, setFormat] = React.useState<"xlsx" | "pdf">("xlsx")
   const [coverage, setCoverage] = React.useState<"all" | "filtered">("filtered")
-  
-  // Initialize checkbox states
-  const [selectedOptions, setSelectedOptions] = React.useState<Record<string, boolean>>({})
 
-  // Update checkbox states when default checkboxes change or modal opens
-  React.useEffect(() => {
+  const buildInitial = (list: ExportCheckboxOption[]): Record<string, boolean> => {
     const initial: Record<string, boolean> = {}
-    checkboxes.forEach((cb) => {
+    list.forEach((cb) => {
       initial[cb.id] = cb.defaultChecked ?? false
     })
-    setSelectedOptions(initial)
-  }, [checkboxes, isOpen])
+    return initial
+  }
+
+  const [selectedOptions, setSelectedOptions] = React.useState<Record<string, boolean>>(() =>
+    buildInitial(checkboxes)
+  )
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
+    if (isOpen) {
+      setSelectedOptions(buildInitial(checkboxes))
+    }
+  }
 
   const handleToggleOption = (id: string) => {
     setSelectedOptions((prev) => ({
@@ -75,18 +84,14 @@ export function ExportModal({
   // Determine if PDF is supported (not supported for bulk exportUrl endpoints)
   const isPdfUnsupported = !!exportUrl
 
-  // Auto-switch to xlsx if PDF is selected but unsupported
-  React.useEffect(() => {
-    if (isPdfUnsupported && format === "pdf") {
-      setFormat("xlsx")
-    }
-  }, [isPdfUnsupported, format])
+  const activeFormat: "xlsx" | "pdf" =
+    isPdfUnsupported && format === "pdf" ? "xlsx" : format
 
   const handleDownload = async () => {
     setIsLoading(true)
 
     // Case 1: Real export to backend
-    if (exportUrl && format === "xlsx") {
+    if (exportUrl && activeFormat === "xlsx") {
       try {
         const response = await api.get(exportUrl, {
           responseType: "blob",
@@ -122,11 +127,12 @@ export function ExportModal({
           onExport("xlsx", coverage, selectedOptions)
         }
         onClose()
-      } catch (error: any) {
+      } catch (error) {
         console.error("Export error:", error)
-        if (error.response?.status === 403) {
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined
+        if (status === 403) {
           alert("Anda tidak memiliki izin (permission) untuk mengunduh dokumen Excel ini.")
-        } else if (error.response?.status === 401) {
+        } else if (status === 401) {
           alert("Sesi Anda telah berakhir. Silakan login kembali.")
         } else {
           alert("Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi.")
@@ -141,9 +147,9 @@ export function ExportModal({
     setTimeout(() => {
       setIsLoading(false)
       if (onExport) {
-        onExport(format, coverage, selectedOptions)
+        onExport(activeFormat, coverage, selectedOptions)
       } else {
-        alert(`Unduh berhasil: Format ${format.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`)
+        alert(`Unduh berhasil: Format ${activeFormat.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`)
       }
       onClose()
     }, 1500)
@@ -359,7 +365,7 @@ export function ExportModal({
                 Mengunduh...
               </span>
             ) : (
-              `Unduh File (.${format})`
+              `Unduh File (.${activeFormat})`
             )}
           </Button>
         </div>
