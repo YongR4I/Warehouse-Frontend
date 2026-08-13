@@ -11,7 +11,18 @@ import {
   BiChevronRight,
   BiDotsVerticalRounded,
   BiSolidReport,
+  BiShow,
+  BiEditAlt,
+  BiTrash,
 } from "react-icons/bi"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableHeader,
@@ -187,9 +198,28 @@ export default function SupplierPage() {
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuLabel>Aksi Supplier</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <BiShow />
+                          <span>Lihat Detail</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSupplierDrawerOpen(true)}>
+                          <BiEditAlt />
+                          <span>Ubah Data</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive">
+                          <BiTrash />
+                          <span>Hapus</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -273,9 +303,28 @@ export default function SupplierPage() {
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuLabel>Aksi Customer</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <BiShow />
+                          <span>Lihat Detail</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setCustomerDrawerOpen(true)}>
+                          <BiEditAlt />
+                          <span>Ubah Data</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive">
+                          <BiTrash />
+                          <span>Hapus</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

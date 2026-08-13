@@ -17,7 +17,18 @@ import {
   BiDotsVerticalRounded,
   BiRightArrowAlt,
   BiFile,
+  BiShow,
+  BiPrinter,
+  BiTrash,
 } from "react-icons/bi"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableHeader,
@@ -258,9 +269,32 @@ export default function MutasiPage() {
                     >
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuLabel>Aksi Mutasi</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(`/inventory/mutasi/detail/${row.noReferensi}`)
+                          }
+                        >
+                          <BiShow />
+                          <span>Lihat Detail</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <BiPrinter />
+                          <span>Cetak Dokumen</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive">
+                          <BiTrash />
+                          <span>Batalkan</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

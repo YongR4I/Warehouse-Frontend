@@ -29,9 +29,6 @@ import {
   BiBarChartAlt2,
   BiError,
   BiUserPlus,
-  BiShieldQuarter,
-  BiCog,
-  BiPulse,
   BiChevronDown,
   BiHomeAlt,
   BiGridAlt,
@@ -125,23 +122,6 @@ const navGroups: NavGroup[] = [
       },
       { icon: BiError, label: "Selisih Opname", path: "/selisih-opname" },
       { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/absensi/rekap" },
-    ],
-  },
-  {
-    label: "Pengaturan Sistem",
-    icon: BiCog,
-    items: [
-      {
-        icon: BiShieldQuarter,
-        label: "Pengguna & Hak Akses",
-        path: "/pengaturan/users",
-      },
-      {
-        icon: BiCog,
-        label: "Konfigurasi Gudang & PIC",
-        path: "/pengaturan/roles",
-      },
-      { icon: BiPulse, label: "Log Aktivitas", path: "/pengaturan/users" },
     ],
   },
 ]

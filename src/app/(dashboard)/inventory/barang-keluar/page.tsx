@@ -16,7 +16,18 @@ import {
   BiChevronRight,
   BiDotsVerticalRounded,
   BiFile,
+  BiShow,
+  BiPrinter,
+  BiTrash,
 } from "react-icons/bi"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableHeader,
@@ -231,13 +242,42 @@ export default function BarangKeluarPage() {
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
                     <button
                       className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
-                      onClick={() => router.push(`/inventory/barang-keluar/${row.noReferensi}`)}
+                      onClick={() =>
+                        router.push(
+                          `/inventory/barang-keluar/detail/${row.noReferensi}`
+                        )
+                      }
                     >
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuLabel>Aksi Pengiriman</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() =>
+                            router.push(
+                              `/inventory/barang-keluar/detail/${row.noReferensi}`
+                            )
+                          }
+                        >
+                          <BiShow />
+                          <span>Lihat Detail</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <BiPrinter />
+                          <span>Cetak SJ</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive">
+                          <BiTrash />
+                          <span>Batalkan</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

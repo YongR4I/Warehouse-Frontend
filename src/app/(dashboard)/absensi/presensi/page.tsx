@@ -11,7 +11,17 @@ import {
   BiDotsVerticalRounded,
   BiSolidReport,
   BiCalendar,
+  BiShow,
+  BiEditAlt,
 } from "react-icons/bi"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableHeader,
@@ -199,9 +209,23 @@ export default function PresensiPage() {
                     <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuLabel>Aksi Presensi</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <BiShow />
+                          <span>Lihat Detail</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <BiEditAlt />
+                          <span>Koreksi Absen</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>

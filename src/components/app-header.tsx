@@ -1,6 +1,13 @@
+"use client"
+
+import * as React from "react"
 import { BiCog } from "react-icons/bi"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
+import { SettingsModal } from "@/components/settings-modal"
 
 export function AppHeader() {
+  const [settingsOpen, setSettingsOpen] = React.useState(false)
+
   return (
     <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-end border-b border-border/40 bg-white px-6">
       <div className="flex w-fit items-center gap-3 rounded-xl px-4 py-1.5">
@@ -15,12 +22,19 @@ export function AppHeader() {
             Warehouse Manager
           </span>
         </div>
-        <button
-          className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:scale-[0.96]"
-          aria-label="Settings"
-        >
-          <BiCog className="!size-[16px]" />
-        </button>
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <DialogTrigger
+            render={
+              <button
+                className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground active:scale-[0.96] cursor-pointer outline-none"
+                aria-label="Settings"
+              >
+                <BiCog className="!size-[16px]" />
+              </button>
+            }
+          />
+          <SettingsModal />
+        </Dialog>
       </div>
     </header>
   )
