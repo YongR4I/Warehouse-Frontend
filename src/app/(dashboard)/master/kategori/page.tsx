@@ -1,17 +1,18 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-
-
-import { useState } from "react"
+import { useState, useDeferredValue } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { InputSearch } from "@/components/input"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiList, useApiDelete } from "@/hooks/use-api"
+import type { Kategori, Satuan } from "@/types"
 import {
   BiTag,
-  BiChevronRight,
   BiDotsVerticalRounded,
   BiSolidReport,
-  BiShow,
   BiEditAlt,
   BiTrash,
 } from "react-icons/bi"
@@ -35,66 +36,102 @@ import {
 import { KategoriForm } from "@/components/kategori/kategori-form"
 import { SatuanForm } from "@/components/kategori/satuan-form"
 
-interface CategoryItem {
-  id: string
-  nama: string
-  deskripsi: string
-  jumlahItem: number
-}
-
-interface UnitItem {
-  kode: string
-  nama: string
-}
-
-const kategoriData: CategoryItem[] = [
-  {
-    id: "1",
-    nama: "Material Konstruksi",
-    deskripsi: "Bahan bangunan dasar seperti semen, pasir, dan batu bata",
-    jumlahItem: 142,
-  },
-  {
-    id: "2",
-    nama: "Besi & Baja",
-    deskripsi: "Logam, besi beton, alur, dan sejenisnya",
-    jumlahItem: 85,
-  },
-  {
-    id: "3",
-    nama: "Cat & Finishing",
-    deskripsi: "Pelapis, cat tembok, kape, dan perlakuan permukaan",
-    jumlahItem: 64,
-  },
-]
-
-const satuanData: UnitItem[] = [
-  {
-    kode: "SAK",
-    nama: "Sak / Karung 50kg",
-  },
-  {
-    kode: "BTG",
-    nama: "Batang",
-  },
-  {
-    kode: "GLN",
-    nama: "Galon",
-  },
-  {
-    kode: "PCS",
-    nama: "Pcs / Buah",
-  },
-]
+const PER_PAGE = 15
 
 export default function KategoriPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [kategoriDrawerOpen, setKategoriDrawerOpen] = useState(false)
   const [satuanDrawerOpen, setSatuanDrawerOpen] = useState(false)
+  const [selectedKategori, setSelectedKategori] = useState<Kategori | null>(null)
+  const [selectedSatuan, setSelectedSatuan] = useState<Satuan | null>(null)
+  const [search, setSearch] = useState("")
+  const deferredSearch = useDeferredValue(search)
+  const [kategoriPage, setKategoriPage] = useState(1)
+  const [satuanPage, setSatuanPage] = useState(1)
 
-  const totalKategori = kategoriData.length
-  const totalItem = kategoriData.reduce((sum, item) => sum + item.jumlahItem, 0)
-  const totalSatuan = satuanData.length
+  const { data: kategoriData, isLoading: kategoriLoading } = useApiList<Kategori>({
+    key: "kategori",
+    url: "/kategori",
+    params: { page: kategoriPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+  })
+  const { data: satuanData, isLoading: satuanLoading } = useApiList<Satuan>({
+    key: "satuan",
+    url: "/satuan",
+    params: { page: satuanPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+  })
+
+  const deleteKategori = useApiDelete("kategori", "/kategori")
+  const deleteSatuan = useApiDelete("satuan", "/satuan")
+
+  const kategoris = kategoriData?.data ?? []
+  const kategoriMeta = kategoriData?.meta
+  const satuans = satuanData?.data ?? []
+  const satuanMeta = satuanData?.meta
+
+  const handleDeleteKategori = async (kategori: Kategori) => {
+    if (!window.confirm(`Yakin ingin menghapus kategori "${kategori.nama}"?`)) return
+    try {
+      const response = await deleteKategori.mutateAsync(kategori.id)
+      toast.success(response.message)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleDeleteSatuan = async (satuan: Satuan) => {
+    if (!window.confirm(`Yakin ingin menghapus satuan "${satuan.nama}"?`)) return
+    try {
+      const response = await deleteSatuan.mutateAsync(satuan.id)
+      toast.success(response.message)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const renderPagination = (
+    currentPage: number,
+    lastPage: number,
+    onPageChange: (page: number) => void
+  ) => {
+    if (lastPage <= 1) return null
+    const buttons = []
+    for (let i = 1; i <= lastPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
+            currentPage === i
+              ? "bg-muted/60 text-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {i}
+        </button>
+      )
+    }
+    return (
+      <div className="flex items-center">
+        <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            &lt;
+          </button>
+          {buttons}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= lastPage}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -119,9 +156,21 @@ export default function KategoriPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default" onClick={() => setKategoriDrawerOpen(true)}>
-          + Tambah Kategori
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="default" onClick={() => setKategoriDrawerOpen(true)}>
+            + Tambah Kategori
+          </Button>
+          <InputSearch
+            placeholder="Cari nama kategori atau satuan..."
+            className="flex-1"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setKategoriPage(1)
+              setSatuanPage(1)
+            }}
+          />
+        </div>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -143,56 +192,74 @@ export default function KategoriPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {kategoriData.map((row) => (
-              <TableRow
-                key={row.id}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.nama}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground/80">
-                  {row.deskripsi}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.jumlahItem}
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Kategori</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setKategoriDrawerOpen(true)}>
-                          <BiEditAlt />
-                          <span>Ubah Kategori</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
-                          <BiTrash />
-                          <span>Hapus</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {kategoriLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-sm text-muted-foreground">
+                  Memuat...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : kategoris.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-sm text-muted-foreground">
+                  Tidak ada data
+                </TableCell>
+              </TableRow>
+            ) : (
+              kategoris.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm text-foreground">
+                    {row.nama}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground/80">
+                    {row.deskripsi ?? "-"}
+                  </TableCell>
+                  <TableCell className="text-center font-sans text-sm text-foreground">
+                    -
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel>Aksi Kategori</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedKategori(row)
+                              setKategoriDrawerOpen(true)
+                            }}
+                          >
+                            <BiEditAlt />
+                            <span>Ubah Kategori</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDeleteKategori(row)}
+                          >
+                            <BiTrash />
+                            <span>Hapus</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={4} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>
-                    Total Kategori: {totalKategori} | Total Item: {totalItem}{" "}
-                    Item
-                  </span>
+                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                  <span>Total Kategori: {kategoriMeta?.total ?? 0} Kategori</span>
+                  {renderPagination(kategoriPage, kategoriMeta?.last_page ?? 1, setKategoriPage)}
+                  <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -222,50 +289,71 @@ export default function KategoriPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {satuanData.map((row) => (
-              <TableRow
-                key={row.kode}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.kode}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.nama}
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Satuan</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setSatuanDrawerOpen(true)}>
-                          <BiEditAlt />
-                          <span>Ubah Satuan</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
-                          <BiTrash />
-                          <span>Hapus</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {satuanLoading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center text-sm text-muted-foreground">
+                  Memuat...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : satuans.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center text-sm text-muted-foreground">
+                  Tidak ada data
+                </TableCell>
+              </TableRow>
+            ) : (
+              satuans.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm text-foreground">
+                    {row.singkatan ?? "-"}
+                  </TableCell>
+                  <TableCell className="text-center font-sans text-sm text-foreground">
+                    {row.nama}
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel>Aksi Satuan</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedSatuan(row)
+                              setSatuanDrawerOpen(true)
+                            }}
+                          >
+                            <BiEditAlt />
+                            <span>Ubah Satuan</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDeleteSatuan(row)}
+                          >
+                            <BiTrash />
+                            <span>Hapus</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={3} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Total Satuan / UOM: {totalSatuan} Kode Satuan</span>
+                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                  <span>Total Satuan / UOM: {satuanMeta?.total ?? 0} Kode Satuan</span>
+                  {renderPagination(satuanPage, satuanMeta?.last_page ?? 1, setSatuanPage)}
+                  <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -273,35 +361,47 @@ export default function KategoriPage() {
         </Table>
       </div>
 
-      <KategoriForm open={kategoriDrawerOpen} onOpenChange={setKategoriDrawerOpen} />
-      <SatuanForm open={satuanDrawerOpen} onOpenChange={setSatuanDrawerOpen} />
-    
-      
-    
+      <KategoriForm
+        open={kategoriDrawerOpen}
+        onOpenChange={(open) => {
+          setKategoriDrawerOpen(open)
+          if (!open) setSelectedKategori(null)
+        }}
+        initialData={selectedKategori}
+      />
+      <SatuanForm
+        open={satuanDrawerOpen}
+        onOpenChange={(open) => {
+          setSatuanDrawerOpen(open)
+          if (!open) setSelectedSatuan(null)
+        }}
+        initialData={selectedSatuan}
+      />
+
       <ExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Daftar Kategori"
-        totalItemsCount={kategoriData.length}
+        totalItemsCount={kategoriMeta?.total ?? 0}
         totalItemsLabel="Total Kategori"
         filterLabel="Filter Aktif"
         checkboxes={[
-        {
-          "id": "nama",
-          "label": "Nama Kategori",
-          "defaultChecked": true
-        },
-        {
-          "id": "kode",
-          "label": "Kode Kategori",
-          "defaultChecked": true
-        },
-        {
-          "id": "deskripsi",
-          "label": "Keterangan / Deskripsi",
-          "defaultChecked": true
-        }
-      ]}
+          {
+            id: "nama",
+            label: "Nama Kategori",
+            defaultChecked: true,
+          },
+          {
+            id: "kode",
+            label: "Kode Kategori",
+            defaultChecked: true,
+          },
+          {
+            id: "deskripsi",
+            label: "Keterangan / Deskripsi",
+            defaultChecked: true,
+          },
+        ]}
       />
     </>
   )

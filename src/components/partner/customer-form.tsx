@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -10,6 +10,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import type { Customer, CustomerPayload } from "@/types"
 import {
   customerSchema,
   type CustomerFormValues,
@@ -18,50 +22,76 @@ import {
 interface CustomerFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Customer | null
+  onSuccess?: () => void
 }
 
-export function CustomerForm({ open, onOpenChange }: CustomerFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function CustomerForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: CustomerFormProps) {
+  const create = useApiCreate<Customer, CustomerPayload>("customer", "/customer")
+  const update = useApiUpdate<Customer, CustomerPayload>("customer", "/customer")
+
+  const formValues = useMemo(
+    () => ({
+      kode: initialData?.kode ?? "",
+      nama: initialData?.nama ?? "",
+      pic: initialData?.kontak ?? "",
+      telepon: initialData?.telepon ?? "",
+      email: initialData?.email ?? "",
+      alamatPengiriman: initialData?.alamat ?? "",
+      catatan: "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
-    defaultValues: {
-      kode: "",
-      nama: "",
-      pic: "",
-      telepon: "",
-      email: "",
-      alamatPengiriman: "",
-      catatan: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: CustomerFormValues) => {
-    console.log("Submitted Customer:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: CustomerFormValues) => {
+    const payload: CustomerPayload = {
+      kode: data.kode,
+      tipe: initialData?.tipe ?? "customer",
+      nama: data.nama,
+      kontak: data.pic || undefined,
+      telepon: data.telepon,
+      email: data.email || undefined,
+      alamat: data.alamatPengiriman,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Customer:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Customer Baru"
+      title={initialData ? "Ubah Customer" : "Tambah Customer Baru"}
       description="Isi formulir berikut untuk mendaftarkan mitra customer baru ke dalam sistem."
       icon={BiUser}
     >
@@ -134,20 +164,12 @@ export function CustomerForm({ open, onOpenChange }: CustomerFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="customer-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Customer"}
+          {initialData ? "Simpan Perubahan" : "Simpan Customer"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

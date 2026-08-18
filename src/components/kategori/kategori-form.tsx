@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -10,6 +10,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiTag } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import type { Kategori, KategoriPayload } from "@/types"
 import {
   kategoriSchema,
   type KategoriFormValues,
@@ -18,46 +22,67 @@ import {
 interface KategoriFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Kategori | null
+  onSuccess?: () => void
 }
 
-export function KategoriForm({ open, onOpenChange }: KategoriFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function KategoriForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: KategoriFormProps) {
+  const create = useApiCreate<Kategori, KategoriPayload>("kategori", "/kategori")
+  const update = useApiUpdate<Kategori, KategoriPayload>("kategori", "/kategori")
+
+  const formValues = useMemo(
+    () => ({
+      nama: initialData?.nama ?? "",
+      prefix: "",
+      deskripsi: initialData?.deskripsi ?? "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<KategoriFormValues>({
     resolver: zodResolver(kategoriSchema),
-    defaultValues: {
-      nama: "",
-      prefix: "",
-      deskripsi: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: KategoriFormValues) => {
-    console.log("Submitted Category:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: KategoriFormValues) => {
+    const payload: KategoriPayload = {
+      nama: data.nama,
+      deskripsi: data.deskripsi || undefined,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Category:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Kategori Baru"
+      title={initialData ? "Ubah Kategori" : "Tambah Kategori Baru"}
       description="Atur kategori barang dan satuan ukurnya."
       icon={BiTag}
     >
@@ -94,20 +119,12 @@ export function KategoriForm({ open, onOpenChange }: KategoriFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="kategori-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Kategori"}
+          {initialData ? "Simpan Perubahan" : "Simpan Kategori"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

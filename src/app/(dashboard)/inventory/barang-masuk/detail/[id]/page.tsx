@@ -1,16 +1,31 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { ColoredBadge } from "@/components/ui/colored-badge"
+import { useApiDetail, useApiAction } from "@/hooks/use-api"
+import { getErrorMessage } from "@/lib/api"
+import api from "@/lib/api"
+import axios from "axios"
+import {
+  formatDate,
+  formatCurrency,
+  formatNumber,
+  statusColor,
+  statusLabel,
+} from "@/lib/status"
+import { useAuthStore } from "@/store/use-auth-store"
+import { toast } from "sonner"
+import type { BarangMasuk } from "@/types"
 import {
   BiStoreAlt,
   BiCheck,
-  BiTimeFive,
   BiX,
-  BiFile,
   BiFileBlank,
+  BiPrinter,
 } from "react-icons/bi"
 import {
   TableHeader,
@@ -21,173 +36,29 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import api from "@/lib/api"
-import axios from "axios"
-
-interface BarangMasukDetailItem {
-  sku: string
-  nama: string
-  rak: string
-  qty: number
-  hargaSatuan: number
-  subtotal: number
-}
-
-interface BarangMasukDetailInfo {
-  gudangTujuan: string
-  supplier: string
-  disetujuiOleh: string
-  tanggal: string
-  waktu: string
-  dibuatOleh: string
-  status: "disetujui" | "menunggu_approval" | "ditolak" | "draft"
-  dokumen: {
-    nama: string
-    extraCount?: number
-  }
-}
-
-const detailInfo: Record<string, BarangMasukDetailInfo> = {
-  "BM-20260812-004": {
-    gudangTujuan: "Gudang Utama (Pusat)",
-    supplier: "PT Mikonos",
-    disetujuiOleh: "-",
-    tanggal: "12 Ags 2026",
-    waktu: "10:15 WIB",
-    dibuatOleh: "Rudi",
-    status: "menunggu_approval",
-    dokumen: {
-      nama: "surat-jalan-mik-04.pdf",
-      extraCount: 1,
-    },
-  },
-  "BM-20260721-001": {
-    gudangTujuan: "Gudang Utama (Pusat)",
-    supplier: "PT Paragon Technology",
-    disetujuiOleh: "Rudi",
-    tanggal: "21 Jul 2026",
-    waktu: "09:40 WIB",
-    dibuatOleh: "Budi Santoso",
-    status: "disetujui",
-    dokumen: {
-      nama: "sj-paragon-88.pdf",
-      extraCount: 2,
-    },
-  },
-  "BM-20260722-002": {
-    gudangTujuan: "Gudang Utama (Pusat)",
-    supplier: "PT Somethinc Beauty",
-    disetujuiOleh: "-",
-    tanggal: "22 Jul 2026",
-    waktu: "14:05 WIB",
-    dibuatOleh: "Budi Santoso",
-    status: "menunggu_approval",
-    dokumen: {
-      nama: "sj-somethinc-02.pdf",
-      extraCount: 1,
-    },
-  },
-  "BM-20260723-003": {
-    gudangTujuan: "Gudang Utama (Pusat)",
-    supplier: "PT Paragon Technology",
-    disetujuiOleh: "-",
-    tanggal: "22 Jul 2026",
-    waktu: "16:10 WIB",
-    dibuatOleh: "Rudi",
-    status: "draft",
-    dokumen: {
-      nama: "-",
-    },
-  },
-  "BM-20260724-004": {
-    gudangTujuan: "Gudang Timur",
-    supplier: "PT Arista Latindo",
-    disetujuiOleh: "Rina Wijaya",
-    tanggal: "24 Jul 2026",
-    waktu: "11:30 WIB",
-    dibuatOleh: "Rina Wijaya",
-    status: "ditolak",
-    dokumen: {
-      nama: "sj-arista-qc.pdf",
-      extraCount: 1,
-    },
-  },
-}
-
-const detailItems: Record<string, BarangMasukDetailItem[]> = {
-  "BM-20260812-004": [
-    {
-      sku: "MIK-MON-50",
-      nama: "Mikonos Monaco 50ml",
-      rak: "RAK-A-01",
-      qty: 4000,
-      hargaSatuan: 150000,
-      subtotal: 600000000,
-    },
-  ],
-  "BM-20260721-001": [
-    {
-      sku: "KHF-FW-100",
-      nama: "Kahf Face Wash 100ml",
-      rak: "RAK-B-01",
-      qty: 100,
-      hargaSatuan: 45000,
-      subtotal: 4500000,
-    },
-    {
-      sku: "WRD-MLC-05",
-      nama: "Wardah Matte Lip Cream",
-      rak: "RAK-A-02",
-      qty: 84,
-      hargaSatuan: 60000,
-      subtotal: 5040000,
-    },
-  ],
-  "BM-20260722-002": [
-    {
-      sku: "SOM-NIA-20",
-      nama: "Somethinc Niacinamide 20ml",
-      rak: "RAK-A-02",
-      qty: 110,
-      hargaSatuan: 120000,
-      subtotal: 13200000,
-    },
-  ],
-  "BM-20260723-003": [
-    {
-      sku: "KHF-FW-100",
-      nama: "Kahf Face Wash 100ml",
-      rak: "RAK-B-01",
-      qty: 45,
-      hargaSatuan: 45000,
-      subtotal: 2025000,
-    },
-  ],
-  "BM-20260724-004": [
-    {
-      sku: "SNS-MSK-3P",
-      nama: "Sensi Mask 3-Ply Earloop",
-      rak: "RAK-B-01",
-      qty: 120,
-      hargaSatuan: 80000,
-      subtotal: 9600000,
-    },
-  ],
-}
-
-const formatCurrency = (val: number) => {
-  return `Rp${val.toLocaleString("id-ID")}`
-}
 
 export default function BarangMasukDetailPage() {
   const router = useRouter()
-  const { id: noReferensi } = useParams() as { id: string }
+  const { id } = useParams() as { id: string }
+  const queryClient = useQueryClient()
 
-  const info = detailInfo[noReferensi]
-  const items = useMemo(() => detailItems[noReferensi] || [], [noReferensi])
+  const { data, isLoading } = useApiDetail<BarangMasuk>({
+    key: `barang-masuk-${id}`,
+    url: `/barang-masuk/${id}`,
+  })
+  const doc = data?.data
+
+  const approveMutation = useApiAction(
+    "barang-masuk",
+    "/barang-masuk",
+    "approve"
+  )
+  const rejectMutation = useApiAction("barang-masuk", "/barang-masuk", "reject")
 
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
+
+  const items = useMemo(() => doc?.details ?? [], [doc])
 
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage))
 
@@ -199,37 +70,79 @@ export default function BarangMasukDetailPage() {
 
   const [isPrinting, setIsPrinting] = useState(false)
 
+  const invalidateQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["barang-masuk"] })
+    queryClient.invalidateQueries({ queryKey: [`barang-masuk-${id}`] })
+  }
+
+  const handleApprove = async () => {
+    try {
+      const res = await approveMutation.mutateAsync(Number(id))
+      toast.success(res.message)
+      invalidateQueries()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  const handleReject = async () => {
+    try {
+      const res = await rejectMutation.mutateAsync(Number(id))
+      toast.success(res.message)
+      invalidateQueries()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
   const handlePrint = async (e: React.MouseEvent) => {
     e.preventDefault()
     setIsPrinting(true)
     try {
-      const response = await api.get(`/barang-masuk/${noReferensi}/print-surat-jalan`, {
+      const response = await api.get(`/barang-masuk/${id}/print-surat-jalan`, {
         responseType: "blob",
       })
       const blob = new Blob([response.data], { type: "application/pdf" })
       const url = window.URL.createObjectURL(blob)
       window.open(url, "_blank")
     } catch (error) {
-      console.error("Print error:", error)
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined
       if (status === 403) {
-        alert("Anda tidak memiliki izin (permission: barang-masuk-print) untuk mencetak surat jalan.")
+        toast.error(
+          "Anda tidak memiliki izin (permission: barang-masuk-print) untuk mencetak surat jalan."
+        )
       } else if (status === 401) {
-        alert("Sesi Anda telah berakhir. Silakan login kembali.")
+        toast.error("Sesi Anda telah berakhir. Silakan login kembali.")
       } else {
-        alert("Gagal mengunduh PDF Surat Jalan. Mohon coba beberapa saat lagi.")
+        toast.error(
+          "Gagal mengunduh PDF Surat Jalan. Mohon coba beberapa saat lagi."
+        )
       }
     } finally {
       setIsPrinting(false)
     }
   }
 
-  if (!info) {
+  const canApprove =
+    doc?.status === "pending" &&
+    useAuthStore.getState().hasPermission("barang-masuk-approve")
+
+  if (isLoading) {
+    return (
+      <div className="flex h-96 flex-col items-center justify-center gap-4">
+        <p className="text-sm text-muted-foreground">Memuat data...</p>
+      </div>
+    )
+  }
+
+  if (!doc) {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-4">
         <h2 className="text-xl font-semibold">Dokumen Tidak Ditemukan</h2>
         <p className="text-sm text-muted-foreground">
-          Penerimaan barang dengan nomor referensi {noReferensi} tidak ada.
+          Penerimaan barang dengan ID {id} tidak ada.
         </p>
         <Button
           variant="default"
@@ -241,6 +154,15 @@ export default function BarangMasukDetailPage() {
     )
   }
 
+  const statusDot =
+    doc.status === "approved"
+      ? "bg-[#22C55E]"
+      : doc.status === "pending"
+        ? "bg-amber-500"
+        : doc.status === "rejected"
+          ? "bg-rose-500"
+          : "bg-slate-400"
+
   return (
     <div className="font-sans">
       {/* ─── HEADER ─── */}
@@ -250,82 +172,117 @@ export default function BarangMasukDetailPage() {
             items={[
               { label: "AKTIVITAS GUDANG" },
               { label: "TERIMA BARANG (IN)", href: "/inventory/barang-masuk" },
-              { label: noReferensi },
+              { label: doc.no_referensi },
             ]}
             title={
               <span className="flex items-center gap-2.5">
-                <span>{noReferensi}</span>
+                <span>{doc.no_referensi}</span>
                 <span
                   className={cn(
-                    "inline-block size-3 rounded-full shrink-0",
-                    info.status === "disetujui" && "bg-[#22C55E]",
-                    info.status === "menunggu_approval" && "bg-amber-500",
-                    info.status === "ditolak" && "bg-rose-500",
-                    info.status === "draft" && "bg-slate-400"
+                    "inline-block size-3 shrink-0 rounded-full",
+                    statusDot
                   )}
                 />
               </span>
             }
             icon={BiStoreAlt}
-            description={`Dibuat oleh ${info.dibuatOleh} · ${info.tanggal} · ${info.waktu}`}
+            description={`Dibuat oleh ${doc.createdBy?.name ?? "-"} · ${formatDate(doc.tanggal)}`}
           />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePrint}
+              disabled={isPrinting}
+            >
+              <BiPrinter className="mr-1.5" />
+              {isPrinting ? "Membuka PDF..." : "Cetak Surat Jalan"}
+            </Button>
+            {canApprove && (
+              <>
+                <Button
+                  variant="destructive"
+                  onClick={handleReject}
+                  disabled={rejectMutation.isPending}
+                >
+                  <BiX className="mr-1.5" />
+                  Tolak
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={handleApprove}
+                  disabled={approveMutation.isPending}
+                >
+                  <BiCheck className="mr-1.5" />
+                  Approve
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* ─── METADATA SECTION ─── */}
       <div className="wrapper mt-10 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
-        {/* Gudang Tujuan */}
         <div>
           <div className="text-xs font-normal text-[#857F78]">
             Gudang Tujuan
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
-            {info.gudangTujuan}
+            {doc.gudang?.nama ?? "-"}
           </div>
         </div>
 
-        {/* Supplier */}
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
-            Supplier
-          </div>
+          <div className="text-xs font-normal text-[#857F78]">Supplier</div>
           <div className="mt-1 text-sm font-bold text-foreground">
-            {info.supplier}
+            {doc.supplier?.nama ?? "-"}
           </div>
         </div>
 
-        {/* Disetujui oleh */}
+        <div>
+          <div className="text-xs font-normal text-[#857F78]">Tanggal</div>
+          <div className="mt-1 text-sm font-bold text-foreground">
+            {formatDate(doc.tanggal)}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs font-normal text-[#857F78]">Dibuat oleh</div>
+          <div className="mt-1 text-sm font-bold text-foreground">
+            {doc.createdBy?.name ?? "-"}
+          </div>
+        </div>
+
         <div>
           <div className="text-xs font-normal text-[#857F78]">
             Disetujui oleh
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
-            {info.disetujuiOleh}
+            {doc.approvedBy?.name ?? "-"}
           </div>
         </div>
 
-        {/* Dokumen */}
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
-            Dokumen
+          <div className="text-xs font-normal text-[#857F78]">Keterangan</div>
+          <div className="mt-1 text-sm font-bold text-foreground">
+            {doc.keterangan ?? "-"}
           </div>
+        </div>
+
+        <div>
+          <div className="text-xs font-normal text-[#857F78]">Dokumen</div>
           <div className="mt-1">
-            {info.dokumen.nama !== "-" ? (
+            {doc.dokumen ? (
               <a
                 href="#"
                 onClick={handlePrint}
                 className={cn(
                   "inline-flex items-center gap-1 text-sm font-semibold text-[#0284C7] hover:underline",
-                  isPrinting && "opacity-50 pointer-events-none"
+                  isPrinting && "pointer-events-none opacity-50"
                 )}
               >
                 <BiFileBlank className="size-4 shrink-0 text-[#0284C7]" />
-                <span>{isPrinting ? "Membuka PDF..." : info.dokumen.nama}</span>
-                {info.dokumen.extraCount && !isPrinting ? (
-                  <span className="font-semibold text-xs text-[#0284C7]">
-                    +{info.dokumen.extraCount}
-                  </span>
-                ) : null}
+                <span>Surat Jalan</span>
               </a>
             ) : (
               <span className="text-sm font-bold text-foreground">-</span>
@@ -333,36 +290,12 @@ export default function BarangMasukDetailPage() {
           </div>
         </div>
 
-        {/* Status */}
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
-            Status
-          </div>
+          <div className="text-xs font-normal text-[#857F78]">Status</div>
           <div className="mt-1">
-            {info.status === "disetujui" && (
-              <div className="flex items-center gap-1 text-sm font-bold text-[#16A34A]">
-                <BiCheck className="size-5 stroke-[1.5]" />
-                <span>Disetujui</span>
-              </div>
-            )}
-            {info.status === "menunggu_approval" && (
-              <div className="flex items-center gap-1 text-sm font-bold text-amber-600">
-                <BiTimeFive className="size-4.5" />
-                <span>Menunggu Approval</span>
-              </div>
-            )}
-            {info.status === "ditolak" && (
-              <div className="flex items-center gap-1 text-sm font-bold text-rose-600">
-                <BiX className="size-5 stroke-[1.5]" />
-                <span>Ditolak</span>
-              </div>
-            )}
-            {info.status === "draft" && (
-              <div className="flex items-center gap-1 text-sm font-bold text-slate-500">
-                <BiFile className="size-4.5" />
-                <span>Draft</span>
-              </div>
-            )}
+            <ColoredBadge color={statusColor(doc.status)}>
+              {statusLabel(doc.status)}
+            </ColoredBadge>
           </div>
         </div>
       </div>
@@ -395,28 +328,28 @@ export default function BarangMasukDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((row) => (
+                {paginatedData.map((row, index) => (
                   <TableRow
-                    key={row.sku}
-                    className="h-16 border-b border-border/40 hover:bg-muted/20 transition-colors"
+                    key={row.id ?? `${row.barang_id}-${index}`}
+                    className="h-16 border-b border-border/40 transition-colors hover:bg-muted/20"
                   >
                     <TableCell className="pl-6 font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                      {row.sku}
+                      {row.barang?.sku ?? "-"}
                     </TableCell>
                     <TableCell className="font-sans text-sm font-semibold whitespace-nowrap text-foreground">
-                      {row.nama}
+                      {row.barang?.nama ?? "-"}
                     </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-pre-line leading-tight text-[#857F78]">
-                      {row.rak}
+                    <TableCell className="font-sans text-sm leading-tight whitespace-pre-line text-[#857F78]">
+                      {row.lokasi_rak?.kode_rak ?? "-"}
                     </TableCell>
-                    <TableCell className="font-sans text-center text-sm whitespace-nowrap text-foreground">
-                      {row.qty}
+                    <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
+                      {formatNumber(row.qty)}
                     </TableCell>
-                    <TableCell className="font-sans text-right text-sm whitespace-nowrap text-foreground tabular-nums">
-                      {formatCurrency(row.hargaSatuan)}
+                    <TableCell className="text-right font-sans text-sm whitespace-nowrap text-foreground tabular-nums">
+                      {formatCurrency(row.harga_satuan)}
                     </TableCell>
-                    <TableCell className="font-sans pr-6 text-right text-sm font-normal whitespace-nowrap text-foreground tabular-nums">
-                      {formatCurrency(row.subtotal)}
+                    <TableCell className="pr-6 text-right font-sans text-sm whitespace-nowrap text-foreground tabular-nums">
+                      {formatCurrency((row.qty ?? 0) * (row.harga_satuan ?? 0))}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -424,7 +357,7 @@ export default function BarangMasukDetailPage() {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="font-sans h-48 text-center text-sm text-muted-foreground"
+                      className="h-48 text-center font-sans text-sm text-muted-foreground"
                     >
                       Tidak ada data barang.
                     </TableCell>
@@ -451,11 +384,7 @@ export default function BarangMasukDetailPage() {
                         {items.length > 0
                           ? (currentPage - 1) * itemsPerPage + 1
                           : 0}
-                        -
-                        {Math.min(
-                          currentPage * itemsPerPage,
-                          items.length
-                        )}{" "}
+                        -{Math.min(currentPage * itemsPerPage, items.length)}{" "}
                         dari {items.length} data
                       </span>
                       <div className="flex items-center">

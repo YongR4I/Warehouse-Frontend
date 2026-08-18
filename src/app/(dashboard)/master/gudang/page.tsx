@@ -1,16 +1,21 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState } from "react"
+import { useState, useDeferredValue } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { statusColor, statusLabel } from "@/lib/status"
+import { useApiList, useApiDelete } from "@/hooks/use-api"
+import { useOptions, toOptions } from "@/hooks/use-options"
+import type { Gudang, LokasiRak } from "@/types"
 import {
   BiBuildings,
-  BiChevronRight,
   BiDotsVerticalRounded,
   BiSolidReport,
-  BiShow,
   BiEditAlt,
   BiTrash,
 } from "react-icons/bi"
@@ -35,79 +40,127 @@ import { ColoredBadge } from "@/components/ui/colored-badge"
 import { GudangForm } from "@/components/gudang/gudang-form"
 import { RakForm } from "@/components/gudang/rak-form"
 
-interface WarehouseItem {
-  kode: string
-  nama: string
-  alamat: string
-  penanggungJawab: string
-  status: "aktif" | "nonaktif"
-}
-
-interface RackItem {
-  kodeRak: string
-  gudang: string
-  baris: string
-  level: string
-  keterangan: string
-}
-
-const gudangData: WarehouseItem[] = [
-  {
-    kode: "GDG-001",
-    nama: "Gudang Utama (Pusat)",
-    alamat: "Jl. Industri No. 45, Jakarta Barat",
-    penanggungJawab: "Ahmad Subagja",
-    status: "aktif",
-  },
-  {
-    kode: "GDG-002",
-    nama: "Gudang Transit",
-    alamat: "Kawasan Logistik Blok B3, Cikarang",
-    penanggungJawab: "Budi Santoso",
-    status: "aktif",
-  },
-  {
-    kode: "GDG-003",
-    nama: "Gudang Area Timur",
-    alamat: "Jl. Rungkut Industri III No. 12, Surabaya",
-    penanggungJawab: "Hendra Wijaya",
-    status: "nonaktif",
-  },
-]
-
-const rakData: RackItem[] = [
-  {
-    kodeRak: "RAK-A1-01",
-    gudang: "Gudang Utama (Pusat)",
-    baris: "Lorong A1",
-    level: "Level 1 (Bawah)",
-    keterangan: "Area barang berat (Semen/Besi)",
-  },
-  {
-    kodeRak: "RAK-A1-02",
-    gudang: "Gudang Utama (Pusat)",
-    baris: "Lorong A1",
-    level: "Level 2 (Tengah)",
-    keterangan: "Area barang sedang",
-  },
-  {
-    kodeRak: "RAK-B2-01",
-    gudang: "Gudang Transit",
-    baris: "Lorong B2",
-    level: "Level 1 (Bawah)",
-    keterangan: "Area penyimpanan sementara",
-  },
-]
+const PER_PAGE = 15
 
 export default function GudangPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [gudangDrawerOpen, setGudangDrawerOpen] = useState(false)
   const [rakDrawerOpen, setRakDrawerOpen] = useState(false)
+  const [selectedGudang, setSelectedGudang] = useState<Gudang | null>(null)
+  const [selectedRak, setSelectedRak] = useState<LokasiRak | null>(null)
+  const [search, setSearch] = useState("")
+  const deferredSearch = useDeferredValue(search)
+  const [gudangPage, setGudangPage] = useState(1)
+  const [rakPage, setRakPage] = useState(1)
+  const [rakGudangFilter, setRakGudangFilter] = useState("all")
 
-  const totalGudang = gudangData.length
-  const aktifGudang = gudangData.filter((g) => g.status === "aktif").length
-  const nonAktifGudang = totalGudang - aktifGudang
-  const totalRak = rakData.length
+  const { data: gudangData, isLoading: gudangLoading } = useApiList<Gudang>({
+    key: "gudang",
+    url: "/gudang",
+    params: { page: gudangPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+  })
+  const { data: rakData, isLoading: rakLoading } = useApiList<LokasiRak>({
+    key: "lokasi-rak",
+    url: "/lokasi-rak",
+    params: { page: rakPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+  })
+
+  const deleteGudang = useApiDelete("gudang", "/gudang")
+  const deleteRak = useApiDelete("lokasi-rak", "/lokasi-rak")
+
+  const gudangs = gudangData?.data ?? []
+  const gudangMeta = gudangData?.meta
+  const raks = rakData?.data ?? []
+  const rakMeta = rakData?.meta
+
+  const { items: gudangOptionsList } = useOptions<Gudang>("gudang", "/gudang")
+  const gudangFilterOptions = [
+    { value: "all", label: "Semua gudang" },
+    ...toOptions(gudangOptionsList),
+  ]
+
+  const filteredRaks =
+    rakGudangFilter === "all"
+      ? raks
+      : raks.filter((rak) => String(rak.gudang_id) === rakGudangFilter)
+
+  const aktifGudang = gudangs.filter((g) => g.status === "aktif").length
+  const nonAktifGudang = gudangs.length - aktifGudang
+
+  const handleDeleteGudang = async (gudang: Gudang) => {
+    if (!window.confirm(`Yakin ingin menghapus gudang "${gudang.nama}"?`)) return
+    try {
+      const response = await deleteGudang.mutateAsync(gudang.id)
+      toast.success(response.message)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleDeleteRak = async (rak: LokasiRak) => {
+    if (!window.confirm(`Yakin ingin menghapus rak "${rak.kode_rak}"?`)) return
+    try {
+      const response = await deleteRak.mutateAsync(rak.id)
+      toast.success(response.message)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const openGudangEdit = (gudang: Gudang) => {
+    setSelectedGudang(gudang)
+    setGudangDrawerOpen(true)
+  }
+
+  const openRakEdit = (rak: LokasiRak) => {
+    setSelectedRak(rak)
+    setRakDrawerOpen(true)
+  }
+
+  const renderPagination = (
+    currentPage: number,
+    lastPage: number,
+    onPageChange: (page: number) => void
+  ) => {
+    if (lastPage <= 1) return null
+    const buttons = []
+    for (let i = 1; i <= lastPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => onPageChange(i)}
+          className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
+            currentPage === i
+              ? "bg-muted/60 text-foreground"
+              : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {i}
+        </button>
+      )
+    }
+    return (
+      <div className="flex items-center">
+        <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            &lt;
+          </button>
+          {buttons}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= lastPage}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -129,9 +182,21 @@ export default function GudangPage() {
       </div>
 
       <div className="wrapper mt-[35px]">
-        <Button variant="default" onClick={() => setGudangDrawerOpen(true)}>
-          + Tambah Gudang
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="default" onClick={() => setGudangDrawerOpen(true)}>
+            + Tambah Gudang
+          </Button>
+          <InputSearch
+            placeholder="Cari nama atau kode gudang..."
+            className="flex-1"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setGudangPage(1)
+              setRakPage(1)
+            }}
+          />
+        </div>
       </div>
 
       <div className="wrapper mt-[15px]">
@@ -159,70 +224,80 @@ export default function GudangPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {gudangData.map((row) => (
-              <TableRow
-                key={row.kode}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.kode}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.nama}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground/80">
-                  {row.alamat}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.penanggungJawab}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  <ColoredBadge
-                    color={row.status === "aktif" ? "green" : "gray"}
-                  >
-                    {row.status === "aktif" ? "Aktif" : "Non-Aktif"}
-                  </ColoredBadge>
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Gudang</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <BiShow />
-                          <span>Lihat Detail</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setGudangDrawerOpen(true)}>
-                          <BiEditAlt />
-                          <span>Ubah Data</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
-                          <BiTrash />
-                          <span>Hapus</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {gudangLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                  Memuat...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : gudangs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                  Tidak ada data
+                </TableCell>
+              </TableRow>
+            ) : (
+              gudangs.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm text-foreground">
+                    {row.kode ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.nama}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground/80">
+                    {row.alamat ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.pic ?? "-"}
+                  </TableCell>
+                  <TableCell className="text-center font-sans text-sm">
+                    <ColoredBadge color={statusColor(row.status)}>
+                      {statusLabel(row.status)}
+                    </ColoredBadge>
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel>Aksi Gudang</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openGudangEdit(row)}>
+                            <BiEditAlt />
+                            <span>Ubah Data</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDeleteGudang(row)}
+                          >
+                            <BiTrash />
+                            <span>Hapus</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
                   <span>
-                    Total Gudang: {totalGudang} Gudang ({aktifGudang} Aktif,{" "}
-                    {nonAktifGudang} Non-Aktif)
+                    Total Gudang: {gudangMeta?.total ?? 0} Gudang ({aktifGudang}{" "}
+                    Aktif, {nonAktifGudang} Non-Aktif)
                   </span>
+                  {renderPagination(gudangPage, gudangMeta?.last_page ?? 1, setGudangPage)}
+                  <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -237,12 +312,9 @@ export default function GudangPage() {
           </Button>
           <Opsion
             placeholder="Semua gudang"
-            options={[
-              { value: "all", label: "Semua gudang" },
-              { value: "1", label: "Gudang Utama (Pusat)" },
-              { value: "2", label: "Gudang Transit" },
-              { value: "3", label: "Gudang Area Timur" },
-            ]}
+            value={rakGudangFilter}
+            onValueChange={(val) => setRakGudangFilter(val ?? "all")}
+            options={gudangFilterOptions}
           />
         </div>
       </div>
@@ -272,63 +344,75 @@ export default function GudangPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rakData.map((row) => (
-              <TableRow
-                key={row.kodeRak}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.kodeRak}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.gudang}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.baris}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.level}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground/80">
-                  {row.keterangan}
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Rak</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <BiShow />
-                          <span>Lihat Detail</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setRakDrawerOpen(true)}>
-                          <BiEditAlt />
-                          <span>Ubah Data</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
-                          <BiTrash />
-                          <span>Hapus</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {rakLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                  Memuat...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filteredRaks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                  Tidak ada data
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredRaks.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm text-foreground">
+                    {row.kode_rak}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.gudang?.nama ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.zona ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    -
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground/80">
+                    {row.deskripsi ?? "-"}
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel>Aksi Rak</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openRakEdit(row)}>
+                            <BiEditAlt />
+                            <span>Ubah Data</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDeleteRak(row)}
+                          >
+                            <BiTrash />
+                            <span>Hapus</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Total Lokasi Rak: {totalRak} Lokasi Rak / Bin</span>
+                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                  <span>Total Lokasi Rak: {rakMeta?.total ?? 0} Lokasi Rak / Bin</span>
+                  {renderPagination(rakPage, rakMeta?.last_page ?? 1, setRakPage)}
+                  <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -336,35 +420,47 @@ export default function GudangPage() {
         </Table>
       </div>
 
-      <GudangForm open={gudangDrawerOpen} onOpenChange={setGudangDrawerOpen} />
-      <RakForm open={rakDrawerOpen} onOpenChange={setRakDrawerOpen} />
-    
-      
-    
+      <GudangForm
+        open={gudangDrawerOpen}
+        onOpenChange={(open) => {
+          setGudangDrawerOpen(open)
+          if (!open) setSelectedGudang(null)
+        }}
+        initialData={selectedGudang}
+      />
+      <RakForm
+        open={rakDrawerOpen}
+        onOpenChange={(open) => {
+          setRakDrawerOpen(open)
+          if (!open) setSelectedRak(null)
+        }}
+        initialData={selectedRak}
+      />
+
       <ExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Daftar Gudang"
-        totalItemsCount={gudangData.length}
+        totalItemsCount={gudangMeta?.total ?? 0}
         totalItemsLabel="Total Gudang"
         filterLabel="Filter Aktif"
         checkboxes={[
-        {
-          "id": "nama",
-          "label": "Nama Gudang",
-          "defaultChecked": true
-        },
-        {
-          "id": "lokasi",
-          "label": "Alamat / Lokasi",
-          "defaultChecked": true
-        },
-        {
-          "id": "kapasitas",
-          "label": "Kapasitas Unit",
-          "defaultChecked": true
-        }
-      ]}
+          {
+            id: "nama",
+            label: "Nama Gudang",
+            defaultChecked: true,
+          },
+          {
+            id: "lokasi",
+            label: "Alamat / Lokasi",
+            defaultChecked: true,
+          },
+          {
+            id: "kapasitas",
+            label: "Kapasitas Unit",
+            defaultChecked: true,
+          },
+        ]}
       />
     </>
   )

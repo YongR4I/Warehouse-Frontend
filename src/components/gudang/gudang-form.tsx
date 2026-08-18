@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -11,12 +11,16 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiBuildings } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import type { Gudang, GudangPayload } from "@/types"
 import {
   gudangSchema,
   type GudangFormValues,
 } from "@/lib/validations/gudang"
 
-const mockStatus = [
+const statusOptions = [
   { value: "aktif", label: "Aktif" },
   { value: "nonaktif", label: "Nonaktif" },
 ]
@@ -24,50 +28,74 @@ const mockStatus = [
 interface GudangFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Gudang | null
+  onSuccess?: () => void
 }
 
-export function GudangForm({ open, onOpenChange }: GudangFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function GudangForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: GudangFormProps) {
+  const create = useApiCreate<Gudang, GudangPayload>("gudang", "/gudang")
+  const update = useApiUpdate<Gudang, GudangPayload>("gudang", "/gudang")
+
+  const formValues = useMemo(
+    () => ({
+      kode: initialData?.kode ?? "",
+      nama: initialData?.nama ?? "",
+      pic: initialData?.pic ?? "",
+      status: initialData?.status ?? "aktif",
+      alamat: initialData?.alamat ?? "",
+      catatan: "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     control,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<GudangFormValues>({
     resolver: zodResolver(gudangSchema),
-    defaultValues: {
-      kode: "",
-      nama: "",
-      pic: "",
-      status: "aktif",
-      alamat: "",
-      catatan: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: GudangFormValues) => {
-    console.log("Submitted Gudang:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: GudangFormValues) => {
+    const payload: GudangPayload = {
+      kode: data.kode,
+      nama: data.nama,
+      alamat: data.alamat,
+      pic: data.pic,
+      status: data.status,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Gudang:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Daftar Gudang & Rak"
+      title={initialData ? "Ubah Gudang" : "Tambah Gudang Baru"}
       description="Kelola data gudang dan lokasi rak."
       icon={BiBuildings}
     >
@@ -108,7 +136,7 @@ export function GudangForm({ open, onOpenChange }: GudangFormProps) {
                   value={field.value}
                   onValueChange={(val) => field.onChange(val || "")}
                   placeholder="Pilih status"
-                  options={mockStatus}
+                  options={statusOptions}
                   error={errors.status}
                 />
               )}
@@ -135,20 +163,12 @@ export function GudangForm({ open, onOpenChange }: GudangFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="gudang-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Gudang"}
+          {initialData ? "Simpan Perubahan" : "Simpan Gudang"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

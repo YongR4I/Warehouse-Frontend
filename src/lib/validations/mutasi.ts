@@ -6,6 +6,8 @@ const mutasiItemSchema = z.object({
 })
 
 export const mutasiSchema = z.object({
+  noReferensi: z.string().min(1, "No. referensi wajib diisi"),
+  tanggal: z.string().min(1, "Tanggal wajib diisi"),
   gudangAsalId: z.string().min(1, "Gudang asal wajib dipilih"),
   gudangTujuanId: z.string().min(1, "Gudang tujuan wajib dipilih"),
   catatan: z.string().optional(),

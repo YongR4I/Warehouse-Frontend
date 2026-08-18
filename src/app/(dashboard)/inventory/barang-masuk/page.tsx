@@ -1,7 +1,7 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState } from "react"
+import { useDeferredValue, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,12 @@ import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangMasukForm } from "@/components/barang-masuk/barang-masuk-form"
+import { useApiList, useApiDelete } from "@/hooks/use-api"
+import { useOptions } from "@/hooks/use-options"
+import { getErrorMessage, downloadFile } from "@/lib/api"
+import { formatDate, statusColor, statusLabel } from "@/lib/status"
+import { toast } from "sonner"
+import type { BarangMasuk, Gudang } from "@/types"
 
 import {
   BiDownArrowCircle,
@@ -38,63 +44,103 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 
-const dummyData = [
-  {
-    noReferensi: "BM-20260812-004",
-    gudangAsal: "Gudang Utama (Pusat)",
-    supplier: "PT Mikonos",
-    tanggal: "12 Ags 2026",
-    totalItem: "1 SKU (4.000 Pcs)",
-    dibuatOleh: "Rudi",
-    status: "menunggu_approval",
-    dokumen: "surat-jalan-mik-04.pdf",
-  },
-  {
-    noReferensi: "BM-20260721-001",
-    gudangAsal: "Gudang Utama (Pusat)",
-    supplier: "PT Paragon Technology",
-    tanggal: "21 Jul 2026",
-    totalItem: "2 SKU (184 Pcs)",
-    dibuatOleh: "Budi Santoso",
-    status: "disetujui",
-    dokumen: "sj-paragon-88.pdf",
-  },
-  {
-    noReferensi: "BM-20260722-002",
-    gudangAsal: "Gudang Utama (Pusat)",
-    supplier: "PT Somethinc Beauty",
-    tanggal: "22 Jul 2026",
-    totalItem: "1 SKU (110 Pcs)",
-    dibuatOleh: "Budi Santoso",
-    status: "menunggu_approval",
-    dokumen: "sj-somethinc-02.pdf",
-  },
-  {
-    noReferensi: "BM-20260723-003",
-    gudangAsal: "Gudang Utama (Pusat)",
-    supplier: "PT Paragon Technology",
-    tanggal: "22 Jul 2026",
-    totalItem: "1 SKU (45 Pcs)",
-    dibuatOleh: "Rudi",
-    status: "draft",
-    dokumen: "-",
-  },
-  {
-    noReferensi: "BM-20260724-004",
-    gudangAsal: "Gudang Timur",
-    supplier: "PT Arista Latindo",
-    tanggal: "24 Jul 2026",
-    totalItem: "1 SKU (120 Pcs)",
-    dibuatOleh: "Rina Wijaya",
-    status: "ditolak",
-    dokumen: "sj-arista-qc.pdf",
-  },
-] as const
+const statusOptions = [
+  { value: "all", label: "Semua Status" },
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Disetujui" },
+  { value: "rejected", label: "Ditolak" },
+]
+
+function totalItemLabel(row: BarangMasuk): string {
+  const details = row.details ?? []
+  if (!details.length) return "-"
+  const qty = details.reduce((sum, d) => sum + (d.qty || 0), 0)
+  return `${details.length} SKU (${qty.toLocaleString("id-ID")} Pcs)`
+}
+
+function dokumenName(dokumen?: string | null): string {
+  if (!dokumen) return "-"
+  const parts = dokumen.split("/")
+  return parts[parts.length - 1] || dokumen
+}
 
 export default function BarangMasukPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState("")
+  const [gudangFilter, setGudangFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
   const router = useRouter()
+
+  const deferredSearch = useDeferredValue(search)
+
+  const { items: gudangItems } = useOptions<Gudang>("gudang-options", "/gudang")
+  const gudangOptions = [
+    { value: "all", label: "Semua Gudang" },
+    ...gudangItems.map((g) => ({ value: String(g.id), label: g.nama })),
+  ]
+
+  const { data, isLoading } = useApiList<BarangMasuk>({
+    key: "barang-masuk",
+    url: "/barang-masuk",
+    params: {
+      page,
+      per_page: 15,
+      search: deferredSearch.trim() || undefined,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      gudang_id: gudangFilter !== "all" ? gudangFilter : undefined,
+    },
+  })
+  const items = data?.data ?? []
+  const meta = data?.meta
+
+  const deleteMutation = useApiDelete("barang-masuk", "/barang-masuk")
+
+  const total = meta?.total ?? 0
+  const lastPage = meta?.last_page ?? 1
+  const perPage = meta?.per_page ?? 15
+  const rangeStart = total === 0 ? 0 : (page - 1) * perPage + 1
+  const rangeEnd = Math.min(page * perPage, total)
+
+  const pageNumbers: Array<number | "ellipsis"> = []
+  for (let i = 1; i <= lastPage; i++) {
+    if (i === 1 || i === lastPage || Math.abs(i - page) <= 1) {
+      pageNumbers.push(i)
+    } else if (pageNumbers[pageNumbers.length - 1] !== "ellipsis") {
+      pageNumbers.push("ellipsis")
+    }
+  }
+
+  const exportQuery = new URLSearchParams()
+  if (deferredSearch.trim()) exportQuery.set("search", deferredSearch.trim())
+  if (statusFilter !== "all") exportQuery.set("status", statusFilter)
+  if (gudangFilter !== "all") exportQuery.set("gudang_id", gudangFilter)
+  const exportQueryString = exportQuery.toString()
+  const exportUrl = `/barang-masuk/export/excel${
+    exportQueryString ? `?${exportQueryString}` : ""
+  }`
+
+  const handleCetak = async (id: number) => {
+    try {
+      await downloadFile(`/barang-masuk/${id}/print-surat-jalan`)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  const handleDelete = async (row: BarangMasuk) => {
+    if (
+      !window.confirm(`Yakin ingin menghapus penerimaan ${row.no_referensi}?`)
+    )
+      return
+    try {
+      const res = await deleteMutation.mutateAsync(row.id)
+      toast.success(res.message)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
 
   return (
     <>
@@ -126,24 +172,31 @@ export default function BarangMasukPage() {
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-2">
-          <InputSearch placeholder="Cari no. referensi atau supplier..." className="flex-1" />
+          <InputSearch
+            placeholder="Cari no. referensi atau supplier..."
+            className="flex-1"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
           <Opsion
-            options={[
-              { value: "all", label: "Semua Gudang" },
-              { value: "1", label: "Gudang Pusat" },
-              { value: "2", label: "Gudang Timur" },
-              { value: "3", label: "Gudang Selatan" },
-            ]}
+            options={gudangOptions}
+            value={gudangFilter}
+            onValueChange={(value) => {
+              setGudangFilter(value ?? "all")
+              setPage(1)
+            }}
           />
           <Opsion
             placeholder="Semua Status"
-            options={[
-              { value: "all", label: "Semua Status" },
-              { value: "disetujui", label: "Disetujui" },
-              { value: "menunggu", label: "Menunggu Approval" },
-              { value: "ditolak", label: "Ditolak" },
-              { value: "draft", label: "Draft" },
-            ]}
+            options={statusOptions}
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value ?? "all")
+              setPage(1)
+            }}
           />
         </div>
       </div>
@@ -182,182 +235,208 @@ export default function BarangMasukPage() {
             </TableRow>
           </TableHeader>
           <TableBody className="min-h-[300px]">
-            {dummyData.map((row) => (
-              <TableRow
-                key={row.noReferensi}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.noReferensi}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.gudangAsal}
-                </TableCell>
-                <TableCell className="font-sans text-sm text-foreground">
-                  {row.supplier}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                  {row.tanggal}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.totalItem}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.dibuatOleh}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm whitespace-nowrap">
-                  <ColoredBadge
-                    color={
-                      row.status === "disetujui"
-                        ? "green"
-                        : row.status === "menunggu_approval"
-                          ? "yellow"
-                          : row.status === "ditolak"
-                            ? "red"
-                            : "gray"
-                    }
-                  >
-                    {row.status === "disetujui"
-                      ? "Disetujui"
-                      : row.status === "menunggu_approval"
-                        ? "Menunggu Approval"
-                        : row.status === "ditolak"
-                          ? "Ditolak"
-                          : "Draft"}
-                  </ColoredBadge>
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm whitespace-nowrap">
-                  {row.dokumen !== "-" ? (
-                    <span className="inline-flex cursor-pointer items-center gap-0.5 rounded-[4px] border border-border/80 bg-card px-1.5 py-0.5 text-[11px] leading-none whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent/10">
-                      <BiFile className="size-3 text-muted-foreground/80" />
-                      <span>{row.dokumen}</span>
-                    </span>
-                  ) : (
-                    <span className="font-sans whitespace-nowrap text-muted-foreground">
-                      -
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button
-                      className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
-                      onClick={() =>
-                        router.push(
-                          `/inventory/barang-masuk/detail/${row.noReferensi}`
-                        )
-                      }
-                    >
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Penerimaan</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            router.push(
-                              `/inventory/barang-masuk/detail/${row.noReferensi}`
-                            )
-                          }
-                        >
-                          <BiShow />
-                          <span>Lihat Detail</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <BiPrinter />
-                          <span>Cetak Label</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">
-                          <BiTrash />
-                          <span>Batalkan</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+            {isLoading ? (
+              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                <TableCell
+                  colSpan={9}
+                  className="py-10 text-center font-sans text-sm text-muted-foreground"
+                >
+                  Memuat data...
                 </TableCell>
               </TableRow>
-            ))}
-            {dummyData.length < 5 && (
-              <TableRow
-                style={{ height: `${300 - dummyData.length * 64}px` }}
-                className="pointer-events-none border-none hover:bg-transparent"
-              >
-                <TableCell colSpan={9} className="border-none p-0" />
+            ) : items.length === 0 ? (
+              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                <TableCell
+                  colSpan={9}
+                  className="py-10 text-center font-sans text-sm text-muted-foreground"
+                >
+                  Tidak ada data
+                </TableCell>
               </TableRow>
+            ) : (
+              items.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="h-16 border-b border-border/40 hover:bg-muted/30"
+                >
+                  <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
+                    {row.no_referensi}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.gudang?.nama ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {row.supplier?.nama ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
+                    {formatDate(row.tanggal)}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                    {totalItemLabel(row)}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                    {row.createdBy?.name ?? "-"}
+                  </TableCell>
+                  <TableCell className="text-center font-sans text-sm whitespace-nowrap">
+                    <ColoredBadge color={statusColor(row.status)}>
+                      {statusLabel(row.status)}
+                    </ColoredBadge>
+                  </TableCell>
+                  <TableCell className="text-center font-sans text-sm whitespace-nowrap">
+                    {row.dokumen ? (
+                      <span className="inline-flex items-center gap-0.5 rounded-[4px] border border-border/80 bg-card px-1.5 py-0.5 text-[11px] leading-none whitespace-nowrap text-muted-foreground">
+                        <BiFile className="size-3 text-muted-foreground/80" />
+                        <span>{dokumenName(row.dokumen)}</span>
+                      </span>
+                    ) : (
+                      <span className="font-sans whitespace-nowrap text-muted-foreground">
+                        -
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="pr-6 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <button
+                        className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                        onClick={() =>
+                          router.push(
+                            `/inventory/barang-masuk/detail/${row.id}`
+                          )
+                        }
+                      >
+                        <BiChevronRight className="size-4 text-foreground/75" />
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuLabel>Aksi Penerimaan</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/inventory/barang-masuk/detail/${row.id}`
+                              )
+                            }
+                          >
+                            <BiShow />
+                            <span>Lihat Detail</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCetak(row.id)}>
+                            <BiPrinter />
+                            <span>Cetak Surat Jalan</span>
+                          </DropdownMenuItem>
+                          {row.status === "pending" && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => handleDelete(row)}
+                              >
+                                <BiTrash />
+                                <span>Hapus</span>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-white">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={9} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Menampilkan 1-6 dari 19 data</span>
+                  <span>
+                    Menampilkan {rangeStart}-{rangeEnd} dari {total} data
+                  </span>
                   <div className="flex items-center">
                     <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
+                      <button
+                        type="button"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1 || lastPage === 0}
+                        className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                      >
                         &lt;
                       </button>
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 bg-muted/60 font-medium text-foreground transition-colors">
-                        1
-                      </button>
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                        2
-                      </button>
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                        3
-                      </button>
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                        4
-                      </button>
-                      <button className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted">
+                      {pageNumbers.map((p, idx) =>
+                        p === "ellipsis" ? (
+                          <span
+                            key={`ellipsis-${idx}`}
+                            className="flex h-8 w-8 items-center justify-center border-r border-border/80 text-muted-foreground"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPage(p)}
+                            className={
+                              p === page
+                                ? "flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 bg-muted/60 font-medium text-foreground transition-colors"
+                                : "flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted"
+                            }
+                          >
+                            {p}
+                          </button>
+                        )
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPage((p) => Math.min(lastPage, p + 1))
+                        }
+                        disabled={page === lastPage || lastPage === 0}
+                        className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                      >
                         &gt;
                       </button>
                     </div>
                   </div>
-                  <span>10 per halaman</span>
+                  <span>{perPage} per halaman</span>
                 </div>
               </TableCell>
             </TableRow>
           </TableFooter>
         </Table>
       </div>
-    
-      
-    
+
       <ExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Barang Masuk"
-        totalItemsCount={dummyData.length}
+        totalItemsCount={meta?.total ?? 0}
         totalItemsLabel="Total Penerimaan"
         filterLabel="Filter Aktif"
-        exportUrl="/barang-masuk/export/excel"
+        exportUrl={exportUrl}
         checkboxes={[
-        {
-          "id": "noPo",
-          "label": "No. Purchase Order",
-          "defaultChecked": true
-        },
-        {
-          "id": "supplier",
-          "label": "Supplier Asal",
-          "defaultChecked": true
-        },
-        {
-          "id": "barang",
-          "label": "Detail Barang & Qty",
-          "defaultChecked": true
-        },
-        {
-          "id": "petugas",
-          "label": "Petugas Penerima",
-          "defaultChecked": true
-        }
-      ]}
+          {
+            id: "noPo",
+            label: "No. Purchase Order",
+            defaultChecked: true,
+          },
+          {
+            id: "supplier",
+            label: "Supplier Asal",
+            defaultChecked: true,
+          },
+          {
+            id: "barang",
+            label: "Detail Barang & Qty",
+            defaultChecked: true,
+          },
+          {
+            id: "petugas",
+            label: "Petugas Penerima",
+            defaultChecked: true,
+          },
+        ]}
       />
     </>
   )

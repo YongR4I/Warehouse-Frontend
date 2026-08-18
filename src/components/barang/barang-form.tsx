@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm, Controller, type FieldError } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -13,26 +13,17 @@ import {
 import { Button } from "@/components/ui/button"
 import { UploadInput } from "@/components/input/upload"
 import { BiPackage } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage, uploadFile } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import { useOptions, toOptions } from "@/hooks/use-options"
+import type { Barang, BarangPayload, Kategori, Satuan } from "@/types"
 import {
   barangSchema,
   type BarangFormValues,
 } from "@/lib/validations/barang"
 
-const mockKategori = [
-  { value: "1", label: "Material Bangunan" },
-  { value: "2", label: "Cat & Pelapis" },
-  { value: "3", label: "Plumbing" },
-  { value: "4", label: "Elektrikal" },
-]
-
-const mockSatuan = [
-  { value: "Sak", label: "Sak" },
-  { value: "Batang", label: "Batang" },
-  { value: "Kaleng", label: "Kaleng" },
-  { value: "Pcs", label: "Pcs" },
-]
-
-const mockStatus = [
+const statusOptions = [
   { value: "aktif", label: "Aktif" },
   { value: "nonaktif", label: "Nonaktif" },
 ]
@@ -40,54 +31,92 @@ const mockStatus = [
 interface BarangFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Barang | null
+  onSuccess?: () => void
 }
 
-export function BarangForm({ open, onOpenChange }: BarangFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function BarangForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: BarangFormProps) {
+  const create = useApiCreate<Barang, BarangPayload>("barang", "/barang")
+  const update = useApiUpdate<Barang, BarangPayload>("barang", "/barang")
+
+  const { items: kategoris } = useOptions<Kategori>("kategori", "/kategori")
+  const { items: satuans } = useOptions<Satuan>("satuan", "/satuan")
+  const kategoriOptions = toOptions(kategoris)
+  const satuanOptions = toOptions(satuans)
+
+  const formValues = useMemo(
+    () => ({
+      nama: initialData?.nama ?? "",
+      sku: initialData?.sku ?? "",
+      barcode: initialData?.barcode ?? "",
+      kategoriId:
+        initialData?.kategori_id != null ? String(initialData.kategori_id) : "",
+      satuan: initialData?.satuan_id != null ? String(initialData.satuan_id) : "",
+      stokMin: initialData?.min_stok ?? 0,
+      status: initialData?.status ?? "aktif",
+      foto: [],
+      deskripsi: initialData?.deskripsi ?? "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     control,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<BarangFormValues>({
     resolver: zodResolver(barangSchema),
-    defaultValues: {
-      nama: "",
-      sku: "",
-      barcode: "",
-      kategoriId: "",
-      satuan: "",
-      stokMin: 0,
-      status: "aktif",
-      foto: [],
-      dokumen: [],
-      deskripsi: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: BarangFormValues) => {
-    console.log("Submitted:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: BarangFormValues) => {
+    try {
+      let foto = initialData?.foto ?? undefined
+      if (data.foto && data.foto.length > 0) {
+        const uploaded = await uploadFile(data.foto[0])
+        foto = uploaded.url
+      }
+      const payload: BarangPayload = {
+        sku: data.sku,
+        barcode: data.barcode || undefined,
+        nama: data.nama,
+        kategori_id: Number(data.kategoriId),
+        satuan_id: Number(data.satuan),
+        min_stok: data.stokMin,
+        status: data.status,
+        foto,
+        deskripsi: data.deskripsi || undefined,
+      }
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Barang Baru"
+      title={initialData ? "Ubah Barang" : "Tambah Barang Baru"}
       description="Kelola data induk barang, SKU, dan spesifikasi produk."
       icon={BiPackage}
     >
@@ -129,7 +158,7 @@ export function BarangForm({ open, onOpenChange }: BarangFormProps) {
                   value={field.value}
                   onValueChange={(val) => field.onChange(val || "")}
                   placeholder="Pilih kategori"
-                  options={mockKategori}
+                  options={kategoriOptions}
                   error={errors.kategoriId}
                 />
               )}
@@ -144,7 +173,7 @@ export function BarangForm({ open, onOpenChange }: BarangFormProps) {
                   value={field.value}
                   onValueChange={(val) => field.onChange(val || "")}
                   placeholder="Pilih satuan"
-                  options={mockSatuan}
+                  options={satuanOptions}
                   error={errors.satuan}
                 />
               )}
@@ -167,7 +196,7 @@ export function BarangForm({ open, onOpenChange }: BarangFormProps) {
                   value={field.value}
                   onValueChange={(val) => field.onChange(val || "")}
                   placeholder="Pilih status"
-                  options={mockStatus}
+                  options={statusOptions}
                   error={errors.status}
                 />
               )}
@@ -198,32 +227,6 @@ export function BarangForm({ open, onOpenChange }: BarangFormProps) {
               />
             </FormField>
 
-            <FormField
-              label="Dokumen Pendukung (Sertifikasi / Datasheet)"
-              className="col-span-2"
-              error={errors.dokumen as unknown as FieldError}
-            >
-              <Controller
-                control={control}
-                name="dokumen"
-                render={({ field }) => (
-                  <UploadInput
-                    accept=".pdf,.jpg,.jpeg,.png,.webp"
-                    multiple
-                    onChange={(e) => {
-                      const files = e.target.files
-                        ? Array.from(e.target.files)
-                        : []
-                      field.onChange(files)
-                    }}
-                    className="rounded-xl"
-                  >
-                    Klik atau seret foto / dokumen ke area ini
-                  </UploadInput>
-                )}
-              />
-            </FormField>
-
             <FormTextarea
               label="Deskripsi & Catatan"
               placeholder="Spesifikasi tambahan, instruksi penyimpanan, dll..."
@@ -237,20 +240,12 @@ export function BarangForm({ open, onOpenChange }: BarangFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="barang-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Barang"}
+          {initialData ? "Simpan Perubahan" : "Simpan Barang"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

@@ -1,19 +1,21 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState, useMemo } from "react"
+import { useDeferredValue, useMemo, useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
+import { toast } from "sonner"
 import {
   BiUser,
   BiUserPlus,
   BiDownload,
   BiDotsVerticalRounded,
   BiChevronRight,
-  BiShow,
   BiEditAlt,
   BiTrash,
+  BiToggleRight,
+  BiToggleLeft,
 } from "react-icons/bi"
 import {
   DropdownMenu,
@@ -32,88 +34,88 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
-import { PetugasForm } from "@/components/petugas/petugas-form"
+import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
+import {
+  useApiList,
+  useApiCreate,
+  useApiUpdate,
+  useApiDelete,
+} from "@/hooks/use-api"
+import { getErrorMessage } from "@/lib/api"
+import { formatDate } from "@/lib/status"
+import type { Role, User, UserPayload } from "@/types"
 
-interface PetugasGudang {
-  id: string
-  kodePegawai: string
-  tanggungJawab: string
-  namaLengkap: string
-  areaKerja: string
-  nomorTelepon: string
-  tanggalBergabung: string
-  statusOperasional: "Aktif" | "Cuti" | "Non-Aktif"
+function unwrapRows<T>(data: unknown): T[] {
+  const body = data as { data?: unknown } | T[] | null | undefined
+  if (Array.isArray(body)) return body as T[]
+  if (body && typeof body === "object" && Array.isArray(body.data)) {
+    return body.data as T[]
+  }
+  return []
 }
 
-const initialData: PetugasGudang[] = [
-  {
-    id: "1",
-    kodePegawai: "PG-001",
-    tanggungJawab: "Operator Forklift",
-    namaLengkap: "Ahmad Fauzi",
-    areaKerja: "Area Inbound - Rak A",
-    nomorTelepon: "0812-3456-7890",
-    tanggalBergabung: "12 Jan 2024",
-    statusOperasional: "Aktif",
-  },
-  {
-    id: "2",
-    kodePegawai: "PG-002",
-    tanggungJawab: "Admin Inbound",
-    namaLengkap: "Budi Santoso",
-    areaKerja: "Meja Penerimaan Barang",
-    nomorTelepon: "0813-9876-5432",
-    tanggalBergabung: "05 Mar 2024",
-    statusOperasional: "Aktif",
-  },
-  {
-    id: "3",
-    kodePegawai: "PG-003",
-    tanggungJawab: "Packer Outbound",
-    namaLengkap: "Dedi Kurniawan",
-    areaKerja: "Area Packing 2",
-    nomorTelepon: "0857-1122-3344",
-    tanggalBergabung: "10 Agu 2024",
-    statusOperasional: "Cuti",
-  },
-  {
-    id: "4",
-    kodePegawai: "PG-004",
-    tanggungJawab: "Staff Quality Control",
-    namaLengkap: "Eko Prasetyo",
-    areaKerja: "Area Inspeksi QC",
-    nomorTelepon: "0878-5566-7788",
-    tanggalBergabung: "01 Nov 2024",
-    statusOperasional: "Non-Aktif",
-  },
-]
+interface PetugasFormState {
+  name: string
+  email: string
+  password: string
+  noPegawai: string
+  telepon: string
+  roleName: string
+}
+
+const EMPTY_FORM: PetugasFormState = {
+  name: "",
+  email: "",
+  password: "",
+  noPegawai: "",
+  telepon: "",
+  roleName: "",
+}
 
 export default function DaftarPetugasPage() {
   const [exportOpen, setExportOpen] = useState(false)
-  const [data] = useState<PetugasGudang[]>(initialData)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const itemsPerPage = 10
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [form, setForm] = useState<PetugasFormState>(EMPTY_FORM)
+  const [submitting, setSubmitting] = useState(false)
 
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const query = searchQuery.toLowerCase()
-      return (
-        item.namaLengkap.toLowerCase().includes(query) ||
-        item.kodePegawai.toLowerCase().includes(query) ||
-        item.tanggungJawab.toLowerCase().includes(query) ||
-        item.areaKerja.toLowerCase().includes(query)
-      )
-    })
-  }, [data, searchQuery])
+  const deferredSearch = useDeferredValue(searchQuery)
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+  const usersQuery = useApiList<User>({
+    key: "users",
+    url: "/user",
+    params: {
+      page: currentPage,
+      per_page: 15,
+      search: deferredSearch || undefined,
+    },
+  })
 
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage
-    return filteredData.slice(start, start + itemsPerPage)
-  }, [filteredData, currentPage])
+  const rolesQuery = useApiList<Role>({
+    key: "roles",
+    url: "/role",
+    params: { per_page: 100 },
+  })
+
+  const items = usersQuery.data?.data ?? []
+  const meta = usersQuery.data?.meta
+  const total = meta?.total ?? items.length
+  const totalPages = Math.max(1, meta?.last_page ?? 1)
+
+  const roleOptions = useMemo(
+    () =>
+      unwrapRows<Role>(rolesQuery.data).map((role) => ({
+        value: role.name,
+        label: role.name,
+      })),
+    [rolesQuery.data]
+  )
+
+  const createMutation = useApiCreate<User, UserPayload>("users", "/user")
+  const updateMutation = useApiUpdate<User, UserPayload>("users", "/user")
+  const deleteMutation = useApiDelete("users", "/user")
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
@@ -123,20 +125,17 @@ export default function DaftarPetugasPage() {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1)
   }
 
-  const renderStatusBadge = (status: PetugasGudang["statusOperasional"]) => {
-    switch (status) {
-      case "Aktif":
-        return <ColoredBadge color="green">Aktif</ColoredBadge>
-      case "Cuti":
-        return <ColoredBadge color="yellow">Cuti</ColoredBadge>
-      case "Non-Aktif":
-        return <ColoredBadge color="gray">Non-Aktif</ColoredBadge>
-    }
+  const renderStatusBadge = (isActive: boolean) => {
+    if (isActive) return <ColoredBadge color="green">Aktif</ColoredBadge>
+    return <ColoredBadge color="gray">Non-Aktif</ColoredBadge>
   }
 
   const renderPaginationButtons = () => {
     const buttons = []
-    for (let i = 1; i <= totalPages; i++) {
+    const maxButtons = 5
+    const startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2))
+    const endPage = Math.min(totalPages, startPage + maxButtons - 1)
+    for (let i = startPage; i <= endPage; i++) {
       buttons.push(
         <button
           key={i}
@@ -152,6 +151,90 @@ export default function DaftarPetugasPage() {
       )
     }
     return buttons
+  }
+
+  const openCreate = () => {
+    setEditingUser(null)
+    setForm(EMPTY_FORM)
+    setDrawerOpen(true)
+  }
+
+  const openEdit = (user: User) => {
+    setEditingUser(user)
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: "",
+      noPegawai: user.no_pegawai ?? "",
+      telepon: user.telepon ?? "",
+      roleName: user.roles?.[0]?.name ?? "",
+    })
+    setDrawerOpen(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.name.trim() || !form.email.trim()) {
+      toast.error("Nama lengkap dan email wajib diisi")
+      return
+    }
+    if (!editingUser && !form.password.trim()) {
+      toast.error("Password wajib diisi saat membuat petugas baru")
+      return
+    }
+    setSubmitting(true)
+    try {
+      const payload: UserPayload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        no_pegawai: form.noPegawai.trim() || undefined,
+        telepon: form.telepon.trim() || undefined,
+        roles: form.roleName ? [form.roleName] : undefined,
+      }
+      if (!editingUser) {
+        payload.password = form.password
+        await createMutation.mutateAsync(payload)
+        toast.success("Petugas berhasil ditambahkan")
+      } else {
+        await updateMutation.mutateAsync({ id: editingUser.id, data: payload })
+        toast.success("Data petugas berhasil diperbarui")
+      }
+      setDrawerOpen(false)
+      setForm(EMPTY_FORM)
+      setEditingUser(null)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleToggleActive = async (user: User) => {
+    try {
+      await updateMutation.mutateAsync({
+        id: user.id,
+        data: {
+          name: user.name,
+          email: user.email,
+          is_active: !user.is_active,
+        },
+      })
+      toast.success(
+        user.is_active ? "Petugas dinonaktifkan" : "Petugas diaktifkan"
+      )
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const handleDelete = async (user: User) => {
+    if (!window.confirm(`Hapus petugas "${user.name}"?`)) return
+    try {
+      await deleteMutation.mutateAsync(user.id)
+      toast.success("Petugas berhasil dihapus")
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
@@ -172,7 +255,7 @@ export default function DaftarPetugasPage() {
               <BiDownload className="mr-2" />
               Export (.excel/.pdf)
             </Button>
-            <Button variant="default" onClick={() => setDrawerOpen(true)}>
+            <Button variant="default" onClick={openCreate}>
               <BiUserPlus className="mr-2" />
               Tambah Petugas
             </Button>
@@ -195,7 +278,7 @@ export default function DaftarPetugasPage() {
       </div>
 
       <div className="wrapper mt-[25px]">
-        <div className="rounded-[15px] border border-zinc-200 bg-white shadow-xs overflow-hidden">
+        <div className="overflow-hidden rounded-[15px] border border-zinc-200 bg-white shadow-xs">
           <Table>
             <TableHeader className="border-b border-border/60 bg-white">
               <TableRow className="h-14 hover:bg-transparent">
@@ -226,50 +309,90 @@ export default function DaftarPetugasPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedData.map((row) => (
+              {usersQuery.isLoading && (
+                <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center text-sm text-muted-foreground"
+                  >
+                    Memuat data...
+                  </TableCell>
+                </TableRow>
+              )}
+              {!usersQuery.isLoading && items.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
+                    Tidak ada data petugas ditemukan.
+                  </TableCell>
+                </TableRow>
+              )}
+              {items.map((user) => (
                 <TableRow
-                  key={row.id}
+                  key={user.id}
                   className="h-16 border-b border-border/40 hover:bg-muted/30"
                 >
                   <TableCell className="pl-6 font-sans text-sm text-foreground">
-                    {row.kodePegawai}
+                    {user.no_pegawai ?? "-"}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
-                    <ColoredBadge color="gray">{row.tanggungJawab}</ColoredBadge>
+                    <ColoredBadge color="gray">
+                      {user.roles?.map((role) => role.name).join(", ") || "-"}
+                    </ColoredBadge>
                   </TableCell>
-                  <TableCell className="font-sans text-sm whitespace-nowrap text-foreground font-medium">
-                    {row.namaLengkap}
-                  </TableCell>
-                  <TableCell className="font-sans text-sm text-foreground">
-                    {row.areaKerja}
-                  </TableCell>
-                  <TableCell className="font-sans text-sm text-foreground">
-                    {row.nomorTelepon}
+                  <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
+                    {user.name}
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
-                    {row.tanggalBergabung}
+                    {user.gudang?.nama ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {user.telepon ?? "-"}
+                  </TableCell>
+                  <TableCell className="font-sans text-sm text-foreground">
+                    {formatDate(user.created_at)}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
-                    {renderStatusBadge(row.statusOperasional)}
+                    {renderStatusBadge(user.is_active)}
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                      <button
+                        onClick={() => openEdit(user)}
+                        className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                      >
                         <BiChevronRight className="size-4 text-foreground/75" />
                       </button>
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuLabel>Aksi Petugas</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => setDrawerOpen(true)}>
+                          <DropdownMenuItem onClick={() => openEdit(user)}>
                             <BiEditAlt />
                             <span>Ubah Profil</span>
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleActive(user)}
+                          >
+                            {user.is_active ? (
+                              <BiToggleLeft />
+                            ) : (
+                              <BiToggleRight />
+                            )}
+                            <span>
+                              {user.is_active ? "Nonaktifkan" : "Aktifkan"}
+                            </span>
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive">
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDelete(user)}
+                          >
                             <BiTrash />
                             <span>Hapus</span>
                           </DropdownMenuItem>
@@ -279,25 +402,14 @@ export default function DaftarPetugasPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {paginatedData.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
-                    Tidak ada data petugas ditemukan.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
 
           {/* Pagination Footer */}
           <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
             <span>
-              Menampilkan{" "}
-              {filteredData.length > 0
-                ? (currentPage - 1) * itemsPerPage + 1
-                : 0}
-              -{Math.min(currentPage * itemsPerPage, filteredData.length)} dari{" "}
-              {filteredData.length} data
+              Menampilkan {total > 0 ? (currentPage - 1) * 15 + 1 : 0}-
+              {Math.min(currentPage * 15, total)} dari {total} data
             </span>
             {totalPages > 1 && (
               <div className="flex items-center">
@@ -320,39 +432,140 @@ export default function DaftarPetugasPage() {
                 </div>
               </div>
             )}
-            <span>10 per halaman</span>
+            <span>15 per halaman</span>
           </div>
         </div>
       </div>
 
-      <PetugasForm open={drawerOpen} onOpenChange={setDrawerOpen} />
-    
-      
-    
+      <FormDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        title={editingUser ? "Ubah Petugas Gudang" : "Tambah Petugas Gudang"}
+        description="Kelola data karyawan dan status operasional."
+        icon={BiUser}
+      >
+        <FormDrawer.Body>
+          <form id="petugas-form" onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-foreground">
+                1. Identitas Karyawan
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                <FormInput
+                  label="Nama Lengkap *"
+                  placeholder="Nama persis sesuai KTP"
+                  className="col-span-2"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                />
+                <FormInput
+                  label="Email *"
+                  type="email"
+                  placeholder="contoh@sabiru.com"
+                  className="col-span-2"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+                {!editingUser && (
+                  <FormInput
+                    label="Password *"
+                    type="password"
+                    placeholder="Minimal 8 karakter"
+                    className="col-span-2"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                    required
+                  />
+                )}
+                <FormInput
+                  label="Kode Pegawai"
+                  placeholder="Contoh : PG-005"
+                  value={form.noPegawai}
+                  onChange={(e) =>
+                    setForm({ ...form, noPegawai: e.target.value })
+                  }
+                />
+                <FormInput
+                  label="Nomor Telepon"
+                  placeholder="0812-1212-12"
+                  value={form.telepon}
+                  onChange={(e) =>
+                    setForm({ ...form, telepon: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-foreground">
+                2. Hak Akses
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                <FormSelect
+                  label="Role Akses"
+                  placeholder="Pilih role..."
+                  value={form.roleName}
+                  onValueChange={(val) =>
+                    setForm({ ...form, roleName: val ?? "" })
+                  }
+                  options={roleOptions}
+                />
+              </div>
+            </div>
+          </form>
+        </FormDrawer.Body>
+
+        <FormDrawer.Footer>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setDrawerOpen(false)}
+            className="rounded-xl"
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            form="petugas-form"
+            className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
+            disabled={submitting}
+          >
+            {submitting
+              ? "Menyimpan..."
+              : editingUser
+                ? "Simpan Perubahan"
+                : "Simpan Petugas"}
+          </Button>
+        </FormDrawer.Footer>
+      </FormDrawer>
+
       <ExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Daftar Petugas"
-        totalItemsCount={initialData.length}
+        totalItemsCount={total}
         totalItemsLabel="Total Petugas"
         filterLabel="Filter Aktif"
         checkboxes={[
-        {
-          "id": "nama",
-          "label": "Nama & NIP",
-          "defaultChecked": true
-        },
-        {
-          "id": "kontak",
-          "label": "Informasi Kontak",
-          "defaultChecked": true
-        },
-        {
-          "id": "status",
-          "label": "Status Keaktifan",
-          "defaultChecked": true
-        }
-      ]}
+          {
+            id: "nama",
+            label: "Nama & NIP",
+            defaultChecked: true,
+          },
+          {
+            id: "kontak",
+            label: "Informasi Kontak",
+            defaultChecked: true,
+          },
+          {
+            id: "status",
+            label: "Status Keaktifan",
+            defaultChecked: true,
+          },
+        ]}
       />
     </>
   )

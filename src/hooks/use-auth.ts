@@ -3,41 +3,40 @@
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/use-auth-store"
 import api from "@/lib/api"
-import { User } from "@/types"
+import type { User } from "@/types"
 
 export function useAuth() {
   const router = useRouter()
-  const { user, token, isAuthenticated, setAuth, logout } = useAuthStore()
+  const { user, token, isAuthenticated, permissions, setAuth, setUser, logout, hasPermission } =
+    useAuthStore()
 
   const login = async (email: string, password: string) => {
-    const response = await api.post("/auth/login", { email, password })
-    const responseData = response.data
-
-    let userVal: User
-    let tokenVal: string
-
-    if (responseData && typeof responseData === "object") {
-      if ("success" in responseData && responseData.success && responseData.data) {
-        userVal = responseData.data.user
-        tokenVal = responseData.data.token
-      } else {
-        userVal = responseData.user
-        tokenVal = responseData.token
-      }
-    } else {
-      throw new Error("Invalid response format")
+    const response = await api.post("/login", { email, password })
+    const data = response.data?.data
+    if (!data?.token || !data?.user) {
+      throw new Error("Login gagal: token atau user tidak ditemukan pada respons")
     }
-
-    if (!userVal || !tokenVal) {
-      throw new Error("Login failed: User or token missing in response")
-    }
-
-    setAuth(userVal, tokenVal)
+    setAuth(data.user as User, data.token as string)
     router.push("/dashboard")
   }
 
-  const handleLogout = () => {
+  const fetchMe = async (): Promise<User | null> => {
+    const response = await api.get("/me")
+    const data = response.data?.data
+    if (data) {
+      setUser(data as User)
+      return data as User
+    }
+    return null
+  }
+
+  const handleLogout = async () => {
     logout()
+    try {
+      await api.post("/logout")
+    } catch {
+      // token sudah dihapus secara lokal; abaikan error dari backend
+    }
     router.push("/login")
   }
 
@@ -45,7 +44,10 @@ export function useAuth() {
     user,
     token,
     isAuthenticated,
+    permissions,
     login,
+    fetchMe,
     logout: handleLogout,
+    hasPermission,
   }
 }

@@ -1,7 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { useEffect, useState } from "react"
+import {
+  useForm,
+  useFieldArray,
+  Controller,
+  type Resolver,
+} from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   FormDrawer,
@@ -22,69 +27,83 @@ import { Button } from "@/components/ui/button"
 import { UploadInput } from "@/components/input/upload"
 import { TableCell } from "@/components/ui/table"
 import { BiDownArrowCircle, BiSearch } from "react-icons/bi"
-import {
-  barangMasukSchema,
-  type BarangMasukFormValues,
-} from "@/lib/validations/barang-masuk"
+import { toast } from "sonner"
+import { barangMasukSchema } from "@/lib/validations/barang-masuk"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import { useOptions } from "@/hooks/use-options"
+import { getErrorMessage, uploadFile } from "@/lib/api"
+import type {
+  Barang,
+  BarangMasuk,
+  BarangMasukPayload,
+  Gudang,
+  LokasiRak,
+  Supplier,
+} from "@/types"
 
-// ── Mock data ───────────────────────────────────────────────────
-const mockGudang = [
-  { id: "1", nama: "Gudang Pusat" },
-  { id: "2", nama: "Gudang Timur" },
-  { id: "3", nama: "Gudang Selatan" },
-]
+interface BarangMasukItemFormValues {
+  barangId: string
+  jumlah: number
+  harga: number | null
+  lokasiRakId: string
+}
 
-const mockSupplier = [
-  { id: "1", nama: "PT Sumber Makmur" },
-  { id: "2", nama: "CV Indo Perkasa" },
-  { id: "3", nama: "PT Karya Baja" },
-]
+interface BarangMasukFormValues {
+  noReferensi: string
+  nomorSuratJalan: string
+  tanggal: string
+  gudangId: string
+  supplierId: string
+  catatan: string
+  dokumen: File[]
+  items: BarangMasukItemFormValues[]
+}
 
-const mockBarang = [
-  {
-    id: "1",
-    kode: "SKU-A-001",
-    nama: "Laptop ThinkPad T14",
-    stok: 45,
-    satuan: "Unit",
-  },
-  {
-    id: "2",
-    kode: "SKU-A-002",
-    nama: "Monitor LG 27 inch",
-    stok: 30,
-    satuan: "Unit",
-  },
-  {
-    id: "3",
-    kode: "SKU-B-001",
-    nama: "Keyboard Mechanical",
-    stok: 120,
-    satuan: "Pcs",
-  },
-  {
-    id: "4",
-    kode: "SKU-B-002",
-    nama: "Mouse Wireless Logitech",
-    stok: 85,
-    satuan: "Pcs",
-  },
-  {
-    id: "5",
-    kode: "SKU-C-001",
-    nama: "Kabel HDMI 2m",
-    stok: 200,
-    satuan: "Pcs",
-  },
-]
+const defaultValues: BarangMasukFormValues = {
+  noReferensi: "",
+  nomorSuratJalan: "",
+  tanggal: new Date().toISOString().split("T")[0],
+  gudangId: "",
+  supplierId: "",
+  catatan: "",
+  dokumen: [],
+  items: [{ barangId: "", jumlah: 1, harga: null, lokasiRakId: "" }],
+}
 
 interface BarangMasukFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: BarangMasuk | null
+  onSuccess?: () => void
 }
 
-export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function BarangMasukForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: BarangMasukFormProps) {
+  const [isUploading, setIsUploading] = useState(false)
+
+  const { items: gudangItems } = useOptions<Gudang>("gudang-options", "/gudang")
+  const { items: supplierItems } = useOptions<Supplier>(
+    "supplier-options",
+    "/supplier"
+  )
+  const { items: barangItems } = useOptions<Barang>("barang-options", "/barang")
+  const { items: rakItems } = useOptions<LokasiRak>(
+    "lokasi-rak-options",
+    "/lokasi-rak"
+  )
+
+  const createMutation = useApiCreate<BarangMasuk, BarangMasukPayload>(
+    "barang-masuk",
+    "/barang-masuk"
+  )
+  const updateMutation = useApiUpdate<BarangMasuk, BarangMasukPayload>(
+    "barang-masuk",
+    "/barang-masuk"
+  )
 
   const {
     register,
@@ -92,19 +111,42 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
     handleSubmit,
     watch,
     getValues,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<BarangMasukFormValues>({
-    resolver: zodResolver(barangMasukSchema),
-    defaultValues: {
-      tanggal: new Date().toISOString().split("T")[0],
-      gudangId: "",
-      supplierId: "",
-      catatan: "",
-      dokumen: [],
-      items: [{ barangId: "", jumlah: 1 }],
-    },
+    resolver: zodResolver(
+      barangMasukSchema
+    ) as unknown as Resolver<BarangMasukFormValues>,
+    defaultValues,
   })
+
+  useEffect(() => {
+    if (!open) return
+    if (initialData) {
+      const detailItems = initialData.details ?? []
+      reset({
+        noReferensi: initialData.no_referensi,
+        nomorSuratJalan: initialData.nomor_surat_jalan ?? "",
+        tanggal: initialData.tanggal?.slice(0, 10) ?? defaultValues.tanggal,
+        gudangId: String(initialData.gudang_id),
+        supplierId: String(initialData.supplier_id),
+        catatan: initialData.keterangan ?? "",
+        dokumen: [],
+        items: detailItems.length
+          ? detailItems.map((d) => ({
+              barangId: String(d.barang_id),
+              jumlah: d.qty,
+              harga: d.harga_satuan ?? null,
+              lokasiRakId: d.lokasi_rak_id ? String(d.lokasi_rak_id) : "",
+            }))
+          : defaultValues.items,
+      })
+    } else {
+      reset(defaultValues)
+    }
+  }, [open, initialData, reset])
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" })
   const watchItems = watch("items")
@@ -112,28 +154,70 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
   const totalItem =
     watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
-  const getBarang = (id: string) => mockBarang.find((b) => b.id === id)
 
-  const onSubmit = (data: BarangMasukFormValues) => {
-    console.log("Submitted:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const isSaving =
+    createMutation.isPending || updateMutation.isPending || isUploading
+
+  const onSubmit = async () => {
+    const values = getValues()
+    if (!values.noReferensi.trim()) {
+      setError("noReferensi", {
+        type: "manual",
+        message: "No. referensi wajib diisi",
+      })
+      return
+    }
+    setIsUploading(true)
+    try {
+      let dokumenUrl: string | undefined
+      if (values.dokumen?.length) {
+        const uploaded = await Promise.all(
+          values.dokumen.map((file) => uploadFile(file))
+        )
+        dokumenUrl = uploaded.map((u) => u.url).join(",")
+      }
+      const payload: BarangMasukPayload = {
+        no_referensi: values.noReferensi.trim(),
+        nomor_surat_jalan: values.nomorSuratJalan.trim() || undefined,
+        gudang_id: Number(values.gudangId),
+        supplier_id: Number(values.supplierId),
+        tanggal: values.tanggal,
+        keterangan: values.catatan || undefined,
+        dokumen: dokumenUrl,
+        details: values.items.map((item) => ({
+          barang_id: Number(item.barangId),
+          lokasi_rak_id: item.lokasiRakId
+            ? Number(item.lokasiRakId)
+            : undefined,
+          qty: item.jumlah,
+          harga_satuan: item.harga ?? undefined,
+        })),
+      }
+      if (initialData) {
+        const res = await updateMutation.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(res.message)
+      } else {
+        const res = await createMutation.mutateAsync(payload)
+        toast.success(res.message)
+      }
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+      reset(defaultValues)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Terima Barang Baru"
+      title={initialData ? "Ubah Barang Masuk" : "Terima Barang Baru"}
       description="Catat penerimaan stok barang masuk ke gudang."
       icon={BiDownArrowCircle}
     >
@@ -143,15 +227,40 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-6"
         >
-          {/* Header Fields */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+            <FormField
+              label="No. Referensi"
+              required
+              error={errors.noReferensi}
+            >
+              <input
+                type="text"
+                placeholder="cth. BM-20260818-001"
+                {...register("noReferensi")}
+                onChange={(e) => {
+                  register("noReferensi").onChange(e)
+                  clearErrors("noReferensi")
+                }}
+                className="h-10 min-h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+            </FormField>
+
+            <FormField label="No. Surat Jalan (Opsional)">
+              <input
+                type="text"
+                placeholder="cth. SJ-MIK-001"
+                {...register("nomorSuratJalan")}
+                className="h-10 min-h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+            </FormField>
+
             <FormDate
               label="Tanggal Transaksi"
               error={errors.tanggal}
               {...register("tanggal")}
             />
 
-            <FormField label="Gudang Asal" error={errors.gudangId}>
+            <FormField label="Gudang Tujuan" error={errors.gudangId}>
               <Controller
                 control={control}
                 name="gudangId"
@@ -161,8 +270,8 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
                       <SelectValue placeholder="Pilih gudang" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
-                      {mockGudang.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>
+                      {gudangItems.map((g) => (
+                        <SelectItem key={g.id} value={String(g.id)}>
                           {g.nama}
                         </SelectItem>
                       ))}
@@ -184,11 +293,11 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5">
                       <BiSearch className="mr-2 size-4 text-muted-foreground" />
-                      <SelectValue placeholder="Cari atau masukkan nama supplier..." />
+                      <SelectValue placeholder="Cari atau pilih supplier..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
-                      {mockSupplier.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
+                      {supplierItems.map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
                           {s.nama}
                         </SelectItem>
                       ))}
@@ -229,74 +338,103 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
             </FormField>
           </div>
 
-          {/* Item Table Section */}
           <FormSection title="Daftar Item">
             <ItemTable
               headers={[
                 "SKU / Nama Barang",
-                { label: "Stok Tersedia", className: "w-28 text-right" },
-                { label: "Jumlah Masuk", className: "w-32 text-right" },
-                { label: "Satuan", className: "w-20" },
+                { label: "Lokasi Rak", className: "w-36" },
+                { label: "Harga Satuan", className: "w-32 text-right" },
+                { label: "Jumlah Masuk", className: "w-28 text-right" },
               ]}
-              onAdd={() => append({ barangId: "", jumlah: 1 })}
+              onAdd={() =>
+                append({
+                  barangId: "",
+                  jumlah: 1,
+                  harga: null,
+                  lokasiRakId: "",
+                })
+              }
               error={errors.items?.message || errors.items?.root?.message}
             >
-              {fields.map((field, index) => {
-                const selectedBarang = getBarang(
-                  watchItems?.[index]?.barangId ?? ""
-                )
-                return (
-                  <ItemTableRow
-                    key={field.id}
-                    index={index}
-                    onRemove={() => remove(index)}
-                    canRemove={fields.length > 1}
-                  >
-                    <TableCell>
-                      <Controller
-                        control={control}
-                        name={`items.${index}.barangId`}
-                        render={({ field: selectField }) => (
-                          <Select
-                            value={selectField.value}
-                            onValueChange={selectField.onChange}
-                          >
-                            <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
-                              <SelectValue placeholder="Pilih barang..." />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border bg-popover">
-                              {mockBarang.map((b) => (
-                                <SelectItem key={b.id} value={b.id}>
-                                  <span className="font-medium">{b.kode}</span>
-                                  <span className="ml-2 text-muted-foreground">
-                                    {b.nama}
-                                  </span>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-foreground tabular-nums">
-                      {selectedBarang?.stok ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      <input
-                        type="number"
-                        min={1}
-                        {...register(`items.${index}.jumlah`, {
-                          valueAsNumber: true,
-                        })}
-                        className="h-8 w-full rounded-lg border border-border bg-white px-2 text-right text-sm text-foreground tabular-nums transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-                      />
-                    </TableCell>
-                    <TableCell className="text-sm text-[#4c4546]">
-                      {selectedBarang?.satuan ?? "—"}
-                    </TableCell>
-                  </ItemTableRow>
-                )
-              })}
+              {fields.map((field, index) => (
+                <ItemTableRow
+                  key={field.id}
+                  index={index}
+                  onRemove={() => remove(index)}
+                  canRemove={fields.length > 1}
+                >
+                  <TableCell>
+                    <Controller
+                      control={control}
+                      name={`items.${index}.barangId`}
+                      render={({ field: selectField }) => (
+                        <Select
+                          value={selectField.value}
+                          onValueChange={selectField.onChange}
+                        >
+                          <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
+                            <SelectValue placeholder="Pilih barang..." />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-border bg-popover">
+                            {barangItems.map((b) => (
+                              <SelectItem key={b.id} value={String(b.id)}>
+                                <span className="font-medium">{b.sku}</span>
+                                <span className="ml-2 text-muted-foreground">
+                                  {b.nama}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Controller
+                      control={control}
+                      name={`items.${index}.lokasiRakId`}
+                      render={({ field: selectField }) => (
+                        <Select
+                          value={selectField.value}
+                          onValueChange={selectField.onChange}
+                        >
+                          <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
+                            <SelectValue placeholder="Pilih rak (opsional)" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-border bg-popover">
+                            {rakItems.map((r) => (
+                              <SelectItem key={r.id} value={String(r.id)}>
+                                {r.kode_rak}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      {...register(`items.${index}.harga`, {
+                        setValueAs: (v) => (v === "" ? null : Number(v)),
+                      })}
+                      className="h-8 w-full rounded-lg border border-border bg-white px-2 text-right text-sm text-foreground tabular-nums transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <input
+                      type="number"
+                      min={1}
+                      {...register(`items.${index}.jumlah`, {
+                        valueAsNumber: true,
+                      })}
+                      className="h-8 w-full rounded-lg border border-border bg-white px-2 text-right text-sm text-foreground tabular-nums transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                    />
+                  </TableCell>
+                </ItemTableRow>
+              ))}
             </ItemTable>
           </FormSection>
         </form>
@@ -323,20 +461,16 @@ export function BarangMasukForm({ open, onOpenChange }: BarangMasukFormProps) {
         }
       >
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="barang-masuk-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSaving || isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Transaksi"}
+          {isSaving
+            ? "Menyimpan..."
+            : initialData
+              ? "Simpan Perubahan"
+              : "Simpan Transaksi"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

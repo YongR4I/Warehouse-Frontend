@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -11,70 +11,102 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiBuildings } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import { useOptions, toOptions } from "@/hooks/use-options"
+import type { Gudang, LokasiRak, LokasiRakPayload } from "@/types"
 import {
   rakSchema,
   type RakFormValues,
 } from "@/lib/validations/gudang"
 
-const mockGudang = [
-  { value: "1", label: "Gudang Utama (Pusat)" },
-  { value: "2", label: "Gudang Transit" },
-  { value: "3", label: "Gudang Area Timur" },
-]
-
-const mockStatusRak = [
+const statusOptions = [
   { value: "aktif", label: "Aktif / Boleh Diisi" },
-  { value: "penuh", label: "Penuh" },
-  { value: "maintenance", label: "Maintenance / Rusak" },
+  { value: "nonaktif", label: "Nonaktif / Tidak Dipakai" },
 ]
 
 interface RakFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: LokasiRak | null
+  onSuccess?: () => void
 }
 
-export function RakForm({ open, onOpenChange }: RakFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function RakForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: RakFormProps) {
+  const create = useApiCreate<LokasiRak, LokasiRakPayload>(
+    "lokasi-rak",
+    "/lokasi-rak"
+  )
+  const update = useApiUpdate<LokasiRak, LokasiRakPayload>(
+    "lokasi-rak",
+    "/lokasi-rak"
+  )
+
+  const { items: gudangs } = useOptions<Gudang>("gudang", "/gudang")
+  const gudangOptions = toOptions(gudangs)
+
+  const formValues = useMemo(
+    () => ({
+      gudangId:
+        initialData?.gudang_id != null ? String(initialData.gudang_id) : "",
+      kodeRak: initialData?.kode_rak ?? "",
+      lorong: initialData?.zona ?? "",
+      level: "",
+      status: initialData?.status ?? "aktif",
+      keterangan: initialData?.deskripsi ?? "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     control,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<RakFormValues>({
     resolver: zodResolver(rakSchema),
-    defaultValues: {
-      gudangId: "",
-      kodeRak: "",
-      lorong: "",
-      level: "",
-      status: "aktif",
-      keterangan: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: RakFormValues) => {
-    console.log("Submitted Rak:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: RakFormValues) => {
+    const payload: LokasiRakPayload = {
+      gudang_id: Number(data.gudangId),
+      kode_rak: data.kodeRak,
+      zona: data.lorong || undefined,
+      deskripsi: data.keterangan || undefined,
+      status: data.status,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Rak:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Daftar Gudang & Rak"
+      title={initialData ? "Ubah Rak / Bin" : "Tambah Rak / Bin Baru"}
       description="Kelola data gudang dan lokasi rak."
       icon={BiBuildings}
     >
@@ -95,7 +127,7 @@ export function RakForm({ open, onOpenChange }: RakFormProps) {
                     value={field.value}
                     onValueChange={(val) => field.onChange(val || "")}
                     placeholder="Pilih gudang lokasi rak"
-                    options={mockGudang}
+                    options={gudangOptions}
                     error={errors.gudangId}
                   />
                   <p className="text-xs text-[#857f78]">
@@ -140,7 +172,7 @@ export function RakForm({ open, onOpenChange }: RakFormProps) {
                   value={field.value}
                   onValueChange={(val) => field.onChange(val || "")}
                   placeholder="Pilih status rak"
-                  options={mockStatusRak}
+                  options={statusOptions}
                   error={errors.status}
                 />
               )}
@@ -159,20 +191,12 @@ export function RakForm({ open, onOpenChange }: RakFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="rak-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Rak"}
+          {initialData ? "Simpan Perubahan" : "Simpan Rak"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

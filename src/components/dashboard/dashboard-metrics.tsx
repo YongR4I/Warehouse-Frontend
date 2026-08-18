@@ -1,6 +1,7 @@
 "use client"
 
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { formatCurrency, formatNumber } from "@/lib/status"
 
 interface MetricItem {
   label: string
@@ -12,45 +13,109 @@ interface MetricItem {
   barColor?: string
 }
 
-export function DashboardMetrics() {
-  const metrics: MetricItem[] = [
-    {
-      label: "TOTAL NILAI STOK",
-      mainValue: "Rp 4.82 M",
-      subText: "Real-time Valuation",
-      badgeText: "+4.8% MoM",
-      badgeColor: "green",
-      progressPercent: 78,
-      barColor: "bg-emerald-600",
-    },
-    {
-      label: "BARANG MASUK (INBOUND)",
-      mainValue: "850 unit",
-      subText: "12 PO Selesai • Rp 128.4 M",
-      badgeText: "Hari Ini",
-      badgeColor: "gray",
-      progressPercent: 65,
-      barColor: "bg-foreground/70",
-    },
-    {
-      label: "BARANG KELUAR (OUTBOUND)",
-      mainValue: "570 unit",
-      subText: "18 SO Selesai • Rp 96.2 M",
-      badgeText: "Hari Ini",
-      badgeColor: "gray",
-      progressPercent: 45,
-      barColor: "bg-foreground/70",
-    },
-    {
-      label: "STATUS OPERASIONAL",
-      mainValue: "4 Gudang Active",
-      subText: "8/10 Staff Shift • 11 Kritis",
-      badgeText: "80% Attendance",
-      badgeColor: "blue",
-      progressPercent: 80,
-      barColor: "bg-blue-600",
-    },
-  ]
+export interface DashboardMetricsData {
+  totalBarang: number
+  nilaiStok: number
+  barangMasukQty: number
+  barangMasukCount: number
+  barangKeluarQty: number
+  barangKeluarCount: number
+  pendingApprovals: number
+  gudangCount: number
+}
+
+interface DashboardMetricsProps {
+  data?: DashboardMetricsData
+}
+
+const DEFAULT_METRICS: MetricItem[] = [
+  {
+    label: "TOTAL NILAI STOK",
+    mainValue: "Rp 4.82 M",
+    subText: "Real-time Valuation",
+    badgeText: "+4.8% MoM",
+    badgeColor: "green",
+    progressPercent: 78,
+    barColor: "bg-emerald-600",
+  },
+  {
+    label: "BARANG MASUK (INBOUND)",
+    mainValue: "850 unit",
+    subText: "12 PO Selesai • Rp 128.4 M",
+    badgeText: "Hari Ini",
+    badgeColor: "gray",
+    progressPercent: 65,
+    barColor: "bg-foreground/70",
+  },
+  {
+    label: "BARANG KELUAR (OUTBOUND)",
+    mainValue: "570 unit",
+    subText: "18 SO Selesai • Rp 96.2 M",
+    badgeText: "Hari Ini",
+    badgeColor: "gray",
+    progressPercent: 45,
+    barColor: "bg-foreground/70",
+  },
+  {
+    label: "STATUS OPERASIONAL",
+    mainValue: "4 Gudang Active",
+    subText: "8/10 Staff Shift • 11 Kritis",
+    badgeText: "80% Attendance",
+    badgeColor: "blue",
+    progressPercent: 80,
+    barColor: "bg-blue-600",
+  },
+]
+
+function compactCurrency(value: number): string {
+  if (value >= 1_000_000_000)
+    return `Rp ${(value / 1_000_000_000).toFixed(2)} M`
+  if (value >= 1_000_000) return `Rp ${(value / 1_000_000).toFixed(1)} Jt`
+  if (value >= 1_000) return `Rp ${(value / 1_000).toFixed(0)} Rb`
+  return formatCurrency(value)
+}
+
+export function DashboardMetrics({ data }: DashboardMetricsProps) {
+  const metrics: MetricItem[] = data
+    ? [
+        {
+          label: "TOTAL NILAI STOK",
+          mainValue: compactCurrency(data.nilaiStok),
+          subText: `${formatNumber(data.totalBarang)} SKU • Real-time Valuation`,
+          badgeText: "Live",
+          badgeColor: "green",
+          progressPercent: 78,
+          barColor: "bg-emerald-600",
+        },
+        {
+          label: "BARANG MASUK (INBOUND)",
+          mainValue: `${formatNumber(data.barangMasukQty)} unit`,
+          subText: `${formatNumber(data.barangMasukCount)} Transaksi Selesai`,
+          badgeText: "Periode Ini",
+          badgeColor: "gray",
+          progressPercent: 65,
+          barColor: "bg-foreground/70",
+        },
+        {
+          label: "BARANG KELUAR (OUTBOUND)",
+          mainValue: `${formatNumber(data.barangKeluarQty)} unit`,
+          subText: `${formatNumber(data.barangKeluarCount)} Transaksi Selesai`,
+          badgeText: "Periode Ini",
+          badgeColor: "gray",
+          progressPercent: 45,
+          barColor: "bg-foreground/70",
+        },
+        {
+          label: "STATUS OPERASIONAL",
+          mainValue: `${formatNumber(data.pendingApprovals)} Menunggu`,
+          subText: `${formatNumber(data.gudangCount)} Gudang Aktif`,
+          badgeText: "Pending Approval",
+          badgeColor: "yellow",
+          progressPercent: 80,
+          barColor: "bg-blue-600",
+        },
+      ]
+    : DEFAULT_METRICS
 
   return (
     <div className="grid grid-cols-1 divide-y divide-border/60 border-b border-border/60 pb-5 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
@@ -58,7 +123,11 @@ export function DashboardMetrics() {
         <div
           key={m.label}
           className={`flex flex-col justify-between py-2.5 ${
-            idx === 0 ? "sm:pr-6" : idx === metrics.length - 1 ? "sm:pl-6" : "sm:px-6"
+            idx === 0
+              ? "sm:pr-6"
+              : idx === metrics.length - 1
+                ? "sm:pl-6"
+                : "sm:px-6"
           }`}
         >
           <div className="flex items-center justify-between text-xs">
@@ -66,7 +135,10 @@ export function DashboardMetrics() {
               {m.label}
             </span>
             {m.badgeText && (
-              <ColoredBadge color={m.badgeColor || "gray"} className="text-[10px] px-1.5 py-0">
+              <ColoredBadge
+                color={m.badgeColor || "gray"}
+                className="px-1.5 py-0 text-[10px]"
+              >
                 {m.badgeText}
               </ColoredBadge>
             )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -10,6 +10,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiTag } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import type { Satuan, SatuanPayload } from "@/types"
 import {
   satuanSchema,
   type SatuanFormValues,
@@ -18,46 +22,67 @@ import {
 interface SatuanFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Satuan | null
+  onSuccess?: () => void
 }
 
-export function SatuanForm({ open, onOpenChange }: SatuanFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function SatuanForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: SatuanFormProps) {
+  const create = useApiCreate<Satuan, SatuanPayload>("satuan", "/satuan")
+  const update = useApiUpdate<Satuan, SatuanPayload>("satuan", "/satuan")
+
+  const formValues = useMemo(
+    () => ({
+      kode: initialData?.singkatan ?? "",
+      nama: initialData?.nama ?? "",
+      keterangan: "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<SatuanFormValues>({
     resolver: zodResolver(satuanSchema),
-    defaultValues: {
-      kode: "",
-      nama: "",
-      keterangan: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: SatuanFormValues) => {
-    console.log("Submitted Satuan:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: SatuanFormValues) => {
+    const payload: SatuanPayload = {
+      nama: data.nama,
+      singkatan: data.kode,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Satuan:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Satuan Unit (UOM) Baru"
+      title={initialData ? "Ubah Satuan Unit (UOM)" : "Tambah Satuan Unit (UOM) Baru"}
       description="Atur kategori barang dan satuan ukurnya."
       icon={BiTag}
     >
@@ -94,20 +119,12 @@ export function SatuanForm({ open, onOpenChange }: SatuanFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="satuan-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Satuan"}
+          {initialData ? "Simpan Perubahan" : "Simpan Satuan"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

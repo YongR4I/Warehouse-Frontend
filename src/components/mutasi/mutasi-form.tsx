@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm, useFieldArray, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   FormDrawer,
   FormField,
+  FormDate,
   FormTextarea,
   FormSection,
 } from "@/components/forms"
@@ -20,110 +21,119 @@ import {
 import { Button } from "@/components/ui/button"
 import { TableCell } from "@/components/ui/table"
 import { BiTransfer } from "react-icons/bi"
+import { toast } from "sonner"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import { useOptions, toOptions, toBarangOptions } from "@/hooks/use-options"
+import { getErrorMessage } from "@/lib/api"
+import type { Barang, Gudang, MutasiStok, MutasiStokPayload } from "@/types"
 import {
   mutasiSchema,
   type MutasiFormValues,
 } from "@/lib/validations/mutasi"
 
-// ── Mock data ───────────────────────────────────────────────────
-const mockGudang = [
-  { id: "1", nama: "Gudang Pusat" },
-  { id: "2", nama: "Gudang Timur" },
-  { id: "3", nama: "Gudang Selatan" },
-]
-
-const mockBarang = [
-  {
-    id: "1",
-    kode: "SKU-A-001",
-    nama: "Laptop ThinkPad T14",
-    stok: 45,
-    satuan: "Unit",
-  },
-  {
-    id: "2",
-    kode: "SKU-A-002",
-    nama: "Monitor LG 27 inch",
-    stok: 30,
-    satuan: "Unit",
-  },
-  {
-    id: "3",
-    kode: "SKU-B-001",
-    nama: "Keyboard Mechanical",
-    stok: 120,
-    satuan: "Pcs",
-  },
-  {
-    id: "4",
-    kode: "SKU-B-002",
-    nama: "Mouse Wireless Logitech",
-    stok: 85,
-    satuan: "Pcs",
-  },
-  {
-    id: "5",
-    kode: "SKU-C-001",
-    nama: "Kabel HDMI 2m",
-    stok: 200,
-    satuan: "Pcs",
-  },
-]
-
 interface MutasiFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: MutasiStok | null
+  onSuccess?: () => void
 }
 
-export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function MutasiForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: MutasiFormProps) {
+  const createMutation = useApiCreate<MutasiStok, MutasiStokPayload>("mutasi", "/mutasi-stok")
+  const updateMutation = useApiUpdate<MutasiStok, MutasiStokPayload>("mutasi", "/mutasi-stok")
+
+  const { items: gudangList } = useOptions<Gudang>("gudang", "/gudang")
+  const { items: barangList } = useOptions<Barang>("barang", "/barang")
+
+  const gudangOptions = useMemo(() => toOptions(gudangList), [gudangList])
+  const barangOptions = useMemo(() => toBarangOptions(barangList), [barangList])
+
+  const defaultValues = useMemo<MutasiFormValues>(() => {
+    if (initialData) {
+      return {
+        noReferensi: initialData.no_referensi,
+        tanggal: initialData.tanggal,
+        gudangAsalId: String(initialData.gudang_asal_id),
+        gudangTujuanId: String(initialData.gudang_tujuan_id),
+        catatan: initialData.keterangan ?? "",
+        items:
+          initialData.details && initialData.details.length > 0
+            ? initialData.details.map((d) => ({
+                barangId: String(d.barang_id),
+                jumlah: d.qty,
+              }))
+            : initialData.barang_id
+              ? [{ barangId: String(initialData.barang_id), jumlah: initialData.qty ?? 1 }]
+              : [{ barangId: "", jumlah: 1 }],
+      }
+    }
+    return {
+      noReferensi: "",
+      tanggal: new Date().toISOString().slice(0, 10),
+      gudangAsalId: "",
+      gudangTujuanId: "",
+      catatan: "",
+      items: [{ barangId: "", jumlah: 1 }],
+    }
+  }, [initialData])
 
   const {
     register,
     control,
     handleSubmit,
     watch,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<MutasiFormValues>({
     resolver: zodResolver(mutasiSchema),
-    defaultValues: {
-      gudangAsalId: "",
-      gudangTujuanId: "",
-      catatan: "",
-      items: [{ barangId: "", jumlah: 1 }],
-    },
+    values: defaultValues,
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" })
   const watchItems = watch("items")
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
-  const totalItem =
-    watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
-  const getBarang = (id: string) => mockBarang.find((b) => b.id === id)
+  const totalItem = watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
+  const getBarang = (id: string) => barangList.find((b) => String(b.id) === id)
 
-  const onSubmit = (data: MutasiFormValues) => {
-    console.log("Submitted:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: MutasiFormValues) => {
+    const payload: MutasiStokPayload = {
+      no_referensi: data.noReferensi.trim(),
+      gudang_asal_id: Number(data.gudangAsalId),
+      gudang_tujuan_id: Number(data.gudangTujuanId),
+      tanggal: data.tanggal,
+      keterangan: data.catatan || undefined,
+      details: data.items
+        .filter((i) => i.barangId)
+        .map((i) => ({ barang_id: Number(i.barangId), qty: Number(i.jumlah) || 0 })),
+    }
+
+    try {
+      if (initialData) {
+        const response = await updateMutation.mutateAsync({ id: initialData.id, data: payload })
+        toast.success(response.message)
+      } else {
+        const response = await createMutation.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(defaultValues)
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+      onSuccess?.()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Mutasi Antar Gudang"
+      title={initialData ? "Ubah Mutasi Antar Gudang" : "Mutasi Antar Gudang"}
       description="Pindahkan stok barang antar lokasi gudang."
       icon={BiTransfer}
     >
@@ -133,8 +143,21 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-6"
         >
-          {/* Header Fields */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+            <FormField label="No. referensi" error={errors.noReferensi}>
+              <input
+                type="text"
+                placeholder="contoh: MS-20260818-001"
+                disabled={!!initialData}
+                {...register("noReferensi")}
+                className="h-10 min-h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:opacity-60"
+              />
+            </FormField>
+
+            <FormField label="Tanggal" error={errors.tanggal}>
+              <FormDate {...register("tanggal")} />
+            </FormField>
+
             <FormField label="Gudang asal" error={errors.gudangAsalId}>
               <Controller
                 control={control}
@@ -145,9 +168,9 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
                       <SelectValue placeholder="Pilih gudang asal" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
-                      {mockGudang.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>
-                          {g.nama}
+                      {gudangOptions.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>
+                          {g.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -166,9 +189,9 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
                       <SelectValue placeholder="Pilih gudang tujuan" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-popover">
-                      {mockGudang.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>
-                          {g.nama}
+                      {gudangOptions.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>
+                          {g.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -185,7 +208,6 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
             />
           </div>
 
-          {/* Item Table Section */}
           <FormSection title="Daftar Item">
             <ItemTable
               headers={[
@@ -198,9 +220,7 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
               error={errors.items?.message || errors.items?.root?.message}
             >
               {fields.map((field, index) => {
-                const selectedBarang = getBarang(
-                  watchItems?.[index]?.barangId ?? ""
-                )
+                const selectedBarang = getBarang(watchItems?.[index]?.barangId ?? "")
                 return (
                   <ItemTableRow
                     key={field.id}
@@ -210,32 +230,29 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
                   >
                     <TableCell>
                       <Controller
-                          control={control}
-                          name={`items.${index}.barangId`}
-                          render={({ field: selectField }) => (
-                            <Select
-                              value={selectField.value}
-                              onValueChange={selectField.onChange}
-                            >
-                              <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
-                                <SelectValue placeholder="Pilih barang..." />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl border-border bg-popover">
-                                {mockBarang.map((b) => (
-                                  <SelectItem key={b.id} value={b.id}>
-                                    <span className="font-medium">{b.kode}</span>
-                                    <span className="ml-2 text-muted-foreground">
-                                      {b.nama}
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
+                        control={control}
+                        name={`items.${index}.barangId`}
+                        render={({ field: selectField }) => (
+                          <Select
+                            value={selectField.value}
+                            onValueChange={selectField.onChange}
+                          >
+                            <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
+                              <SelectValue placeholder="Pilih barang..." />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-border bg-popover">
+                              {barangOptions.map((b) => (
+                                <SelectItem key={b.value} value={b.value}>
+                                  {b.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                     </TableCell>
                     <TableCell className="text-right text-sm text-foreground tabular-nums">
-                      {selectedBarang?.stok ?? "—"}
+                      {selectedBarang ? "-" : "—"}
                     </TableCell>
                     <TableCell>
                       <input
@@ -248,7 +265,7 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
                       />
                     </TableCell>
                     <TableCell className="text-sm text-[#4c4546]">
-                      {selectedBarang?.satuan ?? "—"}
+                      {selectedBarang?.satuan?.nama ?? "—"}
                     </TableCell>
                   </ItemTableRow>
                 )
@@ -279,20 +296,12 @@ export function MutasiForm({ open, onOpenChange }: MutasiFormProps) {
         }
       >
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="mutasi-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Transaksi"}
+          {isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

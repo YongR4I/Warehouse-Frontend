@@ -1,19 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useDeferredValue, useMemo, useState } from "react"
 import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch } from "@/components/input"
+import { InputSearch, DateInput } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Card } from "@/components/ui/card"
+import { useApiList } from "@/hooks/use-api"
+import { useOptions, toOptions } from "@/hooks/use-options"
+import { formatDate, formatNumber } from "@/lib/status"
+import type { Gudang, LaporanRow } from "@/types"
 import {
   BiSolidReport,
   BiBarChartAlt2,
   BiChevronRight,
   BiChevronLeft,
-  BiCalendar,
   BiTrendingDown,
   BiTrendingUp,
   BiTransfer,
@@ -27,59 +30,167 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-const dummyData = [
-  {
-    waktuTanggal: "12 Ags 2026 - 10:15",
-    noReferensi: "BM-20260812-004",
-    tipeArus: "Barang Masuk",
-    kodeSku: "MIK-MON-50",
-    namaBarang: "Mikonos Monaco 50ml",
-    lokasiAsal: "PT Mikonos",
-    lokasiTujuan: "Gudang Utama - RAK-A-01",
-    qty: 4000,
-    satuan: "Pcs",
-    petugas: "Rudi",
-  },
-  {
-    waktuTanggal: "21 Jul 2026 - 09:40",
-    noReferensi: "BM-20260721-001",
-    tipeArus: "Barang Masuk",
-    kodeSku: "KHF-FW-100",
-    namaBarang: "Kahf Face Wash 100ml",
-    lokasiAsal: "PT Paragon Technology",
-    lokasiTujuan: "Gudang Utama - RAK-B-01",
-    qty: 100,
-    satuan: "Pcs",
-    petugas: "Budi Santoso",
-  },
-  {
-    waktuTanggal: "20 Jul 2026 - 08:30",
-    noReferensi: "MT-20260720-031",
-    tipeArus: "Mutasi Rak",
-    kodeSku: "MIK-MON-50",
-    namaBarang: "Mikonos Monaco 50ml",
-    lokasiAsal: "Gudang Utama - RAK-A-02",
-    lokasiTujuan: "Gudang Timur - RAK-B-01",
-    qty: 50,
-    satuan: "Pcs",
-    petugas: "Rina Wijaya",
-  },
-  {
-    waktuTanggal: "18 Jul 2026 - 16:50",
-    noReferensi: "BK-20260718-014",
-    tipeArus: "Barang Keluar",
-    kodeSku: "SOM-NIA-20",
-    namaBarang: "Somethinc Niacinamide 20ml",
-    lokasiAsal: "Gudang Utama - RAK-A-01",
-    lokasiTujuan: "Guardian Indonesia",
-    qty: -50,
-    satuan: "Pcs",
-    petugas: "Budi Santoso",
-  },
-] as const
+interface MutasiStokRow {
+  id?: number
+  no_referensi?: string
+  tanggal?: string
+  tipe?: string
+  sku?: string
+  nama_barang?: string
+  lokasi_asal?: string
+  lokasi_tujuan?: string
+  qty?: number
+  satuan?: string
+  petugas?: string
+  barang?: {
+    sku?: string
+    nama?: string
+    satuan?: { nama?: string } | null
+  } | null
+  gudang_asal?: { nama?: string } | null
+  gudang_tujuan?: { nama?: string } | null
+  user?: { name?: string } | null
+}
+
+type ArusTipe = "masuk" | "keluar" | "mutasi" | "lain"
+
+function unwrapRows<T>(data: unknown): T[] {
+  const body = data as { data?: unknown } | T[] | null | undefined
+  if (Array.isArray(body)) return body as T[]
+  if (body && typeof body === "object" && Array.isArray(body.data)) {
+    return body.data as T[]
+  }
+  return []
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function toDateParam(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+function detectArus(row: MutasiStokRow): ArusTipe {
+  const tipe = (row.tipe ?? "").toLowerCase()
+  const ref = (row.no_referensi ?? "").toLowerCase()
+  if (tipe.includes("masuk") || ref.startsWith("bm")) return "masuk"
+  if (tipe.includes("keluar") || ref.startsWith("bk")) return "keluar"
+  if (tipe.includes("mutasi") || ref.startsWith("mt")) return "mutasi"
+  return "lain"
+}
+
+function renderArusBadge(arus: ArusTipe) {
+  if (arus === "masuk")
+    return <ColoredBadge color="green">Barang Masuk</ColoredBadge>
+  if (arus === "keluar")
+    return <ColoredBadge color="red">Barang Keluar</ColoredBadge>
+  if (arus === "mutasi")
+    return <ColoredBadge color="purple">Mutasi Rak</ColoredBadge>
+  return <ColoredBadge color="gray">Transaksi</ColoredBadge>
+}
 
 export default function LaporanPage() {
   const [exportOpen, setExportOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [gudangFilter, setGudangFilter] = useState<string | null>(null)
+  const [fromDate, setFromDate] = useState(() =>
+    toDateParam(addDays(new Date(), -30))
+  )
+  const [toDate, setToDate] = useState(() => toDateParam(new Date()))
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
+  const deferredSearch = useDeferredValue(searchQuery)
+  const gudangOptions = useOptions<Gudang>("gudang", "/gudang")
+
+  const gudangId =
+    gudangFilter && gudangFilter !== "all" ? gudangFilter : undefined
+
+  const mutasiParams = useMemo(
+    () => ({ gudang_id: gudangId, from: fromDate, to: toDate, per_page: 100 }),
+    [gudangId, fromDate, toDate]
+  )
+
+  const mutasiQuery = useApiList<MutasiStokRow>({
+    key: "laporan-mutasi",
+    url: "/laporan/mutasi-stok",
+    params: mutasiParams,
+  })
+  const masukQuery = useApiList<LaporanRow>({
+    key: "laporan-masuk",
+    url: "/laporan/barang-masuk",
+    params: mutasiParams,
+  })
+  const keluarQuery = useApiList<LaporanRow>({
+    key: "laporan-keluar",
+    url: "/laporan/barang-keluar",
+    params: mutasiParams,
+  })
+  const opnameQuery = useApiList<Record<string, unknown>>({
+    key: "laporan-opname-selisih",
+    url: "/laporan/stok-opname",
+    params: mutasiParams,
+  })
+
+  const rawMutasi = unwrapRows<MutasiStokRow>(mutasiQuery.data)
+  const rawMasuk = unwrapRows<LaporanRow>(masukQuery.data)
+  const rawKeluar = unwrapRows<LaporanRow>(keluarQuery.data)
+  const rawOpname = unwrapRows<Record<string, unknown>>(opnameQuery.data)
+
+  const rows = useMemo(() => {
+    const query = deferredSearch.toLowerCase().trim()
+    if (!query) return rawMutasi
+    return rawMutasi.filter((row) => {
+      const nama = row.nama_barang ?? row.barang?.nama ?? ""
+      const sku = row.sku ?? row.barang?.sku ?? ""
+      return (
+        (row.no_referensi ?? "").toLowerCase().includes(query) ||
+        nama.toLowerCase().includes(query) ||
+        sku.toLowerCase().includes(query)
+      )
+    })
+  }, [rawMutasi, deferredSearch])
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage
+    return rows.slice(start, start + itemsPerPage)
+  }, [rows, currentPage])
+
+  const totalMasuk = useMemo(
+    () => rawMasuk.reduce((acc, row) => acc + (row.total_qty ?? 0), 0),
+    [rawMasuk]
+  )
+  const totalKeluar = useMemo(
+    () => rawKeluar.reduce((acc, row) => acc + (row.total_qty ?? 0), 0),
+    [rawKeluar]
+  )
+  const totalMutasi = useMemo(
+    () => rawMutasi.filter((row) => detectArus(row) === "mutasi").length,
+    [rawMutasi]
+  )
+  const totalSelisih = useMemo(
+    () =>
+      rawOpname.reduce((acc, row) => {
+        const selisih = (row.selisih as number | undefined) ?? 0
+        return acc + Math.abs(selisih)
+      }, 0),
+    [rawOpname]
+  )
+
+  const isLoading =
+    mutasiQuery.isLoading || masukQuery.isLoading || keluarQuery.isLoading
+
+  const exportUrl = `/laporan/mutasi-stok?format=excel&from=${fromDate}&to=${toDate}${
+    gudangId ? `&gudang_id=${gudangId}` : ""
+  }`
+
   return (
     <>
       {/* Header Section */}
@@ -118,14 +229,14 @@ export default function LaporanPage() {
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-foreground">
-                    1,240
+                    {isLoading ? "-" : formatNumber(totalMasuk)}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Unit / 8 PO
+                    Unit / {formatNumber(rawMasuk.length)} Transaksi
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Didominasi Kategori Electronics (65%)
+                  Berdasarkan laporan barang masuk
                 </p>
               </div>
             </div>
@@ -143,14 +254,14 @@ export default function LaporanPage() {
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-foreground">
-                    850
+                    {isLoading ? "-" : formatNumber(totalKeluar)}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Unit / 14 Surat Jalan
+                    Unit / {formatNumber(rawKeluar.length)} Transaksi
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  92% Pengiriman Siap Kumpul (Packed)
+                  Berdasarkan laporan barang keluar
                 </p>
               </div>
             </div>
@@ -168,14 +279,14 @@ export default function LaporanPage() {
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-foreground">
-                    320
+                    {isLoading ? "-" : formatNumber(totalMutasi)}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Pcs / 3 Sesi
+                    Log Mutasi
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Restock Rak Atas Area Picking B2
+                  Pergerakan antar lokasi penyimpanan
                 </p>
               </div>
             </div>
@@ -192,13 +303,15 @@ export default function LaporanPage() {
               </div>
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">0</span>
+                  <span className="text-2xl font-bold text-foreground">
+                    {opnameQuery.isLoading ? "-" : formatNumber(totalSelisih)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
-                    Item Rusak
+                    Unit Selisih Opname
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Semua barang terverifikasi akurat
+                  Total selisih dari hasil stok opname
                 </p>
               </div>
             </div>
@@ -208,22 +321,36 @@ export default function LaporanPage() {
 
       {/* Filter Section */}
       <div className="wrapper mt-8">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <InputSearch
             placeholder="Cari no. referensi, nama barang, atau SKU..."
             className="flex-1"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setCurrentPage(1)
+            }}
           />
-          <button className="flex h-[42px] shrink-0 items-center gap-2 rounded-2xl border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/30">
-            <span>02 Agu 2026</span>
-            <BiCalendar className="size-4 text-muted-foreground/80" />
-          </button>
+          <DateInput
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="h-[42px] w-[150px] rounded-2xl"
+          />
+          <DateInput
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="h-[42px] w-[150px] rounded-2xl"
+          />
           <Opsion
-            placeholder="Semua Tipe Arus"
+            placeholder="Semua Gudang"
+            value={gudangFilter ?? ""}
+            onValueChange={(val) => {
+              setGudangFilter(val || null)
+              setCurrentPage(1)
+            }}
             options={[
-              { value: "all", label: "Semua Tipe Arus" },
-              { value: "masuk", label: "Barang Masuk" },
-              { value: "keluar", label: "Barang Keluar" },
-              { value: "mutasi", label: "Mutasi Rak" },
+              { value: "all", label: "Semua Gudang" },
+              ...toOptions(gudangOptions.items),
             ]}
           />
         </div>
@@ -272,65 +399,96 @@ export default function LaporanPage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="min-h-[300px]">
-                {dummyData.map((row) => (
-                  <TableRow
-                    key={row.noReferensi}
-                    className="h-16 border-b border-border/40 hover:bg-muted/30"
-                  >
-                    <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.waktuTanggal}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                      {row.noReferensi}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap">
-                      {row.tipeArus === "Barang Masuk" && (
-                        <ColoredBadge color="green">Barang Masuk</ColoredBadge>
-                      )}
-                      {row.tipeArus === "Barang Keluar" && (
-                        <ColoredBadge color="red">Barang Keluar</ColoredBadge>
-                      )}
-                      {row.tipeArus === "Mutasi Rak" && (
-                        <ColoredBadge color="purple">Mutasi Rak</ColoredBadge>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                      {row.kodeSku}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                      {row.namaBarang}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.lokasiAsal}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.lokasiTujuan}
-                    </TableCell>
-                    <TableCell className="text-center font-sans text-sm font-semibold whitespace-nowrap">
-                      {row.qty > 0 ? (
-                        <span className="text-emerald-600">+{row.qty}</span>
-                      ) : row.qty < 0 ? (
-                        <span className="text-rose-600">{row.qty}</span>
-                      ) : (
-                        <span className="text-muted-foreground">{row.qty}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                      {row.satuan}
-                    </TableCell>
-                    <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.petugas}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <button className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                        <BiChevronRight className="size-4" />
-                      </button>
+                {isLoading && (
+                  <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                    <TableCell
+                      colSpan={11}
+                      className="text-center text-sm text-muted-foreground"
+                    >
+                      Memuat data...
                     </TableCell>
                   </TableRow>
-                ))}
-                {dummyData.length < 5 && (
+                )}
+                {!isLoading && paginatedRows.length === 0 && (
+                  <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                    <TableCell
+                      colSpan={11}
+                      className="text-center text-sm text-muted-foreground"
+                    >
+                      Tidak ada data pergerakan stok.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {paginatedRows.map((row) => {
+                  const arus = detectArus(row)
+                  const qty = row.qty ?? 0
+                  const nama = row.nama_barang ?? row.barang?.nama ?? "-"
+                  const sku = row.sku ?? row.barang?.sku ?? "-"
+                  const satuan = row.satuan ?? row.barang?.satuan?.nama ?? "-"
+                  const asal = row.lokasi_asal ?? row.gudang_asal?.nama ?? "-"
+                  const tujuan =
+                    row.lokasi_tujuan ?? row.gudang_tujuan?.nama ?? "-"
+                  const petugas = row.petugas ?? row.user?.name ?? "-"
+                  return (
+                    <TableRow
+                      key={
+                        row.id ?? row.no_referensi ?? `${row.tanggal}-${sku}`
+                      }
+                      className="h-16 border-b border-border/40 hover:bg-muted/30"
+                    >
+                      <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
+                        {formatDate(row.tanggal)}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
+                        {row.no_referensi ?? "-"}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap">
+                        {renderArusBadge(arus)}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
+                        {sku}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
+                        {nama}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                        {asal}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                        {tujuan}
+                      </TableCell>
+                      <TableCell className="text-center font-sans text-sm font-semibold whitespace-nowrap">
+                        {qty > 0 ? (
+                          <span className="text-emerald-600">
+                            +{formatNumber(qty)}
+                          </span>
+                        ) : qty < 0 ? (
+                          <span className="text-rose-600">
+                            {formatNumber(qty)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {formatNumber(qty)}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
+                        {satuan}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                        {petugas}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        <button className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                          <BiChevronRight className="size-4" />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {paginatedRows.length > 0 && paginatedRows.length < 5 && (
                   <TableRow
-                    style={{ height: `${300 - dummyData.length * 64}px` }}
+                    style={{ height: `${300 - paginatedRows.length * 64}px` }}
                     className="pointer-events-none border-none hover:bg-transparent"
                   >
                     <TableCell colSpan={11} className="border-none p-0" />
@@ -340,75 +498,94 @@ export default function LaporanPage() {
             </table>
           </div>
           <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground">
-            <span>Menampilkan 1-4 dari 19 data</span>
-            <div className="flex items-center">
-              <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                  <BiChevronLeft className="size-4" />
-                </button>
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 bg-muted/60 font-medium text-foreground transition-colors">
-                  1
-                </button>
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                  2
-                </button>
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                  3
-                </button>
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted">
-                  4
-                </button>
-                <button className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted">
-                  <BiChevronRight className="size-4" />
-                </button>
+            <span>
+              Menampilkan{" "}
+              {rows.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+              {Math.min(currentPage * itemsPerPage, rows.length)} dari{" "}
+              {rows.length} data
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center">
+                <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    <BiChevronLeft className="size-4" />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
+                          currentPage === page
+                            ? "bg-muted/60 text-foreground"
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    <BiChevronRight className="size-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-            <span>10 per halaman</span>
+            )}
+            <span>{itemsPerPage} per halaman</span>
           </div>
         </div>
       </div>
-    
-      
-    
+
       <ExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Pergerakan Stok"
-        totalItemsCount={dummyData.length}
+        totalItemsCount={rows.length}
         totalItemsLabel="Total Log"
         filterLabel="Filter Aktif"
+        exportUrl={exportUrl}
         checkboxes={[
-        {
-          "id": "waktuTanggal",
-          "label": "Waktu & Tanggal",
-          "defaultChecked": true
-        },
-        {
-          "id": "noReferensi",
-          "label": "No. Referensi",
-          "defaultChecked": true
-        },
-        {
-          "id": "tipeArus",
-          "label": "Tipe Arus",
-          "defaultChecked": true
-        },
-        {
-          "id": "barang",
-          "label": "Detail Barang & Qty",
-          "defaultChecked": true
-        },
-        {
-          "id": "lokasi",
-          "label": "Lokasi Asal/Tujuan",
-          "defaultChecked": true
-        },
-        {
-          "id": "petugas",
-          "label": "Petugas Pelaksana",
-          "defaultChecked": true
-        }
-      ]}
+          {
+            id: "waktuTanggal",
+            label: "Waktu & Tanggal",
+            defaultChecked: true,
+          },
+          {
+            id: "noReferensi",
+            label: "No. Referensi",
+            defaultChecked: true,
+          },
+          {
+            id: "tipeArus",
+            label: "Tipe Arus",
+            defaultChecked: true,
+          },
+          {
+            id: "barang",
+            label: "Detail Barang & Qty",
+            defaultChecked: true,
+          },
+          {
+            id: "lokasi",
+            label: "Lokasi Asal/Tujuan",
+            defaultChecked: true,
+          },
+          {
+            id: "petugas",
+            label: "Petugas Pelaksana",
+            defaultChecked: true,
+          },
+        ]}
       />
     </>
   )

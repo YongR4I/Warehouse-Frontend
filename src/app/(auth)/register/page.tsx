@@ -1,8 +1,55 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import api from "@/lib/api"
+import { useAuthStore } from "@/store/use-auth-store"
+import { getErrorMessage } from "@/lib/api"
+import { BiLoaderAlt, BiErrorCircle } from "react-icons/bi"
 
 export default function RegisterPage() {
+  const router = useRouter()
+  const setAuth = useAuthStore((state) => state.setAuth)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = new FormData(e.currentTarget)
+    const name = String(form.get("name") ?? "")
+    const email = String(form.get("email") ?? "")
+    const password = String(form.get("password") ?? "")
+    const confirmPassword = String(form.get("confirm_password") ?? "")
+
+    if (password !== confirmPassword) {
+      setError("Konfirmasi password tidak cocok.")
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await api.post("/register", {
+        name,
+        email,
+        password,
+        password_confirmation: confirmPassword,
+      })
+      const data = response.data?.data
+      if (data?.token && data?.user) {
+        setAuth(data.user, data.token)
+        router.push("/dashboard")
+      } else {
+        setError("Pendaftaran berhasil, tetapi respons tidak valid. Silakan login.")
+        router.push("/login")
+      }
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal mendaftar. Silakan coba lagi."))
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="flex min-h-screen w-full bg-white font-sans text-[#111111] max-[900px]:flex-col">
       {/* LEFT: REGISTER FORM */}
@@ -61,7 +108,14 @@ export default function RegisterPage() {
 
         <div className="my-5 text-center text-xs text-[#c9c9c9]">ATAU</div>
 
-        <form onSubmit={(e) => e.preventDefault()}>
+        {error && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-[10px] bg-red-500/10 p-3.5 text-xs text-red-500 border border-red-500/20">
+            <BiErrorCircle className="size-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
               className="mb-2 block text-[13.5px] font-semibold"
@@ -154,10 +208,18 @@ export default function RegisterPage() {
           </div>
 
           <button
-            className="w-full cursor-pointer rounded-[10px] bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#252525] active:translate-y-px"
+            className="w-full cursor-pointer rounded-[10px] bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#252525] active:translate-y-px flex items-center justify-center gap-2"
             type="submit"
+            disabled={loading}
           >
-            Daftar
+            {loading ? (
+              <>
+                <BiLoaderAlt className="animate-spin size-4" />
+                Mendaftarkan...
+              </>
+            ) : (
+              "Daftar"
+            )}
           </button>
         </form>
 

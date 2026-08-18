@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -10,6 +10,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
+import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/api"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import type { Supplier, SupplierPayload } from "@/types"
 import {
   supplierSchema,
   type SupplierFormValues,
@@ -18,50 +22,76 @@ import {
 interface SupplierFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialData?: Supplier | null
+  onSuccess?: () => void
 }
 
-export function SupplierForm({ open, onOpenChange }: SupplierFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+export function SupplierForm({
+  open,
+  onOpenChange,
+  initialData,
+  onSuccess,
+}: SupplierFormProps) {
+  const create = useApiCreate<Supplier, SupplierPayload>("supplier", "/supplier")
+  const update = useApiUpdate<Supplier, SupplierPayload>("supplier", "/supplier")
+
+  const formValues = useMemo(
+    () => ({
+      kode: initialData?.kode ?? "",
+      nama: initialData?.nama ?? "",
+      pic: initialData?.kontak ?? "",
+      telepon: initialData?.telepon ?? "",
+      email: initialData?.email ?? "",
+      alamat: initialData?.alamat ?? "",
+      catatan: "",
+    }),
+    [initialData]
+  )
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: {
-      kode: "",
-      nama: "",
-      pic: "",
-      telepon: "",
-      email: "",
-      alamat: "",
-      catatan: "",
-    },
+    values: formValues,
   })
 
-  const onSubmit = (data: SupplierFormValues) => {
-    console.log("Submitted Supplier:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: SupplierFormValues) => {
+    const payload: SupplierPayload = {
+      kode: data.kode,
+      tipe: initialData?.tipe ?? "supplier",
+      nama: data.nama,
+      kontak: data.pic || undefined,
+      telepon: data.telepon,
+      email: data.email || undefined,
+      alamat: data.alamat,
+    }
+    try {
+      if (initialData) {
+        const response = await update.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
+        toast.success(response.message)
+      } else {
+        const response = await create.mutateAsync(payload)
+        toast.success(response.message)
+      }
+      reset(formValues)
+      onSuccess?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Supplier:", { ...getValues(), status: "draft" })
-    onOpenChange(false)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Supplier Baru"
+      title={initialData ? "Ubah Supplier" : "Tambah Supplier Baru"}
       description="Isi formulir berikut untuk mendaftarkan mitra pemasok barang baru ke dalam sistem."
       icon={BiUser}
     >
@@ -134,20 +164,12 @@ export function SupplierForm({ open, onOpenChange }: SupplierFormProps) {
 
       <FormDrawer.Footer>
         <Button
-          type="button"
-          variant="outline"
-          onClick={handleDraft}
-          className="rounded-xl"
-        >
-          Draft
-        </Button>
-        <Button
           type="submit"
           form="supplier-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Supplier"}
+          {initialData ? "Simpan Perubahan" : "Simpan Supplier"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>
