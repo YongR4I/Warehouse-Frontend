@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button"
 import { BiDownload, BiCheck } from "react-icons/bi"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import api from "@/lib/api"
 import axios from "axios"
 
@@ -131,11 +132,11 @@ export function ExportModal({
         console.error("Export error:", error)
         const status = axios.isAxiosError(error) ? error.response?.status : undefined
         if (status === 403) {
-          alert("Anda tidak memiliki izin (permission) untuk mengunduh dokumen Excel ini.")
+          toast.error("Anda tidak memiliki izin (permission) untuk mengunduh dokumen Excel ini.")
         } else if (status === 401) {
-          alert("Sesi Anda telah berakhir. Silakan login kembali.")
+          toast.error("Sesi Anda telah berakhir. Silakan login kembali.")
         } else {
-          alert("Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi.")
+          toast.error("Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi.")
         }
       } finally {
         setIsLoading(false)
@@ -149,7 +150,7 @@ export function ExportModal({
       if (onExport) {
         onExport(activeFormat, coverage, selectedOptions)
       } else {
-        alert(`Unduh berhasil: Format ${activeFormat.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`)
+        toast.success(`Unduh berhasil: Format ${activeFormat.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`)
       }
       onClose()
     }, 1500)
@@ -206,7 +207,9 @@ export function ExportModal({
             <div
               onClick={() => {
                 if (isPdfUnsupported) {
-                  alert("Format PDF untuk seluruh data belum didukung oleh backend. Saat ini PDF hanya tersedia untuk cetak Surat Jalan per transaksi.")
+                  toast.info(
+                    "Format PDF untuk seluruh data belum didukung oleh backend. Saat ini PDF hanya tersedia untuk cetak Surat Jalan per transaksi."
+                  )
                   return
                 }
                 setFormat("pdf")

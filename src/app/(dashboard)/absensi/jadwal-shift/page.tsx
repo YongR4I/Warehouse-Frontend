@@ -4,6 +4,7 @@ import { ExportModal } from "@/components/export-modal"
 import { useMemo, useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
 import {
   BiCalendar,
@@ -302,23 +303,28 @@ export default function JadwalShiftPage() {
     }
   }
 
-  const handleDeleteUserWeek = async (userId: number, userName: string) => {
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDeleteUserWeek = (userId: number, userName: string) => {
     const entries = weekJadwal.filter((entry) => entry.user_id === userId)
     if (entries.length === 0) return
-    if (
-      !window.confirm(
-        `Hapus ${entries.length} jadwal shift "${userName}" minggu ini?`
-      )
-    )
-      return
-    try {
-      for (const entry of entries) {
-        await deleteMutation.mutateAsync(entry.id)
-      }
-      toast.success("Jadwal shift berhasil dihapus")
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+    confirm({
+      title: "Hapus Jadwal Shift",
+      itemName: `${userName} (${entries.length} Shift Minggu Ini)`,
+      description:
+        "Apakah Anda yakin ingin menghapus seluruh jadwal shift petugas ini pada periode minggu terpilih?",
+      confirmLabel: "Ya, Hapus Jadwal",
+      onConfirm: async () => {
+        try {
+          for (const entry of entries) {
+            await deleteMutation.mutateAsync(entry.id)
+          }
+          toast.success("Jadwal shift berhasil dihapus")
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const userOptions = useMemo(
@@ -333,6 +339,7 @@ export default function JadwalShiftPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

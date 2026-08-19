@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useForm, Controller, type FieldError } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -49,6 +49,14 @@ export function BarangForm({
   const kategoriOptions = toOptions(kategoris)
   const satuanOptions = toOptions(satuans)
 
+  const [existingFoto, setExistingFoto] = useState<string | null>(
+    initialData?.foto ?? null
+  )
+
+  useEffect(() => {
+    setExistingFoto(initialData?.foto ?? null)
+  }, [initialData])
+
   const formValues = useMemo(
     () => ({
       nama: initialData?.nama ?? "",
@@ -78,7 +86,7 @@ export function BarangForm({
 
   const onSubmit = async (data: BarangFormValues) => {
     try {
-      let foto = initialData?.foto ?? undefined
+      let foto: string | undefined = existingFoto ?? undefined
       if (data.foto && data.foto.length > 0) {
         const uploaded = await uploadFile(data.foto[0])
         foto = uploaded.url
@@ -213,15 +221,16 @@ export function BarangForm({
                 render={({ field }) => (
                   <UploadInput
                     accept=".jpg,.jpeg,.png,.webp"
-                    onChange={(e) => {
-                      const files = e.target.files
-                        ? Array.from(e.target.files)
-                        : []
-                      field.onChange(files)
+                    value={field.value}
+                    initialUrl={existingFoto}
+                    onChange={(files) => field.onChange(files)}
+                    onRemove={() => {
+                      field.onChange([])
+                      setExistingFoto(null)
                     }}
                     className="rounded-xl"
                   >
-                    Klik atau seret foto ke area ini
+                    Klik atau seret foto produk ke sini
                   </UploadInput>
                 )}
               />

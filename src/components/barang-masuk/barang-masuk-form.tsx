@@ -325,12 +325,8 @@ export function BarangMasukForm({
                   <UploadInput
                     accept=".pdf,.jpg,.jpeg,.png"
                     multiple
-                    onChange={(e) => {
-                      const files = e.target.files
-                        ? Array.from(e.target.files)
-                        : []
-                      field.onChange(files)
-                    }}
+                    value={field.value}
+                    onChange={(files) => field.onChange(files)}
                     className="rounded-xl"
                   />
                 )}

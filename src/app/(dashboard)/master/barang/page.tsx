@@ -10,6 +10,7 @@ import { getErrorMessage } from "@/lib/api"
 import { statusColor, statusLabel, formatNumber } from "@/lib/status"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import type { Barang, Kategori } from "@/types"
 import {
   BiPackage,
@@ -81,14 +82,24 @@ export default function BarangPage() {
     return matchKategori && matchStatus
   })
 
-  const handleDelete = async (barang: Barang) => {
-    if (!window.confirm(`Yakin ingin menghapus barang "${barang.nama}"?`)) return
-    try {
-      const response = await deleteBarang.mutateAsync(barang.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDelete = (barang: Barang) => {
+    confirm({
+      title: "Hapus Data Barang",
+      itemName: `${barang.sku} - ${barang.nama}`,
+      description:
+        "Apakah Anda yakin ingin menghapus barang ini? Data master barang dan konfigurasi stok terkait akan dihapus.",
+      confirmLabel: "Ya, Hapus Barang",
+      onConfirm: async () => {
+        try {
+          const response = await deleteBarang.mutateAsync(barang.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const renderPagination = () => {
@@ -135,6 +146,7 @@ export default function BarangPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

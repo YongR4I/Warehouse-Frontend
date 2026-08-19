@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/api"
 import { statusLabel, statusColor, formatDate, formatCurrency } from "@/lib/status"
@@ -137,28 +138,46 @@ export default function AuditOpnamePage() {
     }
   }
 
-  const handleComplete = async () => {
-    if (!window.confirm("Selesaikan opname ini? Backend akan menghitung selisih dan menyesuaikan stok.")) {
-      return
-    }
-    try {
-      const response = await completeMutation.mutateAsync(id)
-      toast.success(response.message)
-      router.push("/inventory/opname")
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleComplete = () => {
+    confirm({
+      title: "Selesaikan Stok Opname",
+      itemName: `No. Ref: ${session?.no_referensi ?? ""}`,
+      description:
+        "Selesaikan sesi stok opname ini? Backend akan menghitung selisih fisik dan otomatis menyesuaikan stok pada sistem inventori.",
+      confirmLabel: "Ya, Selesaikan Opname",
+      variant: "success",
+      onConfirm: async () => {
+        try {
+          const response = await completeMutation.mutateAsync(id)
+          toast.success(response.message)
+          router.push("/inventory/opname")
+        } catch (err) {
+          toast.error(getErrorMessage(err))
+        }
+      },
+    })
   }
 
-  const handleCancel = async () => {
-    if (!window.confirm("Batalkan sesi opname ini?")) return
-    try {
-      const response = await cancelMutation.mutateAsync(id)
-      toast.success(response.message)
-      router.push("/inventory/opname")
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    }
+  const handleCancel = () => {
+    confirm({
+      title: "Batalkan Sesi Opname",
+      itemName: `No. Ref: ${session?.no_referensi ?? ""}`,
+      description:
+        "Apakah Anda yakin ingin membatalkan sesi stok opname ini? Seluruh perubahan hitungan fisik pada sesi ini tidak akan disimpan ke sistem stok.",
+      confirmLabel: "Ya, Batalkan Sesi",
+      variant: "warning",
+      onConfirm: async () => {
+        try {
+          const response = await cancelMutation.mutateAsync(id)
+          toast.success(response.message)
+          router.push("/inventory/opname")
+        } catch (err) {
+          toast.error(getErrorMessage(err))
+        }
+      },
+    })
   }
 
   const stats = useMemo(() => {
@@ -230,6 +249,7 @@ export default function AuditOpnamePage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <PageHeader

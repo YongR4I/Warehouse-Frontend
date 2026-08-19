@@ -5,6 +5,7 @@ import { useDeferredValue, useMemo, useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
 import {
   BiUser,
@@ -227,18 +228,29 @@ export default function DaftarPetugasPage() {
     }
   }
 
-  const handleDelete = async (user: User) => {
-    if (!window.confirm(`Hapus petugas "${user.name}"?`)) return
-    try {
-      await deleteMutation.mutateAsync(user.id)
-      toast.success("Petugas berhasil dihapus")
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDelete = (user: User) => {
+    confirm({
+      title: "Hapus Petugas",
+      itemName: `${user.name} (${user.email})`,
+      description:
+        "Apakah Anda yakin ingin menghapus data petugas ini? Riwayat absensi dan aktivitas terkait akun ini akan terpengaruh.",
+      confirmLabel: "Ya, Hapus Petugas",
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(user.id)
+          toast.success("Petugas berhasil dihapus")
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

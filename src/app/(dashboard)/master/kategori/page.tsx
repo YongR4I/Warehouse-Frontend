@@ -8,6 +8,7 @@ import { InputSearch } from "@/components/input"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/api"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import type { Kategori, Satuan } from "@/types"
 import {
   BiTag,
@@ -68,24 +69,42 @@ export default function KategoriPage() {
   const satuans = satuanData?.data ?? []
   const satuanMeta = satuanData?.meta
 
-  const handleDeleteKategori = async (kategori: Kategori) => {
-    if (!window.confirm(`Yakin ingin menghapus kategori "${kategori.nama}"?`)) return
-    try {
-      const response = await deleteKategori.mutateAsync(kategori.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDeleteKategori = (kategori: Kategori) => {
+    confirm({
+      title: "Hapus Kategori",
+      itemName: kategori.nama,
+      description:
+        "Apakah Anda yakin ingin menghapus kategori ini? Barang yang terhubung dengan kategori ini mungkin perlu disesuaikan.",
+      confirmLabel: "Ya, Hapus Kategori",
+      onConfirm: async () => {
+        try {
+          const response = await deleteKategori.mutateAsync(kategori.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
-  const handleDeleteSatuan = async (satuan: Satuan) => {
-    if (!window.confirm(`Yakin ingin menghapus satuan "${satuan.nama}"?`)) return
-    try {
-      const response = await deleteSatuan.mutateAsync(satuan.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const handleDeleteSatuan = (satuan: Satuan) => {
+    confirm({
+      title: "Hapus Satuan / UOM",
+      itemName: satuan.singkatan ? `${satuan.nama} (${satuan.singkatan})` : satuan.nama,
+      description:
+        "Apakah Anda yakin ingin menghapus satuan ini? Pastikan tidak ada barang aktif yang bergantung pada satuan ini.",
+      confirmLabel: "Ya, Hapus Satuan",
+      onConfirm: async () => {
+        try {
+          const response = await deleteSatuan.mutateAsync(satuan.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const renderPagination = (
@@ -135,6 +154,7 @@ export default function KategoriPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

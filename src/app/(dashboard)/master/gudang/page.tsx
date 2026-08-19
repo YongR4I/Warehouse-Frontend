@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/lib/api"
 import { statusColor, statusLabel } from "@/lib/status"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import type { Gudang, LokasiRak } from "@/types"
 import {
   BiBuildings,
@@ -87,24 +88,42 @@ export default function GudangPage() {
   const aktifGudang = gudangs.filter((g) => g.status === "aktif").length
   const nonAktifGudang = gudangs.length - aktifGudang
 
-  const handleDeleteGudang = async (gudang: Gudang) => {
-    if (!window.confirm(`Yakin ingin menghapus gudang "${gudang.nama}"?`)) return
-    try {
-      const response = await deleteGudang.mutateAsync(gudang.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDeleteGudang = (gudang: Gudang) => {
+    confirm({
+      title: "Hapus Gudang",
+      itemName: `${gudang.kode} - ${gudang.nama}`,
+      description:
+        "Apakah Anda yakin ingin menghapus gudang ini? Data rak dan konfigurasi stok terkait di gudang ini akan terhapus.",
+      confirmLabel: "Ya, Hapus Gudang",
+      onConfirm: async () => {
+        try {
+          const response = await deleteGudang.mutateAsync(gudang.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
-  const handleDeleteRak = async (rak: LokasiRak) => {
-    if (!window.confirm(`Yakin ingin menghapus rak "${rak.kode_rak}"?`)) return
-    try {
-      const response = await deleteRak.mutateAsync(rak.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const handleDeleteRak = (rak: LokasiRak) => {
+    confirm({
+      title: "Hapus Lokasi Rak",
+      itemName: `Rak: ${rak.kode_rak}`,
+      description:
+        "Apakah Anda yakin ingin menghapus rak ini? Barang yang tersimpan di lokasi rak ini harus dipindahkan terlebih dahulu.",
+      confirmLabel: "Ya, Hapus Rak",
+      onConfirm: async () => {
+        try {
+          const response = await deleteRak.mutateAsync(rak.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const openGudangEdit = (gudang: Gudang) => {
@@ -164,6 +183,7 @@ export default function GudangPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

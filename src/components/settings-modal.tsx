@@ -16,6 +16,7 @@ import {
 } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { useAuthStore } from "@/store/use-auth-store"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import {
   BiShieldQuarter,
   BiCog,
@@ -150,18 +151,28 @@ export function SettingsModal() {
     }
   }
 
-  const handleDeleteUser = async (user: User) => {
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDeleteUser = (user: User) => {
     if (currentUser?.id === user.id) {
       toast.error("Tidak dapat menghapus akun yang sedang digunakan")
       return
     }
-    if (!window.confirm(`Hapus pengguna "${user.name}"?`)) return
-    try {
-      await deleteUserMutation.mutateAsync(user.id)
-      toast.success("Pengguna berhasil dihapus")
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+    confirm({
+      title: "Hapus Pengguna",
+      itemName: `${user.name} (${user.email})`,
+      description:
+        "Apakah Anda yakin ingin menghapus akun pengguna ini? Pengguna ini tidak akan dapat login ke dalam sistem lagi.",
+      confirmLabel: "Ya, Hapus Pengguna",
+      onConfirm: async () => {
+        try {
+          await deleteUserMutation.mutateAsync(user.id)
+          toast.success("Pengguna berhasil dihapus")
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const toggleRolePermission = (permission: string) => {
@@ -226,6 +237,7 @@ export function SettingsModal() {
 
   return (
     <DialogContent className="fixed top-1/2 left-1/2 z-50 flex h-[580px] w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 flex-row overflow-hidden rounded-2xl border border-border/80 bg-background p-0 shadow-2xl outline-none">
+      {ConfirmDialog}
       {/* PANEL KIRI: Navigasi Kategori Pengaturan */}
       <div className="flex w-[260px] shrink-0 flex-col border-r border-border/40 bg-slate-50/50 p-4">
         <span className="mb-3 px-2 text-[10px] font-bold tracking-wider text-muted-foreground/60 uppercase">

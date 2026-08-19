@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { UploadInput } from "@/components/input/upload"
+import { UploadInput, type UploadInputProps } from "@/components/input/upload"
 import { FormField, type FormFieldProps } from "./form-field"
 
 export interface FormUploadProps
-  extends Omit<FormFieldProps, "children">, React.ComponentProps<"input"> {
+  extends Omit<FormFieldProps, "children">,
+    UploadInputProps {
   uploadClassName?: string
-  children?: React.ReactNode
 }
 
 export function FormUpload({
@@ -34,3 +34,4 @@ export function FormUpload({
     </FormField>
   )
 }
+

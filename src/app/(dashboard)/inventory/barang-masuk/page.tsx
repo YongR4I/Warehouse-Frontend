@@ -13,6 +13,7 @@ import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage, downloadFile } from "@/lib/api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
 import type { BarangMasuk, Gudang } from "@/types"
 
@@ -129,21 +130,29 @@ export default function BarangMasukPage() {
     }
   }
 
-  const handleDelete = async (row: BarangMasuk) => {
-    if (
-      !window.confirm(`Yakin ingin menghapus penerimaan ${row.no_referensi}?`)
-    )
-      return
-    try {
-      const res = await deleteMutation.mutateAsync(row.id)
-      toast.success(res.message)
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDelete = (row: BarangMasuk) => {
+    confirm({
+      title: "Hapus Penerimaan Barang",
+      itemName: `No. Ref: ${row.no_referensi}`,
+      description:
+        "Apakah Anda yakin ingin menghapus data penerimaan barang ini? Stok yang telah masuk dan kartu stok terkait akan diperbarui.",
+      confirmLabel: "Ya, Hapus Penerimaan",
+      onConfirm: async () => {
+        try {
+          const res = await deleteMutation.mutateAsync(row.id)
+          toast.success(res.message)
+        } catch (err) {
+          toast.error(getErrorMessage(err))
+        }
+      },
+    })
   }
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

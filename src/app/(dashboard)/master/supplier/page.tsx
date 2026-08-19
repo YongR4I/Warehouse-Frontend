@@ -8,6 +8,7 @@ import { InputSearch } from "@/components/input"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/api"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import type { Supplier, Customer } from "@/types"
 import {
   BiUser,
@@ -69,24 +70,42 @@ export default function SupplierPage() {
   const customers = customerData?.data ?? []
   const customerMeta = customerData?.meta
 
-  const handleDeleteSupplier = async (supplier: Supplier) => {
-    if (!window.confirm(`Yakin ingin menghapus supplier "${supplier.nama}"?`)) return
-    try {
-      const response = await deleteSupplier.mutateAsync(supplier.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDeleteSupplier = (supplier: Supplier) => {
+    confirm({
+      title: "Hapus Supplier",
+      itemName: `${supplier.kode} - ${supplier.nama}`,
+      description:
+        "Apakah Anda yakin ingin menghapus supplier ini? Riwayat transaksi barang masuk terkait dengan supplier ini tetap tersimpan.",
+      confirmLabel: "Ya, Hapus Supplier",
+      onConfirm: async () => {
+        try {
+          const response = await deleteSupplier.mutateAsync(supplier.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
-  const handleDeleteCustomer = async (customer: Customer) => {
-    if (!window.confirm(`Yakin ingin menghapus customer "${customer.nama}"?`)) return
-    try {
-      const response = await deleteCustomer.mutateAsync(customer.id)
-      toast.success(response.message)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const handleDeleteCustomer = (customer: Customer) => {
+    confirm({
+      title: "Hapus Customer",
+      itemName: `${customer.kode} - ${customer.nama}`,
+      description:
+        "Apakah Anda yakin ingin menghapus customer ini? Riwayat transaksi barang keluar terkait tetap tersimpan.",
+      confirmLabel: "Ya, Hapus Customer",
+      onConfirm: async () => {
+        try {
+          const response = await deleteCustomer.mutateAsync(customer.id)
+          toast.success(response.message)
+        } catch (error) {
+          toast.error(getErrorMessage(error))
+        }
+      },
+    })
   }
 
   const renderPagination = (
@@ -136,6 +155,7 @@ export default function SupplierPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

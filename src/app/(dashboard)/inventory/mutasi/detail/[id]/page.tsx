@@ -20,6 +20,7 @@ import { useAuthStore } from "@/store/use-auth-store"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/api"
 import { statusLabel, statusColor, formatDate } from "@/lib/status"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { BiTransfer, BiCheck, BiX, BiCheckDouble } from "react-icons/bi"
 import type { MutasiStok } from "@/types"
 
@@ -35,6 +36,7 @@ export default function MutasiDetailPage() {
   const rejectMutation = useApiAction("mutasi", "/mutasi-stok", "reject")
   const completeMutation = useApiAction("mutasi", "/mutasi-stok", "complete")
   const hasPermission = useAuthStore((state) => state.hasPermission)
+  const { confirm, ConfirmDialog } = useConfirmDialog()
 
   const info = data?.data
 
@@ -113,6 +115,7 @@ export default function MutasiDetailPage() {
 
   return (
     <div className="font-sans">
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <PageHeader
@@ -159,8 +162,16 @@ export default function MutasiDetailPage() {
                 variant="default"
                 className="h-[42px] rounded-[12px] bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
                 onClick={() =>
-                  window.confirm("Selesaikan mutasi ini? Stok akan berpindah gudang.") &&
-                  runAction(completeMutation, "complete", "Mutasi selesai")
+                  confirm({
+                    title: "Selesaikan Mutasi Stok",
+                    itemName: `No. Ref: ${info.no_referensi}`,
+                    description:
+                      "Selesaikan proses mutasi ini? Stok barang akan secara otomatis dipindahkan dari gudang asal ke gudang tujuan.",
+                    confirmLabel: "Ya, Selesaikan Mutasi",
+                    variant: "success",
+                    onConfirm: () =>
+                      runAction(completeMutation, "complete", "Mutasi selesai"),
+                  })
                 }
               >
                 <BiCheckDouble className="size-5" />

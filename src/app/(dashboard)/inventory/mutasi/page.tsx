@@ -11,6 +11,7 @@ import { ColoredBadge } from "@/components/ui/colored-badge"
 import { MutasiForm } from "@/components/mutasi/mutasi-form"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
+import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/api"
 import { statusLabel, statusColor, formatDate } from "@/lib/status"
@@ -85,14 +86,25 @@ export default function MutasiPage() {
   const meta = data?.meta
   const totalPages = meta?.last_page ?? 1
 
-  const handleDelete = async (row: MutasiStok) => {
-    if (!window.confirm(`Batalkan mutasi ${row.no_referensi}?`)) return
-    try {
-      const response = await deleteMutation.mutateAsync(row.id)
-      toast.success(response.message)
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    }
+  const { confirm, ConfirmDialog } = useConfirmDialog()
+
+  const handleDelete = (row: MutasiStok) => {
+    confirm({
+      title: "Batalkan Mutasi Stok",
+      itemName: `No. Ref: ${row.no_referensi}`,
+      description:
+        "Apakah Anda yakin ingin membatalkan transaksi mutasi stok ini? Transaksi yang dibatalkan tidak dapat diproses lebih lanjut.",
+      confirmLabel: "Ya, Batalkan Mutasi",
+      variant: "warning",
+      onConfirm: async () => {
+        try {
+          const response = await deleteMutation.mutateAsync(row.id)
+          toast.success(response.message)
+        } catch (err) {
+          toast.error(getErrorMessage(err))
+        }
+      },
+    })
   }
 
   const renderStatusBadge = (status: string) => (
@@ -101,6 +113,7 @@ export default function MutasiPage() {
 
   return (
     <>
+      {ConfirmDialog}
       <div className="wrapper">
         <div className="flex items-end justify-between">
           <PageHeader

@@ -7,14 +7,14 @@ import { Textarea } from "./textarea"
 import { DateInput } from "./date"
 import { SelectInput, type SelectOption } from "./select"
 import { SearchInput } from "./search"
-import { UploadInput } from "./upload"
+import { UploadInput, type UploadInputProps } from "./upload"
 
 type InputType = "text" | "textarea" | "date" | "select" | "search" | "upload"
 
 type InputTypeProps =
   | ({ type: "textarea" } & React.ComponentProps<"textarea">)
   | { type: "select"; options: SelectOption[]; placeholder?: string }
-  | { type: "upload"; accept?: string; children?: React.ReactNode }
+  | ({ type: "upload" } & UploadInputProps)
   | ({ type: "text" | "date" | "search" } & React.ComponentProps<"input">)
 
 export type InputProps = {
@@ -96,7 +96,7 @@ function Input({
         return (
           <UploadInput
             className={className}
-            {...(props as React.ComponentProps<"input">)}
+            {...(props as UploadInputProps)}
           />
         )
       default:
