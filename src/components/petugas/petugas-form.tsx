@@ -3,14 +3,13 @@
 import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  FormDrawer,
-  FormInput,
-  FormSelect,
-} from "@/components/forms"
+import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
-import { petugasSchema, type PetugasFormValues } from "@/lib/validations/petugas"
+import {
+  petugasSchema,
+  type PetugasFormValues,
+} from "@/lib/validations/petugas"
 
 const mockPeran = [
   { value: "operator-forklift", label: "Operator Forklift" },

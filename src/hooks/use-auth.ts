@@ -7,14 +7,24 @@ import type { User } from "@/types"
 
 export function useAuth() {
   const router = useRouter()
-  const { user, token, isAuthenticated, permissions, setAuth, setUser, logout, hasPermission } =
-    useAuthStore()
+  const {
+    user,
+    token,
+    isAuthenticated,
+    permissions,
+    setAuth,
+    setUser,
+    logout,
+    hasPermission,
+  } = useAuthStore()
 
   const login = async (email: string, password: string) => {
     const response = await api.post("/login", { email, password })
     const data = response.data?.data
     if (!data?.token || !data?.user) {
-      throw new Error("Login gagal: token atau user tidak ditemukan pada respons")
+      throw new Error(
+        "Login gagal: token atau user tidak ditemukan pada respons"
+      )
     }
     setAuth(data.user as User, data.token as string)
     router.push("/dashboard")

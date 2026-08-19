@@ -62,12 +62,12 @@ function DialogContent({
             render={
               <button
                 type="button"
-                className="absolute top-5 right-5 z-50 flex flex-col items-center gap-0.5 text-muted-foreground/60 hover:text-foreground transition-colors outline-none focus:outline-none select-none cursor-pointer"
+                className="absolute top-5 right-5 z-50 flex cursor-pointer flex-col items-center gap-0.5 text-muted-foreground/60 transition-colors outline-none select-none hover:text-foreground focus:outline-none"
               >
-                <div className="flex size-7 items-center justify-center rounded-full border border-border/80 hover:bg-muted/40 transition-colors">
+                <div className="flex size-7 items-center justify-center rounded-full border border-border/80 transition-colors hover:bg-muted/40">
                   <XIcon className="size-3.5" />
                 </div>
-                <span className="text-[9px] font-bold tracking-tight uppercase leading-none mt-0.5">
+                <span className="mt-0.5 text-[9px] leading-none font-bold tracking-tight uppercase">
                   esc
                 </span>
               </button>

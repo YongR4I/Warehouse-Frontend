@@ -12,18 +12,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { BiBuildings } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import type { Gudang, LokasiRak, LokasiRakPayload } from "@/types"
-import {
-  rakSchema,
-  type RakFormValues,
-} from "@/lib/validations/gudang"
+import { rakSchema, type RakFormValues } from "@/lib/validations/gudang"
 
 const statusOptions = [
-  { value: "aktif", label: "Aktif / Boleh Diisi" },
-  { value: "nonaktif", label: "Nonaktif / Tidak Dipakai" },
+  { value: "aktif", label: "Aktif" },
+  { value: "penuh", label: "Penuh" },
+  { value: "maintenance", label: "Maintenance" },
 ]
 
 interface RakFormProps {
@@ -68,6 +66,7 @@ export function RakForm({
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<RakFormValues>({
@@ -98,6 +97,7 @@ export function RakForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }

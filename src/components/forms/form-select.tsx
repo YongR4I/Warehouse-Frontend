@@ -53,7 +53,12 @@ export function FormSelect({
       {children ? (
         children
       ) : (
-        <Select value={value} onValueChange={onValueChange} disabled={disabled} items={options}>
+        <Select
+          value={value}
+          onValueChange={onValueChange}
+          disabled={disabled}
+          items={options}
+        >
           <SelectTrigger
             className={cn(
               "h-10 min-h-10 w-full rounded-xl border-border bg-card px-3.5",

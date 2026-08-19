@@ -58,12 +58,20 @@ export default function GudangPage() {
   const { data: gudangData, isLoading: gudangLoading } = useApiList<Gudang>({
     key: "gudang",
     url: "/gudang",
-    params: { page: gudangPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+    params: {
+      page: gudangPage,
+      per_page: PER_PAGE,
+      search: deferredSearch || undefined,
+    },
   })
   const { data: rakData, isLoading: rakLoading } = useApiList<LokasiRak>({
     key: "lokasi-rak",
     url: "/lokasi-rak",
-    params: { page: rakPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+    params: {
+      page: rakPage,
+      per_page: PER_PAGE,
+      search: deferredSearch || undefined,
+    },
   })
 
   const deleteGudang = useApiDelete("gudang", "/gudang")
@@ -246,13 +254,19 @@ export default function GudangPage() {
           <TableBody>
             {gudangLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : gudangs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -282,7 +296,7 @@ export default function GudangPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -316,7 +330,11 @@ export default function GudangPage() {
                     Total Gudang: {gudangMeta?.total ?? 0} Gudang ({aktifGudang}{" "}
                     Aktif, {nonAktifGudang} Non-Aktif)
                   </span>
-                  {renderPagination(gudangPage, gudangMeta?.last_page ?? 1, setGudangPage)}
+                  {renderPagination(
+                    gudangPage,
+                    gudangMeta?.last_page ?? 1,
+                    setGudangPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
@@ -366,13 +384,19 @@ export default function GudangPage() {
           <TableBody>
             {rakLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : filteredRaks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -400,7 +424,7 @@ export default function GudangPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -430,8 +454,14 @@ export default function GudangPage() {
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Total Lokasi Rak: {rakMeta?.total ?? 0} Lokasi Rak / Bin</span>
-                  {renderPagination(rakPage, rakMeta?.last_page ?? 1, setRakPage)}
+                  <span>
+                    Total Lokasi Rak: {rakMeta?.total ?? 0} Lokasi Rak / Bin
+                  </span>
+                  {renderPagination(
+                    rakPage,
+                    rakMeta?.last_page ?? 1,
+                    setRakPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>

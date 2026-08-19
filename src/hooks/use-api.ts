@@ -11,7 +11,12 @@ interface UseApiOptions {
   enabled?: boolean
 }
 
-export function useApiList<T>({ key, url, params, enabled = true }: UseApiOptions) {
+export function useApiList<T>({
+  key,
+  url,
+  params,
+  enabled = true,
+}: UseApiOptions) {
   return useQuery({
     queryKey: [key, params],
     queryFn: async () => {
@@ -80,7 +85,9 @@ export function useApiAction(key: string, url: string, action = "approve") {
 
   return useMutation({
     mutationFn: async (id: number | string) => {
-      const response = await api.post<ApiResponse<unknown>>(`${url}/${id}/${action}`)
+      const response = await api.post<ApiResponse<unknown>>(
+        `${url}/${id}/${action}`
+      )
       return response.data
     },
     onSuccess: () => {

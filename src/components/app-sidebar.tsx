@@ -107,7 +107,11 @@ const navGroups: NavGroup[] = [
         label: "Jadwal Shift",
         path: "/absensi/jadwal-shift",
       },
-      { icon: BiUserCheck, label: "Presensi Harian", path: "/absensi/presensi" },
+      {
+        icon: BiUserCheck,
+        label: "Presensi Harian",
+        path: "/absensi/presensi",
+      },
       { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/rekap" },
     ],
   },
@@ -213,8 +217,8 @@ export function AppSidebar() {
             className={cn(
               "group relative flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200 active:scale-[0.98]",
               pathname === dashboardItem.path
-                ? "bg-foreground text-background shadow-xs font-semibold"
-                : "border border-border/70 bg-muted/30 text-foreground hover:bg-muted/70 hover:border-border"
+                ? "bg-foreground font-semibold text-background shadow-xs"
+                : "border border-border/70 bg-muted/30 text-foreground hover:border-border hover:bg-muted/70"
             )}
           >
             <div className="flex items-center gap-2.5">
@@ -223,18 +227,18 @@ export function AppSidebar() {
                   "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
                   pathname === dashboardItem.path
                     ? "bg-background/20 text-background"
-                    : "bg-background text-foreground border border-border/40 shadow-2xs"
+                    : "border border-border/40 bg-background text-foreground shadow-2xs"
                 )}
               >
                 <BiGridAlt className="size-4" />
               </span>
               <div className="flex flex-col items-start text-left">
-                <span className="text-xs font-bold leading-none tracking-tight">
+                <span className="text-xs leading-none font-bold tracking-tight">
                   Dashboard
                 </span>
                 <span
                   className={cn(
-                    "mt-1 text-[10px] font-medium leading-none",
+                    "mt-1 text-[10px] leading-none font-medium",
                     pathname === dashboardItem.path
                       ? "text-background/70"
                       : "text-muted-foreground"

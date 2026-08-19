@@ -44,23 +44,37 @@ export default function SupplierPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [supplierDrawerOpen, setSupplierDrawerOpen] = useState(false)
   const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false)
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null
+  )
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  )
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [supplierPage, setSupplierPage] = useState(1)
   const [customerPage, setCustomerPage] = useState(1)
 
-  const { data: supplierData, isLoading: supplierLoading } = useApiList<Supplier>({
-    key: "supplier",
-    url: "/supplier",
-    params: { page: supplierPage, per_page: PER_PAGE, search: deferredSearch || undefined },
-  })
-  const { data: customerData, isLoading: customerLoading } = useApiList<Customer>({
-    key: "customer",
-    url: "/customer",
-    params: { page: customerPage, per_page: PER_PAGE, search: deferredSearch || undefined },
-  })
+  const { data: supplierData, isLoading: supplierLoading } =
+    useApiList<Supplier>({
+      key: "supplier",
+      url: "/supplier",
+      params: {
+        page: supplierPage,
+        per_page: PER_PAGE,
+        search: deferredSearch || undefined,
+      },
+    })
+  const { data: customerData, isLoading: customerLoading } =
+    useApiList<Customer>({
+      key: "customer",
+      url: "/customer",
+      params: {
+        page: customerPage,
+        per_page: PER_PAGE,
+        search: deferredSearch || undefined,
+      },
+    })
 
   const deleteSupplier = useApiDelete("supplier", "/supplier")
   const deleteCustomer = useApiDelete("customer", "/customer")
@@ -221,13 +235,19 @@ export default function SupplierPage() {
           <TableBody>
             {supplierLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : suppliers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -269,7 +289,7 @@ export default function SupplierPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -305,9 +325,14 @@ export default function SupplierPage() {
               <TableCell colSpan={7} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
                   <span>
-                    Total Pemasok: {supplierMeta?.total ?? 0} Perusahaan Pemasok / Supplier
+                    Total Pemasok: {supplierMeta?.total ?? 0} Perusahaan Pemasok
+                    / Supplier
                   </span>
-                  {renderPagination(supplierPage, supplierMeta?.last_page ?? 1, setSupplierPage)}
+                  {renderPagination(
+                    supplierPage,
+                    supplierMeta?.last_page ?? 1,
+                    setSupplierPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
@@ -352,13 +377,19 @@ export default function SupplierPage() {
           <TableBody>
             {customerLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : customers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -400,7 +431,7 @@ export default function SupplierPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -436,9 +467,14 @@ export default function SupplierPage() {
               <TableCell colSpan={7} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
                   <span>
-                    Total Pelanggan: {customerMeta?.total ?? 0} Data Pelanggan / Customer
+                    Total Pelanggan: {customerMeta?.total ?? 0} Data Pelanggan /
+                    Customer
                   </span>
-                  {renderPagination(customerPage, customerMeta?.last_page ?? 1, setCustomerPage)}
+                  {renderPagination(
+                    customerPage,
+                    customerMeta?.last_page ?? 1,
+                    setCustomerPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState } from "react"
 import { useForm, Controller, type FieldError } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -14,14 +14,15 @@ import { Button } from "@/components/ui/button"
 import { UploadInput } from "@/components/input/upload"
 import { BiPackage } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage, uploadFile } from "@/lib/api"
+import {
+  getErrorMessage,
+  handleApiValidationErrors,
+  uploadFile,
+} from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import type { Barang, BarangPayload, Kategori, Satuan } from "@/types"
-import {
-  barangSchema,
-  type BarangFormValues,
-} from "@/lib/validations/barang"
+import { barangSchema, type BarangFormValues } from "@/lib/validations/barang"
 
 const statusOptions = [
   { value: "aktif", label: "Aktif" },
@@ -49,13 +50,13 @@ export function BarangForm({
   const kategoriOptions = toOptions(kategoris)
   const satuanOptions = toOptions(satuans)
 
-  const [existingFoto, setExistingFoto] = useState<string | null>(
-    initialData?.foto ?? null
-  )
-
-  useEffect(() => {
-    setExistingFoto(initialData?.foto ?? null)
-  }, [initialData])
+  const [prevId, setPrevId] = useState<number | undefined>(initialData?.id)
+  const [fotoRemoved, setFotoRemoved] = useState(false)
+  if (initialData?.id !== prevId) {
+    setPrevId(initialData?.id)
+    setFotoRemoved(false)
+  }
+  const existingFoto = fotoRemoved ? null : (initialData?.foto ?? null)
 
   const formValues = useMemo(
     () => ({
@@ -64,7 +65,8 @@ export function BarangForm({
       barcode: initialData?.barcode ?? "",
       kategoriId:
         initialData?.kategori_id != null ? String(initialData.kategori_id) : "",
-      satuan: initialData?.satuan_id != null ? String(initialData.satuan_id) : "",
+      satuan:
+        initialData?.satuan_id != null ? String(initialData.satuan_id) : "",
       stokMin: initialData?.min_stok ?? 0,
       status: initialData?.status ?? "aktif",
       foto: [],
@@ -77,6 +79,7 @@ export function BarangForm({
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<BarangFormValues>({
@@ -88,16 +91,16 @@ export function BarangForm({
     try {
       let foto: string | undefined = existingFoto ?? undefined
       if (data.foto && data.foto.length > 0) {
-        const uploaded = await uploadFile(data.foto[0])
-        foto = uploaded.url
+        const uploadRes = await uploadFile(data.foto[0])
+        foto = uploadRes.url
       }
       const payload: BarangPayload = {
+        nama: data.nama,
         sku: data.sku,
         barcode: data.barcode || undefined,
-        nama: data.nama,
         kategori_id: Number(data.kategoriId),
         satuan_id: Number(data.satuan),
-        min_stok: data.stokMin,
+        min_stok: Number(data.stokMin),
         status: data.status,
         foto,
         deskripsi: data.deskripsi || undefined,
@@ -116,6 +119,7 @@ export function BarangForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }
@@ -226,7 +230,7 @@ export function BarangForm({
                     onChange={(files) => field.onChange(files)}
                     onRemove={() => {
                       field.onChange([])
-                      setExistingFoto(null)
+                      setFotoRemoved(true)
                     }}
                     className="rounded-xl"
                   >

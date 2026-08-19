@@ -3,15 +3,11 @@
 import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  FormDrawer,
-  FormInput,
-  FormTextarea,
-} from "@/components/forms"
+import { FormDrawer, FormInput, FormTextarea } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import type { Customer, CustomerPayload } from "@/types"
 import {
@@ -32,8 +28,14 @@ export function CustomerForm({
   initialData,
   onSuccess,
 }: CustomerFormProps) {
-  const create = useApiCreate<Customer, CustomerPayload>("customer", "/customer")
-  const update = useApiUpdate<Customer, CustomerPayload>("customer", "/customer")
+  const create = useApiCreate<Customer, CustomerPayload>(
+    "customer",
+    "/customer"
+  )
+  const update = useApiUpdate<Customer, CustomerPayload>(
+    "customer",
+    "/customer"
+  )
 
   const formValues = useMemo(
     () => ({
@@ -51,6 +53,7 @@ export function CustomerForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CustomerFormValues>({
@@ -83,6 +86,7 @@ export function CustomerForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }

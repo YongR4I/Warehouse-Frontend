@@ -94,10 +94,7 @@ function Input({
         )
       case "upload":
         return (
-          <UploadInput
-            className={className}
-            {...(props as UploadInputProps)}
-          />
+          <UploadInput className={className} {...(props as UploadInputProps)} />
         )
       default:
         return (

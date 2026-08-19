@@ -43,22 +43,33 @@ export default function KategoriPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [kategoriDrawerOpen, setKategoriDrawerOpen] = useState(false)
   const [satuanDrawerOpen, setSatuanDrawerOpen] = useState(false)
-  const [selectedKategori, setSelectedKategori] = useState<Kategori | null>(null)
+  const [selectedKategori, setSelectedKategori] = useState<Kategori | null>(
+    null
+  )
   const [selectedSatuan, setSelectedSatuan] = useState<Satuan | null>(null)
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [kategoriPage, setKategoriPage] = useState(1)
   const [satuanPage, setSatuanPage] = useState(1)
 
-  const { data: kategoriData, isLoading: kategoriLoading } = useApiList<Kategori>({
-    key: "kategori",
-    url: "/kategori",
-    params: { page: kategoriPage, per_page: PER_PAGE, search: deferredSearch || undefined },
-  })
+  const { data: kategoriData, isLoading: kategoriLoading } =
+    useApiList<Kategori>({
+      key: "kategori",
+      url: "/kategori",
+      params: {
+        page: kategoriPage,
+        per_page: PER_PAGE,
+        search: deferredSearch || undefined,
+      },
+    })
   const { data: satuanData, isLoading: satuanLoading } = useApiList<Satuan>({
     key: "satuan",
     url: "/satuan",
-    params: { page: satuanPage, per_page: PER_PAGE, search: deferredSearch || undefined },
+    params: {
+      page: satuanPage,
+      per_page: PER_PAGE,
+      search: deferredSearch || undefined,
+    },
   })
 
   const deleteKategori = useApiDelete("kategori", "/kategori")
@@ -92,7 +103,9 @@ export default function KategoriPage() {
   const handleDeleteSatuan = (satuan: Satuan) => {
     confirm({
       title: "Hapus Satuan / UOM",
-      itemName: satuan.singkatan ? `${satuan.nama} (${satuan.singkatan})` : satuan.nama,
+      itemName: satuan.singkatan
+        ? `${satuan.nama} (${satuan.singkatan})`
+        : satuan.nama,
       description:
         "Apakah Anda yakin ingin menghapus satuan ini? Pastikan tidak ada barang aktif yang bergantung pada satuan ini.",
       confirmLabel: "Ya, Hapus Satuan",
@@ -214,13 +227,19 @@ export default function KategoriPage() {
           <TableBody>
             {kategoriLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : kategoris.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -242,7 +261,7 @@ export default function KategoriPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -277,8 +296,14 @@ export default function KategoriPage() {
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={4} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Total Kategori: {kategoriMeta?.total ?? 0} Kategori</span>
-                  {renderPagination(kategoriPage, kategoriMeta?.last_page ?? 1, setKategoriPage)}
+                  <span>
+                    Total Kategori: {kategoriMeta?.total ?? 0} Kategori
+                  </span>
+                  {renderPagination(
+                    kategoriPage,
+                    kategoriMeta?.last_page ?? 1,
+                    setKategoriPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>
@@ -311,13 +336,19 @@ export default function KategoriPage() {
           <TableBody>
             {satuanLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={3}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : satuans.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={3}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -336,7 +367,7 @@ export default function KategoriPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
@@ -371,8 +402,14 @@ export default function KategoriPage() {
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={3} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
-                  <span>Total Satuan / UOM: {satuanMeta?.total ?? 0} Kode Satuan</span>
-                  {renderPagination(satuanPage, satuanMeta?.last_page ?? 1, setSatuanPage)}
+                  <span>
+                    Total Satuan / UOM: {satuanMeta?.total ?? 0} Kode Satuan
+                  </span>
+                  {renderPagination(
+                    satuanPage,
+                    satuanMeta?.last_page ?? 1,
+                    setSatuanPage
+                  )}
                   <span>{PER_PAGE} per halaman</span>
                 </div>
               </TableCell>

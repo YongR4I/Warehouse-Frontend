@@ -8,17 +8,17 @@ import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 function extractItemsFromChildren(
   children: React.ReactNode
-): Array<{ value: any; label: React.ReactNode }> {
-  const items: Array<{ value: any; label: React.ReactNode }> = []
+): Array<{ value: unknown; label: React.ReactNode }> {
+  const items: Array<{ value: unknown; label: React.ReactNode }> = []
 
   function traverse(nodes: React.ReactNode) {
     React.Children.forEach(nodes, (child) => {
       if (!React.isValidElement(child)) return
-      const props = child.props as Record<string, any>
+      const props = child.props as Record<string, unknown>
       if (props && "value" in props && props.value !== undefined) {
         items.push({
           value: props.value,
-          label: props.children,
+          label: props.children as React.ReactNode,
         })
         if (
           typeof props.value === "string" &&
@@ -27,17 +27,17 @@ function extractItemsFromChildren(
         ) {
           items.push({
             value: Number(props.value),
-            label: props.children,
+            label: props.children as React.ReactNode,
           })
         } else if (typeof props.value === "number") {
           items.push({
             value: String(props.value),
-            label: props.children,
+            label: props.children as React.ReactNode,
           })
         }
       }
       if (props && props.children) {
-        traverse(props.children)
+        traverse(props.children as React.ReactNode)
       }
     })
   }
@@ -46,7 +46,7 @@ function extractItemsFromChildren(
   return items
 }
 
-function Select<Value = any, Multiple extends boolean | undefined = false>({
+function Select<Value = unknown, Multiple extends boolean | undefined = false>({
   children,
   items,
   ...props
@@ -139,7 +139,7 @@ function SelectContent({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) min-w-(--anchor-width) w-max max-w-[450px] min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-2xl bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/5 duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "relative isolate z-50 max-h-(--available-height) w-max max-w-[450px] min-w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-2xl bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/5 duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}

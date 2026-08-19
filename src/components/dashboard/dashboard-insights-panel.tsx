@@ -2,20 +2,59 @@
 
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Progress } from "@/components/ui/progress"
-import { BiErrorCircle, BiTimeFive, BiCheckShield, BiUserCheck } from "react-icons/bi"
+import {
+  BiErrorCircle,
+  BiTimeFive,
+  BiCheckShield,
+  BiUserCheck,
+} from "react-icons/bi"
 
 export function DashboardInsightsPanel() {
   const warehouseCapacities = [
-    { nama: "Gudang Utama Jakarta", terpakai: 3800, kapasitas: 5000, pct: 76, color: "bg-amber-500" },
-    { nama: "Gudang Cabang Bekasi", terpakai: 1200, kapasitas: 3000, pct: 40, color: "bg-emerald-500" },
-    { nama: "Gudang Cabang Tangerang", terpakai: 2380, kapasitas: 2500, pct: 95, color: "bg-rose-500" },
-    { nama: "Gudang Surabaya Hub", terpakai: 1500, kapasitas: 4000, pct: 37, color: "bg-emerald-500" },
+    {
+      nama: "Gudang Utama Jakarta",
+      terpakai: 3800,
+      kapasitas: 5000,
+      pct: 76,
+      color: "bg-amber-500",
+    },
+    {
+      nama: "Gudang Cabang Bekasi",
+      terpakai: 1200,
+      kapasitas: 3000,
+      pct: 40,
+      color: "bg-emerald-500",
+    },
+    {
+      nama: "Gudang Cabang Tangerang",
+      terpakai: 2380,
+      kapasitas: 2500,
+      pct: 95,
+      color: "bg-rose-500",
+    },
+    {
+      nama: "Gudang Surabaya Hub",
+      terpakai: 1500,
+      kapasitas: 4000,
+      pct: 37,
+      color: "bg-emerald-500",
+    },
   ]
 
   const shiftStatus = [
     { nama: "Shift Pagi (07:00-15:00)", hadir: 3, total: 3, status: "Lengkap" },
-    { nama: "Shift Siang (15:00-23:00)", hadir: 2, total: 3, status: "1 Absen" },
-    { nama: "Shift Malam (23:00-07:00)", hadir: 2, total: 2, status: "Lengkap" },
+    {
+      nama: "Shift Siang (15:00-23:00)",
+      hadir: 2,
+      total: 3,
+      status: "1 Absen",
+    },
+    {
+      nama: "Shift Malam (23:00-07:00)",
+      hadir: 2,
+      total: 2,
+      status: "Lengkap",
+    },
   ]
 
   return (
@@ -32,10 +71,14 @@ export function DashboardInsightsPanel() {
           {/* Action item 1 */}
           <div className="flex items-start justify-between gap-2 border-b border-border/40 pb-2.5">
             <div className="flex items-start gap-2">
-              <BiErrorCircle className="mt-0.5 size-4 text-rose-600 shrink-0" />
+              <BiErrorCircle className="mt-0.5 size-4 shrink-0 text-rose-600" />
               <div>
-                <span className="font-semibold text-foreground">11 SKU Barang</span>{" "}
-                <span className="text-muted-foreground">berada di bawah stok minimum dan perlu restok.</span>
+                <span className="font-semibold text-foreground">
+                  11 SKU Barang
+                </span>{" "}
+                <span className="text-muted-foreground">
+                  berada di bawah stok minimum dan perlu restok.
+                </span>
               </div>
             </div>
             <button
@@ -49,10 +92,14 @@ export function DashboardInsightsPanel() {
           {/* Action item 2 */}
           <div className="flex items-start justify-between gap-2 border-b border-border/40 pb-2.5">
             <div className="flex items-start gap-2">
-              <BiTimeFive className="mt-0.5 size-4 text-amber-600 shrink-0" />
+              <BiTimeFive className="mt-0.5 size-4 shrink-0 text-amber-600" />
               <div>
-                <span className="font-semibold text-foreground">3 Transaksi Inbound</span>{" "}
-                <span className="text-muted-foreground">membutuhkan konfirmasi approval Supervisor.</span>
+                <span className="font-semibold text-foreground">
+                  3 Transaksi Inbound
+                </span>{" "}
+                <span className="text-muted-foreground">
+                  membutuhkan konfirmasi approval Supervisor.
+                </span>
               </div>
             </div>
             <button
@@ -66,10 +113,14 @@ export function DashboardInsightsPanel() {
           {/* Action item 3 */}
           <div className="flex items-start justify-between gap-2 pb-1">
             <div className="flex items-start gap-2">
-              <BiCheckShield className="mt-0.5 size-4 text-amber-600 shrink-0" />
+              <BiCheckShield className="mt-0.5 size-4 shrink-0 text-amber-600" />
               <div>
-                <span className="font-semibold text-foreground">2 Laporan Opname</span>{" "}
-                <span className="text-muted-foreground">terdeteksi selisih fisik vs sistem.</span>
+                <span className="font-semibold text-foreground">
+                  2 Laporan Opname
+                </span>{" "}
+                <span className="text-muted-foreground">
+                  terdeteksi selisih fisik vs sistem.
+                </span>
               </div>
             </div>
             <button
@@ -96,10 +147,15 @@ export function DashboardInsightsPanel() {
               <div className="flex items-center justify-between">
                 <span className="font-medium text-foreground">{wh.nama}</span>
                 <span className="text-muted-foreground tabular-nums">
-                  {wh.pct}% ({wh.terpakai.toLocaleString("id-ID")}/{wh.kapasitas.toLocaleString("id-ID")})
+                  {wh.pct}% ({wh.terpakai.toLocaleString("id-ID")}/
+                  {wh.kapasitas.toLocaleString("id-ID")})
                 </span>
               </div>
-              <Progress value={wh.pct} className="h-1.5" indicatorClassName={wh.color} />
+              <Progress
+                value={wh.pct}
+                className="h-1.5"
+                indicatorClassName={wh.color}
+              />
             </div>
           ))}
         </div>
@@ -130,7 +186,7 @@ export function DashboardInsightsPanel() {
                 </span>
                 <ColoredBadge
                   color={st.hadir === st.total ? "green" : "yellow"}
-                  className="text-[9px] px-1.5 py-0"
+                  className="px-1.5 py-0 text-[9px]"
                 >
                   {st.status}
                 </ColoredBadge>

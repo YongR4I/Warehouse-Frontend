@@ -3,21 +3,14 @@
 import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  FormDrawer,
-  FormInput,
-  FormTextarea,
-} from "@/components/forms"
+import { FormDrawer, FormInput, FormTextarea } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiTag } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import type { Satuan, SatuanPayload } from "@/types"
-import {
-  satuanSchema,
-  type SatuanFormValues,
-} from "@/lib/validations/kategori"
+import { satuanSchema, type SatuanFormValues } from "@/lib/validations/kategori"
 
 interface SatuanFormProps {
   open: boolean
@@ -47,6 +40,7 @@ export function SatuanForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<SatuanFormValues>({
@@ -74,6 +68,7 @@ export function SatuanForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }
@@ -82,7 +77,9 @@ export function SatuanForm({
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={initialData ? "Ubah Satuan Unit (UOM)" : "Tambah Satuan Unit (UOM) Baru"}
+      title={
+        initialData ? "Ubah Satuan Unit (UOM)" : "Tambah Satuan Unit (UOM) Baru"
+      }
       description="Atur kategori barang dan satuan ukurnya."
       icon={BiTag}
     >

@@ -3,15 +3,11 @@
 import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  FormDrawer,
-  FormInput,
-  FormTextarea,
-} from "@/components/forms"
+import { FormDrawer, FormInput, FormTextarea } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiTag } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import type { Kategori, KategoriPayload } from "@/types"
 import {
@@ -32,8 +28,14 @@ export function KategoriForm({
   initialData,
   onSuccess,
 }: KategoriFormProps) {
-  const create = useApiCreate<Kategori, KategoriPayload>("kategori", "/kategori")
-  const update = useApiUpdate<Kategori, KategoriPayload>("kategori", "/kategori")
+  const create = useApiCreate<Kategori, KategoriPayload>(
+    "kategori",
+    "/kategori"
+  )
+  const update = useApiUpdate<Kategori, KategoriPayload>(
+    "kategori",
+    "/kategori"
+  )
 
   const formValues = useMemo(
     () => ({
@@ -47,6 +49,7 @@ export function KategoriForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<KategoriFormValues>({
@@ -74,6 +77,7 @@ export function KategoriForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }

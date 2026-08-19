@@ -3,6 +3,7 @@ export type ReferenceType = "BM" | "BK" | "MS" | "SO" | "ADJ"
 export interface GenerateReferenceOptions {
   date?: Date | string
   existingRefs?: string[]
+  currentRef?: string
 }
 
 /**
@@ -21,11 +22,19 @@ export function generateReferenceNumber(
   let existingRefs: string[] = []
 
   if (options) {
-    if (options instanceof Date || typeof options === "string") {
+    if (options instanceof Date) {
       dateVal = options
+    } else if (typeof options === "string") {
+      // If a reference string like "BM-20260819-001" was passed
+      if (/^[A-Z]{2,3}-\d+/i.test(options)) {
+        existingRefs.push(options)
+      } else {
+        dateVal = options
+      }
     } else {
       if (options.date) dateVal = options.date
-      if (options.existingRefs) existingRefs = options.existingRefs
+      if (options.existingRefs) existingRefs = [...options.existingRefs]
+      if (options.currentRef) existingRefs.push(options.currentRef)
     }
   }
 

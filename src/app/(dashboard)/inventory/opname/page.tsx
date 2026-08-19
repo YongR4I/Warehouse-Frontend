@@ -67,7 +67,10 @@ export default function OpnamePage() {
       per_page: itemsPerPage,
       search: deferredSearch || undefined,
       status: statusFilter && statusFilter !== "all" ? statusFilter : undefined,
-      gudang_id: gudangFilter && gudangFilter !== "all" ? Number(gudangFilter) : undefined,
+      gudang_id:
+        gudangFilter && gudangFilter !== "all"
+          ? Number(gudangFilter)
+          : undefined,
     },
   })
   const { data: inProgressData } = useApiList<StokOpname>({
@@ -82,7 +85,10 @@ export default function OpnamePage() {
   })
 
   const startMutation = useApiAction("opname", "/stok-opname", "start")
-  const createMutation = useApiCreate<StokOpname, StokOpnamePayload>("opname", "/stok-opname")
+  const createMutation = useApiCreate<StokOpname, StokOpnamePayload>(
+    "opname",
+    "/stok-opname"
+  )
 
   const { items: gudangList } = useOptions<Gudang>("gudang", "/gudang")
   const gudangOptions = [
@@ -106,7 +112,10 @@ export default function OpnamePage() {
   const handleOpenModal = () => {
     const today = new Date().toISOString().slice(0, 10)
     const existingRefs = rows.map((item) => item.no_referensi).filter(Boolean)
-    const nextNoDoc = generateReferenceNumber("SO", { date: today, existingRefs })
+    const nextNoDoc = generateReferenceNumber("SO", {
+      date: today,
+      existingRefs,
+    })
     setNewNoDokumen(nextNoDoc)
     setNewTanggal(today)
     setNewGudang("")
@@ -119,6 +128,7 @@ export default function OpnamePage() {
     const nextNoDoc = generateReferenceNumber("SO", {
       date: newTanggal || new Date(),
       existingRefs,
+      currentRef: newNoDokumen,
     })
     setNewNoDokumen(nextNoDoc)
   }
@@ -160,7 +170,9 @@ export default function OpnamePage() {
   }
 
   const renderStatusBadge = (status: string) => (
-    <ColoredBadge color={statusColor(status)}>{statusLabel(status)}</ColoredBadge>
+    <ColoredBadge color={statusColor(status)}>
+      {statusLabel(status)}
+    </ColoredBadge>
   )
 
   const renderVarianceBadge = (selisihTotal: number | null) => {
@@ -230,7 +242,9 @@ export default function OpnamePage() {
             <span className="text-3xl font-bold tracking-tight text-[#D97706]">
               {inProgressData?.meta?.total ?? 0}
             </span>
-            <span className="text-xs font-semibold text-[#D97706]/85">Sesi</span>
+            <span className="text-xs font-semibold text-[#D97706]/85">
+              Sesi
+            </span>
           </div>
           <div className="mt-2 text-[11px] font-semibold text-slate-400">
             Sedang dihitung auditor
@@ -246,7 +260,9 @@ export default function OpnamePage() {
             <span className="text-3xl font-bold tracking-tight text-[#1E824C]">
               {completedData?.meta?.total ?? 0}
             </span>
-            <span className="text-xs font-semibold text-[#1E824C]/85">Sesi</span>
+            <span className="text-xs font-semibold text-[#1E824C]/85">
+              Sesi
+            </span>
           </div>
           <div className="mt-2 text-[11px] font-semibold text-slate-400">
             Sudah diapprove & diadjust
@@ -340,14 +356,20 @@ export default function OpnamePage() {
               <TableBody className="min-h-[300px]">
                 {isLoading && (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={8}
+                      className="h-48 text-center text-sm text-muted-foreground"
+                    >
                       Memuat data...
                     </TableCell>
                   </TableRow>
                 )}
                 {!isLoading && rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-48 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={8}
+                      className="h-48 text-center text-sm text-muted-foreground"
+                    >
                       Tidak ada data opname.
                     </TableCell>
                   </TableRow>
@@ -371,7 +393,9 @@ export default function OpnamePage() {
                         {row.gudang?.nama ?? "-"}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.details?.length ? `${row.details.length} SKU` : "-"}
+                        {row.details?.length
+                          ? `${row.details.length} SKU`
+                          : "-"}
                       </TableCell>
                       <TableCell className="text-center font-sans text-sm whitespace-nowrap">
                         {renderVarianceBadge(selisihTotal)}
@@ -387,7 +411,9 @@ export default function OpnamePage() {
                           {row.status === "in_progress" && (
                             <button
                               onClick={() =>
-                                router.push(`/inventory/opname/${row.id}?mode=edit`)
+                                router.push(
+                                  `/inventory/opname/${row.id}?mode=edit`
+                                )
                               }
                               className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] bg-[#18181B] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-black/90"
                             >
@@ -395,10 +421,13 @@ export default function OpnamePage() {
                               <span className="text-sm font-light">→</span>
                             </button>
                           )}
-                          {(row.status === "completed" || row.status === "cancelled") && (
+                          {(row.status === "completed" ||
+                            row.status === "cancelled") && (
                             <button
                               onClick={() =>
-                                router.push(`/inventory/opname/${row.id}?mode=view`)
+                                router.push(
+                                  `/inventory/opname/${row.id}?mode=view`
+                                )
                               }
                               className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-card px-3.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
                             >
@@ -448,22 +477,26 @@ export default function OpnamePage() {
                 >
                   &lt;
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={cn(
-                      "flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0",
-                      currentPage === p
-                        ? "bg-muted/60 text-foreground"
-                        : "text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    {p}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={cn(
+                        "flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0",
+                        currentPage === p
+                          ? "bg-muted/60 text-foreground"
+                          : "text-muted-foreground hover:bg-muted"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages || totalPages === 0}
                   className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                 >
@@ -485,7 +518,7 @@ export default function OpnamePage() {
       >
         <form onSubmit={handleCreateOpname}>
           <FormModal.Body>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormReferenceInput
                 label="Nomor Referensi"
                 required
@@ -530,7 +563,7 @@ export default function OpnamePage() {
               type="submit"
               variant="default"
               disabled={submitting}
-              className="h-10 min-h-10 px-6 font-semibold flex items-center gap-1.5"
+              className="flex h-10 min-h-10 items-center gap-1.5 px-6 font-semibold"
             >
               <BiPlay className="size-4" />
               <span>{submitting ? "Menyimpan..." : "Buat Opname"}</span>

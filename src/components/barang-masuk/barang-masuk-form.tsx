@@ -33,7 +33,11 @@ import { barangMasukSchema } from "@/lib/validations/barang-masuk"
 import { generateReferenceNumber } from "@/lib/reference-number"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
-import { getErrorMessage, uploadFile } from "@/lib/api"
+import {
+  getErrorMessage,
+  handleApiValidationErrors,
+  uploadFile,
+} from "@/lib/api"
 import type {
   Barang,
   BarangMasuk,
@@ -127,7 +131,11 @@ export function BarangMasukForm({
 
   const handleRegenerateRef = () => {
     const currentDate = getValues("tanggal") || new Date()
-    const newRef = generateReferenceNumber("BM", currentDate)
+    const currentRef = getValues("noReferensi")
+    const newRef = generateReferenceNumber("BM", {
+      date: currentDate,
+      currentRef,
+    })
     setValue("noReferensi", newRef, { shouldValidate: true })
     clearErrors("noReferensi")
   }
@@ -178,7 +186,7 @@ export function BarangMasukForm({
     if (!values.noReferensi.trim()) {
       setError("noReferensi", {
         type: "manual",
-        message: "No. referensi wajib diisi",
+        message: "Nomor referensi wajib diisi",
       })
       return
     }
@@ -222,6 +230,7 @@ export function BarangMasukForm({
       onOpenChange(false)
       reset(defaultValues)
     } catch (err) {
+      handleApiValidationErrors(err, setError)
       toast.error(getErrorMessage(err))
     } finally {
       setIsUploading(false)

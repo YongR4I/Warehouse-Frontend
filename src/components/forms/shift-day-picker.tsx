@@ -64,7 +64,11 @@ interface ShiftDayPickerProps {
   error?: string
 }
 
-export function ShiftDayPicker({ value, onChange, error }: ShiftDayPickerProps) {
+export function ShiftDayPicker({
+  value,
+  onChange,
+  error,
+}: ShiftDayPickerProps) {
   const handleDayChange = (dayKey: string, shift: string) => {
     onChange({
       ...value,
@@ -101,7 +105,8 @@ export function ShiftDayPicker({ value, onChange, error }: ShiftDayPickerProps) 
       </div>
       {/* Legend */}
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Shift 1 (07.00–15.00) &bull; Shift 2 (15.00–23.00) &bull; Shift 3 (23.00–07.00)
+        Shift 1 (07.00–15.00) &bull; Shift 2 (15.00–23.00) &bull; Shift 3
+        (23.00–07.00)
       </p>
       {error && <p className="text-xs text-rose-500">{error}</p>}
     </div>
@@ -116,11 +121,14 @@ interface DayCellProps {
 
 function DayCell({ day, value, onChange }: DayCellProps) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-card px-2 pb-3 pt-2.5">
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-card px-2 pt-2.5 pb-3">
       <span className="text-[10px] font-bold tracking-wider text-foreground/60">
         {day.label}
       </span>
-      <Select value={value} onValueChange={(val) => val && onChange(day.key, val)}>
+      <Select
+        value={value}
+        onValueChange={(val) => val && onChange(day.key, val)}
+      >
         <SelectTrigger
           className={cn(
             "h-8 w-full rounded-lg border px-2 text-[11px] font-semibold transition-colors",
@@ -131,11 +139,7 @@ function DayCell({ day, value, onChange }: DayCellProps) {
         </SelectTrigger>
         <SelectContent className="rounded-xl border-border bg-popover">
           {SHIFT_OPTIONS.map((opt) => (
-            <SelectItem
-              key={opt.value}
-              value={opt.value}
-              className="text-xs"
-            >
+            <SelectItem key={opt.value} value={opt.value} className="text-xs">
               {opt.label}
             </SelectItem>
           ))}

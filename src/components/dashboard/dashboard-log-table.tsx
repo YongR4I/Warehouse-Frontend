@@ -110,13 +110,14 @@ export function DashboardLogTable() {
             Sampled Operational Logs
           </h3>
           <p className="text-xs text-muted-foreground">
-            Jejak transaksi real-time pergerakan barang dan audit trail operasional gudang.
+            Jejak transaksi real-time pergerakan barang dan audit trail
+            operasional gudang.
           </p>
         </div>
 
         {/* Filter Bar */}
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
-          <span className="flex items-center gap-1 text-muted-foreground font-medium">
+          <span className="flex items-center gap-1 font-medium text-muted-foreground">
             <BiFilterAlt className="size-3.5" /> Filter:
           </span>
           {["all", "masuk", "keluar", "mutasi", "opname"].map((kat) => (
@@ -142,13 +143,27 @@ export function DashboardLogTable() {
           <TableHeader className="border-b border-border/60 bg-muted/30">
             <TableRow className="h-10 hover:bg-transparent">
               <TableHead className="w-4 pl-3" />
-              <TableHead className="text-xs font-semibold text-foreground">Waktu</TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">Jenis</TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">Petugas / Role</TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">Lokasi Gudang</TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">Detail Transaksi</TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">Referensi</TableHead>
-              <TableHead className="pr-4 text-right text-xs font-semibold text-foreground">Status</TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Waktu
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Jenis
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Petugas / Role
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Lokasi Gudang
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Detail Transaksi
+              </TableHead>
+              <TableHead className="text-xs font-semibold text-foreground">
+                Referensi
+              </TableHead>
+              <TableHead className="pr-4 text-right text-xs font-semibold text-foreground">
+                Status
+              </TableHead>
             </TableRow>
           </TableHeader>
 
@@ -158,11 +173,11 @@ export function DashboardLogTable() {
                 key={row.id}
                 className="h-11 border-b border-border/40 text-xs transition-colors hover:bg-muted/40"
               >
-                <TableCell className="pl-3 pr-0 text-muted-foreground">
+                <TableCell className="pr-0 pl-3 text-muted-foreground">
                   <BiChevronRight className="size-4" />
                 </TableCell>
 
-                <TableCell className="text-muted-foreground whitespace-nowrap tabular-nums">
+                <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
                   {row.waktu}
                 </TableCell>
 
@@ -177,18 +192,20 @@ export function DashboardLogTable() {
                             ? "yellow"
                             : "purple"
                     }
-                    className="text-[10px] px-1.5 py-0 font-medium"
+                    className="px-1.5 py-0 text-[10px] font-medium"
                   >
                     {row.kategori}
                   </ColoredBadge>
                 </TableCell>
 
-                <TableCell className="whitespace-nowrap font-medium text-foreground">
+                <TableCell className="font-medium whitespace-nowrap text-foreground">
                   <div>{row.petugas}</div>
-                  <div className="text-[10px] text-muted-foreground">{row.role}</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {row.role}
+                  </div>
                 </TableCell>
 
-                <TableCell className="whitespace-nowrap text-muted-foreground text-[11px]">
+                <TableCell className="text-[11px] whitespace-nowrap text-muted-foreground">
                   {row.gudang}
                 </TableCell>
 
@@ -196,7 +213,7 @@ export function DashboardLogTable() {
                   {row.detail}
                 </TableCell>
 
-                <TableCell className="whitespace-nowrap text-[11px] text-muted-foreground tabular-nums">
+                <TableCell className="text-[11px] whitespace-nowrap text-muted-foreground tabular-nums">
                   {row.referensi}
                 </TableCell>
 
@@ -209,7 +226,7 @@ export function DashboardLogTable() {
                           ? "yellow"
                           : "red"
                     }
-                    className="text-[10px] px-1.5 py-0 uppercase"
+                    className="px-1.5 py-0 text-[10px] uppercase"
                   >
                     {row.status}
                   </ColoredBadge>

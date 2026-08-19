@@ -11,10 +11,7 @@ import { useApiList } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { formatDateTime } from "@/lib/status"
 import type { Gudang, KartuStok } from "@/types"
-import {
-  BiPackage,
-  BiSolidReport,
-} from "react-icons/bi"
+import { BiPackage, BiSolidReport } from "react-icons/bi"
 import {
   Table,
   TableHeader,
@@ -27,16 +24,49 @@ import {
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { cn } from "@/lib/utils"
 
-const TIPE_CONFIG: Record<string, { label: string; color: "green" | "yellow" | "purple" | "blue"; href: (id: number) => string }> = {
-  in: { label: "Terima Barang", color: "green", href: (id) => `/inventory/barang-masuk/detail/${id}` },
-  out: { label: "Keluar Barang", color: "yellow", href: (id) => `/inventory/stok/keluar-barang/${id}` },
-  mutasi_in: { label: "Mutasi Masuk", color: "purple", href: (id) => `/inventory/mutasi/detail/${id}` },
-  mutasi_out: { label: "Mutasi Keluar", color: "purple", href: (id) => `/inventory/mutasi/detail/${id}` },
-  opname: { label: "Stok Opname", color: "blue", href: (id) => `/inventory/opname/${id}` },
+const TIPE_CONFIG: Record<
+  string,
+  {
+    label: string
+    color: "green" | "yellow" | "purple" | "blue"
+    href: (id: number) => string
+  }
+> = {
+  in: {
+    label: "Terima Barang",
+    color: "green",
+    href: (id) => `/inventory/barang-masuk/detail/${id}`,
+  },
+  out: {
+    label: "Keluar Barang",
+    color: "yellow",
+    href: (id) => `/inventory/stok/keluar-barang/${id}`,
+  },
+  mutasi_in: {
+    label: "Mutasi Masuk",
+    color: "purple",
+    href: (id) => `/inventory/mutasi/detail/${id}`,
+  },
+  mutasi_out: {
+    label: "Mutasi Keluar",
+    color: "purple",
+    href: (id) => `/inventory/mutasi/detail/${id}`,
+  },
+  opname: {
+    label: "Stok Opname",
+    color: "blue",
+    href: (id) => `/inventory/opname/${id}`,
+  },
 }
 
 function getTipeConfig(tipe: string) {
-  return TIPE_CONFIG[tipe] ?? { label: tipe, color: "gray" as const, href: (id: number) => `/inventory/stok` }
+  return (
+    TIPE_CONFIG[tipe] ?? {
+      label: tipe,
+      color: "gray" as const,
+      href: () => `/inventory/stok`,
+    }
+  )
 }
 
 export default function StokPage() {
@@ -162,14 +192,20 @@ export default function StokPage() {
           <TableBody className="min-h-[300px]">
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-48 text-center text-sm text-muted-foreground"
+                >
                   Memuat data...
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-48 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data kartu stok.
                 </TableCell>
               </TableRow>
@@ -179,7 +215,7 @@ export default function StokPage() {
               return (
                 <TableRow
                   key={row.id}
-                  className="h-16 border-b border-border/40 hover:bg-muted/30 cursor-pointer"
+                  className="h-16 cursor-pointer border-b border-border/40 hover:bg-muted/30"
                   onClick={() =>
                     row.referensi_id
                       ? router.push(tipeConfig.href(row.referensi_id))
@@ -190,13 +226,17 @@ export default function StokPage() {
                     {formatDateTime(row.created_at)}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
-                    <ColoredBadge color={tipeConfig.color}>{tipeConfig.label}</ColoredBadge>
+                    <ColoredBadge color={tipeConfig.color}>
+                      {tipeConfig.label}
+                    </ColoredBadge>
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
                     {row.barang?.nama ?? `Barang #${row.barang_id}`}
                   </TableCell>
                   <TableCell className="font-sans text-sm font-medium text-[#3B82F6]">
-                    {row.referensi_type ? `${row.referensi_type}-${row.referensi_id}` : "-"}
+                    {row.referensi_type
+                      ? `${row.referensi_type}-${row.referensi_id}`
+                      : "-"}
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
                     {row.gudang?.nama ?? "-"}
@@ -222,9 +262,10 @@ export default function StokPage() {
               <TableCell colSpan={7} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
                   <span>
-                    Menampilkan {meta?.total ? (page - 1) * (meta.per_page || 15) + 1 : 0}-
-                    {Math.min(page * (meta?.per_page || 15), meta?.total ?? 0)} dari{" "}
-                    {meta?.total ?? 0} data
+                    Menampilkan{" "}
+                    {meta?.total ? (page - 1) * (meta.per_page || 15) + 1 : 0}-
+                    {Math.min(page * (meta?.per_page || 15), meta?.total ?? 0)}{" "}
+                    dari {meta?.total ?? 0} data
                   </span>
                   <div className="flex items-center">
                     <div className="flex items-center gap-1.5">
@@ -237,26 +278,31 @@ export default function StokPage() {
                       >
                         &lt;
                       </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setPage(p)}
-                          className={cn(
-                            "flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-medium transition-colors hover:bg-muted",
-                            page === p
-                              ? "bg-foreground text-background"
-                              : "border border-border/70 text-muted-foreground"
-                          )}
-                        >
-                          {p}
-                        </button>
-                      ))}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (p) => (
+                          <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={cn(
+                              "flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] font-medium transition-colors hover:bg-muted",
+                              page === p
+                                ? "bg-foreground text-background"
+                                : "border border-border/70 text-muted-foreground"
+                            )}
+                          >
+                            {p}
+                          </button>
+                        )
+                      )}
                       <button
                         className={cn(
                           "flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted",
-                          page === totalPages && "pointer-events-none opacity-40"
+                          page === totalPages &&
+                            "pointer-events-none opacity-40"
                         )}
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setPage((p) => Math.min(totalPages, p + 1))
+                        }
                       >
                         &gt;
                       </button>

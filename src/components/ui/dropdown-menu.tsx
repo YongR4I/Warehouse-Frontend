@@ -68,7 +68,7 @@ function DropdownMenuLabel({
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
-        "px-3 py-1.5 text-xs text-muted-foreground/80 font-normal data-inset:pl-10",
+        "px-3 py-1.5 text-xs font-normal text-muted-foreground/80 data-inset:pl-10",
         className
       )}
       {...props}
@@ -91,7 +91,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground/90 outline-hidden select-none transition-colors focus:bg-muted/70 focus:text-foreground not-data-[variant=destructive]:focus:**:text-foreground data-inset:pl-10 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px] [&_svg]:text-muted-foreground/80 focus:[&_svg]:text-foreground/90 data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground/90 outline-hidden transition-colors select-none focus:bg-muted/70 focus:text-foreground not-data-[variant=destructive]:focus:**:text-foreground data-inset:pl-10 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-muted-foreground/80 focus:[&_svg]:text-foreground/90 [&_svg:not([class*='size-'])]:size-[18px] data-[variant=destructive]:*:[svg]:text-destructive",
         className
       )}
       {...props}
@@ -116,7 +116,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex min-h-9 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground/90 outline-hidden select-none transition-colors focus:bg-muted/70 focus:text-foreground not-data-[variant=destructive]:focus:**:text-foreground data-inset:pl-10 data-popup-open:bg-muted/70 data-popup-open:text-foreground data-open:bg-muted/70 data-open:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px] [&_svg]:text-muted-foreground/80 focus:[&_svg]:text-foreground/90",
+        "flex min-h-9 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground/90 outline-hidden transition-colors select-none focus:bg-muted/70 focus:text-foreground not-data-[variant=destructive]:focus:**:text-foreground data-inset:pl-10 data-popup-open:bg-muted/70 data-popup-open:text-foreground data-open:bg-muted/70 data-open:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-muted-foreground/80 focus:[&_svg]:text-foreground/90 [&_svg:not([class*='size-'])]:size-[18px]",
         className
       )}
       {...props}
@@ -139,7 +139,7 @@ function DropdownMenuSubContent({
     <DropdownMenuContent
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "w-auto min-w-[96px] rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-0 border border-border/80 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-0 dark:border-border/40 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+        "w-auto min-w-[96px] rounded-xl border border-border/80 bg-popover p-1.5 text-popover-foreground shadow-md ring-0 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-border/40 dark:ring-0 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
         className
       )}
       align={align}
@@ -165,7 +165,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg py-2 pr-8 pl-3 text-sm text-foreground/90 outline-hidden select-none transition-colors focus:bg-muted/70 focus:text-foreground focus:**:text-foreground data-inset:pl-10 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg py-2 pr-8 pl-3 text-sm text-foreground/90 outline-hidden transition-colors select-none focus:bg-muted/70 focus:text-foreground focus:**:text-foreground data-inset:pl-10 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
         className
       )}
       checked={checked}
@@ -206,7 +206,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg py-2 pr-8 pl-3 text-sm text-foreground/90 outline-hidden select-none transition-colors focus:bg-muted/70 focus:text-foreground focus:**:text-foreground data-inset:pl-10 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "relative flex min-h-9 cursor-pointer items-center gap-3 rounded-lg py-2 pr-8 pl-3 text-sm text-foreground/90 outline-hidden transition-colors select-none focus:bg-muted/70 focus:text-foreground focus:**:text-foreground data-inset:pl-10 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
         className
       )}
       {...props}

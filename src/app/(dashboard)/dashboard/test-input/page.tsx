@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Input, InputSearch, UploadInput } from "@/components/input"
+import { Input, InputSearch } from "@/components/input"
 import { FormUpload } from "@/components/forms"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
@@ -151,4 +151,3 @@ export default function TestInputPage() {
     </div>
   )
 }
-

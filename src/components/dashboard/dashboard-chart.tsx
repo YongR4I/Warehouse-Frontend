@@ -20,7 +20,9 @@ const timeSeriesData: DataPoint[] = [
 ]
 
 export function DashboardChart() {
-  const [activeTab, setActiveTab] = useState<"movement" | "opname" | "capacity">("movement")
+  const [activeTab, setActiveTab] = useState<
+    "movement" | "opname" | "capacity"
+  >("movement")
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d">("24h")
 
   const totalMasuk = timeSeriesData.reduce((acc, d) => acc + d.masuk, 0)
@@ -44,8 +46,12 @@ export function DashboardChart() {
     height - paddingY - (value / maxVal) * chartHeight
 
   // Generate SVG path string
-  const masukPoints = timeSeriesData.map((d, i) => `${getX(i)},${getY(d.masuk)}`).join(" L ")
-  const keluarPoints = timeSeriesData.map((d, i) => `${getX(i)},${getY(d.keluar)}`).join(" L ")
+  const masukPoints = timeSeriesData
+    .map((d, i) => `${getX(i)},${getY(d.masuk)}`)
+    .join(" L ")
+  const keluarPoints = timeSeriesData
+    .map((d, i) => `${getX(i)},${getY(d.keluar)}`)
+    .join(" L ")
 
   const masukAreaPath = `M ${getX(0)},${height - paddingY} L ${masukPoints} L ${getX(
     timeSeriesData.length - 1
@@ -94,7 +100,9 @@ export function DashboardChart() {
 
         {/* Time Selector Controls */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground font-medium">Rentang:</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            Rentang:
+          </span>
           <div className="inline-flex rounded-md border border-border/60 bg-muted/40 p-0.5 text-xs">
             <button
               type="button"
@@ -139,9 +147,11 @@ export function DashboardChart() {
           <span className="text-xs font-semibold text-muted-foreground uppercase">
             Total Pergerakan
           </span>
-          <div className="text-2xl font-bold tracking-tight text-foreground md:text-3xl tabular-nums">
+          <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums md:text-3xl">
             {totalMovement.toLocaleString("id-ID")}{" "}
-            <span className="text-sm font-normal text-muted-foreground">unit</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              unit
+            </span>
           </div>
         </div>
 
@@ -158,7 +168,9 @@ export function DashboardChart() {
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
           <div>
-            <span className="text-xs text-muted-foreground">Barang Keluar:</span>
+            <span className="text-xs text-muted-foreground">
+              Barang Keluar:
+            </span>
             <span className="ml-1.5 text-base font-semibold text-foreground tabular-nums">
               {totalKeluar.toLocaleString("id-ID")} unit
             </span>
@@ -170,7 +182,7 @@ export function DashboardChart() {
       <div className="relative mt-4 w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-48 overflow-visible"
+          className="h-48 w-full overflow-visible"
           preserveAspectRatio="none"
         >
           {/* Horizontal Gridlines */}
@@ -201,10 +213,7 @@ export function DashboardChart() {
           })}
 
           {/* Area Fill for Masuk */}
-          <path
-            d={masukAreaPath}
-            className="fill-blue-500/10"
-          />
+          <path d={masukAreaPath} className="fill-blue-500/10" />
 
           {/* Masuk Line */}
           <path

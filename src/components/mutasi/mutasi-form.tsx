@@ -26,12 +26,9 @@ import { toast } from "sonner"
 import { generateReferenceNumber } from "@/lib/reference-number"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions, toOptions, toBarangOptions } from "@/hooks/use-options"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import type { Barang, Gudang, MutasiStok, MutasiStokPayload } from "@/types"
-import {
-  mutasiSchema,
-  type MutasiFormValues,
-} from "@/lib/validations/mutasi"
+import { mutasiSchema, type MutasiFormValues } from "@/lib/validations/mutasi"
 
 interface MutasiFormProps {
   open: boolean
@@ -46,8 +43,14 @@ export function MutasiForm({
   initialData,
   onSuccess,
 }: MutasiFormProps) {
-  const createMutation = useApiCreate<MutasiStok, MutasiStokPayload>("mutasi", "/mutasi-stok")
-  const updateMutation = useApiUpdate<MutasiStok, MutasiStokPayload>("mutasi", "/mutasi-stok")
+  const createMutation = useApiCreate<MutasiStok, MutasiStokPayload>(
+    "mutasi",
+    "/mutasi-stok"
+  )
+  const updateMutation = useApiUpdate<MutasiStok, MutasiStokPayload>(
+    "mutasi",
+    "/mutasi-stok"
+  )
 
   const { items: gudangList } = useOptions<Gudang>("gudang", "/gudang")
   const { items: barangList } = useOptions<Barang>("barang", "/barang")
@@ -70,13 +73,18 @@ export function MutasiForm({
                 jumlah: d.qty,
               }))
             : initialData.barang_id
-              ? [{ barangId: String(initialData.barang_id), jumlah: initialData.qty ?? 1 }]
+              ? [
+                  {
+                    barangId: String(initialData.barang_id),
+                    jumlah: initialData.qty ?? 1,
+                  },
+                ]
               : [{ barangId: "", jumlah: 1 }],
       }
     }
     const today = new Date().toISOString().slice(0, 10)
     return {
-      noReferensi: generateReferenceNumber("MS", today),
+      noReferensi: generateReferenceNumber("MS", { date: today }),
       tanggal: today,
       gudangAsalId: "",
       gudangTujuanId: "",
@@ -92,6 +100,7 @@ export function MutasiForm({
     watch,
     setValue,
     getValues,
+    setError,
     clearErrors,
     formState: { errors, isSubmitting },
     reset,
@@ -102,7 +111,11 @@ export function MutasiForm({
 
   const handleRegenerateRef = () => {
     const currentDate = getValues("tanggal") || new Date()
-    const newRef = generateReferenceNumber("MS", currentDate)
+    const currentRef = getValues("noReferensi")
+    const newRef = generateReferenceNumber("MS", {
+      date: currentDate,
+      currentRef,
+    })
     setValue("noReferensi", newRef, { shouldValidate: true })
     clearErrors("noReferensi")
   }
@@ -111,7 +124,8 @@ export function MutasiForm({
   const watchItems = watch("items")
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
-  const totalItem = watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
+  const totalItem =
+    watchItems?.reduce((sum, i) => sum + (i.jumlah || 0), 0) ?? 0
   const getBarang = (id: string) => barangList.find((b) => String(b.id) === id)
 
   const onSubmit = async (data: MutasiFormValues) => {
@@ -123,12 +137,18 @@ export function MutasiForm({
       keterangan: data.catatan || undefined,
       details: data.items
         .filter((i) => i.barangId)
-        .map((i) => ({ barang_id: Number(i.barangId), qty: Number(i.jumlah) || 0 })),
+        .map((i) => ({
+          barang_id: Number(i.barangId),
+          qty: Number(i.jumlah) || 0,
+        })),
     }
 
     try {
       if (initialData) {
-        const response = await updateMutation.mutateAsync({ id: initialData.id, data: payload })
+        const response = await updateMutation.mutateAsync({
+          id: initialData.id,
+          data: payload,
+        })
         toast.success(response.message)
       } else {
         const response = await createMutation.mutateAsync(payload)
@@ -138,6 +158,7 @@ export function MutasiForm({
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
+      handleApiValidationErrors(err, setError)
       toast.error(getErrorMessage(err))
     }
   }
@@ -233,7 +254,9 @@ export function MutasiForm({
               error={errors.items?.message || errors.items?.root?.message}
             >
               {fields.map((field, index) => {
-                const selectedBarang = getBarang(watchItems?.[index]?.barangId ?? "")
+                const selectedBarang = getBarang(
+                  watchItems?.[index]?.barangId ?? ""
+                )
                 return (
                   <ItemTableRow
                     key={field.id}

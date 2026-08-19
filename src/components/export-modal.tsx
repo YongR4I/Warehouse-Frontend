@@ -2,7 +2,12 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { BiDownload, BiCheck } from "react-icons/bi"
 import { cn } from "@/lib/utils"
@@ -53,7 +58,9 @@ export function ExportModal({
   const [format, setFormat] = React.useState<"xlsx" | "pdf">("xlsx")
   const [coverage, setCoverage] = React.useState<"all" | "filtered">("filtered")
 
-  const buildInitial = (list: ExportCheckboxOption[]): Record<string, boolean> => {
+  const buildInitial = (
+    list: ExportCheckboxOption[]
+  ): Record<string, boolean> => {
     const initial: Record<string, boolean> = {}
     list.forEach((cb) => {
       initial[cb.id] = cb.defaultChecked ?? false
@@ -61,9 +68,9 @@ export function ExportModal({
     return initial
   }
 
-  const [selectedOptions, setSelectedOptions] = React.useState<Record<string, boolean>>(() =>
-    buildInitial(checkboxes)
-  )
+  const [selectedOptions, setSelectedOptions] = React.useState<
+    Record<string, boolean>
+  >(() => buildInitial(checkboxes))
   const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
 
   if (isOpen !== prevIsOpen) {
@@ -102,12 +109,14 @@ export function ExportModal({
         const blob = new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         })
-        
+
         // Extract filename from Content-Disposition if present
         const contentDisposition = response.headers["content-disposition"]
         let filename = `${title.toLowerCase().replace(/\s+/g, "-")}.xlsx`
         if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/)
+          const filenameMatch = contentDisposition.match(
+            /filename="?([^";]+)"?/
+          )
           if (filenameMatch && filenameMatch[1]) {
             filename = filenameMatch[1]
           }
@@ -130,13 +139,19 @@ export function ExportModal({
         onClose()
       } catch (error) {
         console.error("Export error:", error)
-        const status = axios.isAxiosError(error) ? error.response?.status : undefined
+        const status = axios.isAxiosError(error)
+          ? error.response?.status
+          : undefined
         if (status === 403) {
-          toast.error("Anda tidak memiliki izin (permission) untuk mengunduh dokumen Excel ini.")
+          toast.error(
+            "Anda tidak memiliki izin (permission) untuk mengunduh dokumen Excel ini."
+          )
         } else if (status === 401) {
           toast.error("Sesi Anda telah berakhir. Silakan login kembali.")
         } else {
-          toast.error("Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi.")
+          toast.error(
+            "Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi."
+          )
         }
       } finally {
         setIsLoading(false)
@@ -150,7 +165,9 @@ export function ExportModal({
       if (onExport) {
         onExport(activeFormat, coverage, selectedOptions)
       } else {
-        toast.success(`Unduh berhasil: Format ${activeFormat.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`)
+        toast.success(
+          `Unduh berhasil: Format ${activeFormat.toUpperCase()}, Cakupan: ${coverage === "all" ? "Semua Data" : "Data Terfilter"}`
+        )
       }
       onClose()
     }, 1500)
@@ -158,15 +175,18 @@ export function ExportModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[520px] p-6 gap-0 select-none" showCloseButton={true}>
+      <DialogContent
+        className="max-w-[520px] gap-0 p-6 select-none"
+        showCloseButton={true}
+      >
         {/* Custom Header Layout */}
-        <div className="flex items-center gap-4 mb-6">
-            <BiDownload className="size-7 text-foreground" />
-          <div className="flex-1 min-w-0 pr-6">
-            <DialogTitle className="text-base font-bold text-foreground leading-tight">
+        <div className="mb-6 flex items-center gap-4">
+          <BiDownload className="size-7 text-foreground" />
+          <div className="min-w-0 flex-1 pr-6">
+            <DialogTitle className="text-base leading-tight font-bold text-foreground">
               {title}
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground mt-1">
+            <DialogDescription className="mt-1 text-xs text-muted-foreground">
               {description}
             </DialogDescription>
           </div>
@@ -174,7 +194,7 @@ export function ExportModal({
 
         {/* 1. FORMAT FILE */}
         <div className="mb-5">
-          <h3 className="text-[11px] font-bold text-muted-foreground tracking-wider uppercase mb-2.5">
+          <h3 className="mb-2.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
             1. Format File
           </h3>
           <div className="grid grid-cols-2 gap-4">
@@ -182,13 +202,13 @@ export function ExportModal({
             <div
               onClick={() => setFormat("xlsx")}
               className={cn(
-                "flex items-center gap-3.5 p-3 rounded-xl border cursor-pointer transition-all duration-150 bg-card hover:bg-accent/10",
+                "flex cursor-pointer items-center gap-3.5 rounded-xl border bg-card p-3 transition-all duration-150 hover:bg-accent/10",
                 format === "xlsx"
-                  ? "border-foreground ring-[0.8px] ring-foreground border-[1.5px]"
+                  ? "border-[1.5px] border-foreground ring-[0.8px] ring-foreground"
                   : "border-border"
               )}
             >
-              <div className="size-7 shrink-0 relative flex items-center justify-center">
+              <div className="relative flex size-7 shrink-0 items-center justify-center">
                 <Image
                   src="/xlsxIcon.svg"
                   alt="Excel format icon"
@@ -198,8 +218,12 @@ export function ExportModal({
                 />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-foreground">Excel Spreadsheet</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Format .xlsx untuk olah data</p>
+                <p className="text-xs font-bold text-foreground">
+                  Excel Spreadsheet
+                </p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  Format .xlsx untuk olah data
+                </p>
               </div>
             </div>
 
@@ -215,18 +239,18 @@ export function ExportModal({
                 setFormat("pdf")
               }}
               className={cn(
-                "flex items-center gap-3.5 p-3 rounded-xl border transition-all duration-150 bg-card relative",
+                "relative flex items-center gap-3.5 rounded-xl border bg-card p-3 transition-all duration-150",
                 isPdfUnsupported
-                  ? "opacity-50 cursor-not-allowed border-dashed border-border"
+                  ? "cursor-not-allowed border-dashed border-border opacity-50"
                   : "cursor-pointer hover:bg-accent/10",
                 format === "pdf" && !isPdfUnsupported
-                  ? "border-foreground ring-[0.8px] ring-foreground border-[1.5px]"
+                  ? "border-[1.5px] border-foreground ring-[0.8px] ring-foreground"
                   : format !== "pdf" && !isPdfUnsupported
                     ? "border-border"
                     : ""
               )}
             >
-              <div className="size-7 shrink-0 relative flex items-center justify-center">
+              <div className="relative flex size-7 shrink-0 items-center justify-center">
                 <Image
                   src="/pdfIcon.svg"
                   alt="PDF format icon"
@@ -237,15 +261,19 @@ export function ExportModal({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-bold text-foreground">Dokumen PDF</p>
+                  <p className="text-xs font-bold text-foreground">
+                    Dokumen PDF
+                  </p>
                   {isPdfUnsupported && (
-                    <span className="text-[9px] px-1 py-0.2 bg-rose-500/10 text-rose-600 rounded font-semibold whitespace-nowrap">
+                    <span className="py-0.2 rounded bg-rose-500/10 px-1 text-[9px] font-semibold whitespace-nowrap text-rose-600">
                       Excel Only
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {isPdfUnsupported ? "Format PDF belum didukung" : "Siap cetak / cetak laporan"}
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {isPdfUnsupported
+                    ? "Format PDF belum didukung"
+                    : "Siap cetak / cetak laporan"}
                 </p>
               </div>
             </div>
@@ -254,7 +282,7 @@ export function ExportModal({
 
         {/* 2. CAKUPAN DATA */}
         <div className="mb-5">
-          <h3 className="text-[11px] font-bold text-muted-foreground tracking-wider uppercase mb-2.5">
+          <h3 className="mb-2.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
             2. Cakupan Data
           </h3>
           <div className="flex flex-col gap-2.5">
@@ -262,25 +290,28 @@ export function ExportModal({
             <div
               onClick={() => setCoverage("all")}
               className={cn(
-                "flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-150 bg-card hover:bg-accent/10",
+                "flex cursor-pointer items-center justify-between rounded-xl border bg-card p-3.5 transition-all duration-150 hover:bg-accent/10",
                 coverage === "all" ? "border-foreground/40" : "border-border"
               )}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "size-4.5 rounded-full border flex items-center justify-center transition-all duration-150",
+                    "flex size-4.5 items-center justify-center rounded-full border transition-all duration-150",
                     coverage === "all" ? "border-foreground" : "border-border"
                   )}
                 >
-                  {coverage === "all" && <div className="size-2 rounded-full bg-foreground animate-in zoom-in-50 duration-100" />}
+                  {coverage === "all" && (
+                    <div className="size-2 animate-in rounded-full bg-foreground duration-100 zoom-in-50" />
+                  )}
                 </div>
                 <span className="text-xs font-medium text-foreground">
-                  Semua Data {title.replace("Ekspor Data ", "").replace("Ekspor ", "")}
+                  Semua Data{" "}
+                  {title.replace("Ekspor Data ", "").replace("Ekspor ", "")}
                 </span>
               </div>
               {totalItemsCount !== undefined && (
-                <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase">
+                <span className="font-mono text-[10px] font-medium text-muted-foreground uppercase">
                   {totalItemsCount} {totalItemsLabel.replace("Total ", "")}
                 </span>
               )}
@@ -290,22 +321,30 @@ export function ExportModal({
             <div
               onClick={() => setCoverage("filtered")}
               className={cn(
-                "flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-150 bg-card hover:bg-accent/10",
-                coverage === "filtered" ? "border-foreground/40" : "border-border"
+                "flex cursor-pointer items-center justify-between rounded-xl border bg-card p-3.5 transition-all duration-150 hover:bg-accent/10",
+                coverage === "filtered"
+                  ? "border-foreground/40"
+                  : "border-border"
               )}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "size-4.5 rounded-full border flex items-center justify-center transition-all duration-150",
-                    coverage === "filtered" ? "border-foreground" : "border-border"
+                    "flex size-4.5 items-center justify-center rounded-full border transition-all duration-150",
+                    coverage === "filtered"
+                      ? "border-foreground"
+                      : "border-border"
                   )}
                 >
-                  {coverage === "filtered" && <div className="size-2 rounded-full bg-foreground animate-in zoom-in-50 duration-100" />}
+                  {coverage === "filtered" && (
+                    <div className="size-2 animate-in rounded-full bg-foreground duration-100 zoom-in-50" />
+                  )}
                 </div>
-                <span className="text-xs font-medium text-foreground">Hanya Data Hasil Filter</span>
+                <span className="text-xs font-medium text-foreground">
+                  Hanya Data Hasil Filter
+                </span>
               </div>
-              <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 bg-accent/40 rounded-md border border-border/80">
+              <span className="rounded-md border border-border/80 bg-accent/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                 {filterLabel}
               </span>
             </div>
@@ -315,7 +354,7 @@ export function ExportModal({
         {/* 3. SERTAKAN DALAM FILE */}
         {checkboxes.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-[11px] font-bold text-muted-foreground tracking-wider uppercase mb-2.5">
+            <h3 className="mb-2.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
               3. Sertakan Dalam File
             </h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -325,19 +364,19 @@ export function ExportModal({
                   <div
                     key={cb.id}
                     onClick={() => handleToggleOption(cb.id)}
-                    className="flex items-center gap-3 cursor-pointer py-0.5 group"
+                    className="group flex cursor-pointer items-center gap-3 py-0.5"
                   >
                     <div
                       className={cn(
-                        "size-4.5 rounded-md border flex items-center justify-center transition-all duration-100",
+                        "flex size-4.5 items-center justify-center rounded-md border transition-all duration-100",
                         isChecked
-                          ? "bg-foreground border-foreground text-background"
+                          ? "border-foreground bg-foreground text-background"
                           : "border-border hover:border-muted-foreground/60"
                       )}
                     >
                       {isChecked && <BiCheck className="size-4 stroke-[3]" />}
                     </div>
-                    <span className="text-xs text-foreground group-hover:text-foreground/80 transition-colors">
+                    <span className="text-xs text-foreground transition-colors group-hover:text-foreground/80">
                       {cb.label}
                     </span>
                   </div>
@@ -348,23 +387,23 @@ export function ExportModal({
         )}
 
         {/* Footer actions with thin separator line */}
-        <div className="pt-4 border-t border-border/60 flex items-center justify-end gap-2.5">
+        <div className="flex items-center justify-end gap-2.5 border-t border-border/60 pt-4">
           <Button
             variant="ghost"
             onClick={onClose}
-            className="text-xs text-muted-foreground hover:text-foreground h-9 px-4 rounded-xl"
+            className="h-9 rounded-xl px-4 text-xs text-muted-foreground hover:text-foreground"
             disabled={isLoading}
           >
             Batal
           </Button>
           <Button
             onClick={handleDownload}
-            className="bg-foreground text-background hover:bg-foreground/90 font-bold h-9 px-5 rounded-xl text-xs transition-all duration-150 min-w-[150px]"
+            className="h-9 min-w-[150px] rounded-xl bg-foreground px-5 text-xs font-bold text-background transition-all duration-150 hover:bg-foreground/90"
             disabled={isLoading}
           >
             {isLoading ? (
-              <span className="flex items-center gap-1.5 justify-center">
-                <span className="size-3.5 border-2 border-background border-t-transparent rounded-full animate-spin" />
+              <span className="flex items-center justify-center gap-1.5">
+                <span className="size-3.5 animate-spin rounded-full border-2 border-background border-t-transparent" />
                 Mengunduh...
               </span>
             ) : (

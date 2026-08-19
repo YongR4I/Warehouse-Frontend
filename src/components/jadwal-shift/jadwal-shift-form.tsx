@@ -149,10 +149,7 @@ export function JadwalShiftForm({ open, onOpenChange }: JadwalShiftFormProps) {
               control={control}
               name="alokasi"
               render={({ field }) => (
-                <ShiftDayPicker
-                  value={field.value}
-                  onChange={field.onChange}
-                />
+                <ShiftDayPicker value={field.value} onChange={field.onChange} />
               )}
             />
           </FormField>

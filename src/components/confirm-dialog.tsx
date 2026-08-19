@@ -46,28 +46,33 @@ const variantStyles: Record<
   }
 > = {
   destructive: {
-    iconBg: "bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/40",
+    iconBg:
+      "bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/40",
     iconColor: "text-rose-600 dark:text-rose-400",
     defaultIcon: <BiTrash className="size-5" />,
     confirmButtonClass: "bg-rose-600 hover:bg-rose-700 text-white shadow-xs",
     confirmButtonVariant: "destructive",
   },
   warning: {
-    iconBg: "bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40",
+    iconBg:
+      "bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40",
     iconColor: "text-amber-600 dark:text-amber-400",
     defaultIcon: <BiErrorCircle className="size-5" />,
     confirmButtonClass: "bg-amber-600 hover:bg-amber-700 text-white shadow-xs",
     confirmButtonVariant: "default",
   },
   success: {
-    iconBg: "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40",
+    iconBg:
+      "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40",
     iconColor: "text-emerald-600 dark:text-emerald-400",
     defaultIcon: <BiCheckDouble className="size-5" />,
-    confirmButtonClass: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs",
+    confirmButtonClass:
+      "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs",
     confirmButtonVariant: "default",
   },
   info: {
-    iconBg: "bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/40",
+    iconBg:
+      "bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/40",
     iconColor: "text-sky-600 dark:text-sky-400",
     defaultIcon: <BiInfoCircle className="size-5" />,
     confirmButtonClass: "bg-sky-600 hover:bg-sky-700 text-white shadow-xs",
@@ -124,7 +129,7 @@ export function ConfirmDialog({
             <DialogTitle className="font-heading text-lg font-bold tracking-tight text-foreground">
               {title}
             </DialogTitle>
-            <DialogDescription className="mt-1.5 text-xs font-normal leading-relaxed text-muted-foreground">
+            <DialogDescription className="mt-1.5 text-xs leading-relaxed font-normal text-muted-foreground">
               {description}
             </DialogDescription>
           </DialogHeader>
@@ -175,7 +180,7 @@ export interface ConfirmOptions {
   cancelLabel?: string
   variant?: ConfirmVariant
   icon?: React.ReactNode
-  onConfirm: () => Promise<any> | void
+  onConfirm: () => Promise<unknown> | void
 }
 
 export function useConfirmDialog() {
@@ -221,4 +226,3 @@ export function useConfirmDialog() {
 
   return { confirm, ConfirmDialog: dialogElement }
 }
-

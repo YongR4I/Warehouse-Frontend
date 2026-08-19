@@ -34,7 +34,11 @@ interface OpnameStore {
   sessions: OpnameSession[]
   details: Record<string, OpnameDetailItem[]>
   addSession: (session: OpnameSession, items?: OpnameDetailItem[]) => void
-  updateDetailItem: (noDokumen: string, itemId: string, updates: Partial<OpnameDetailItem>) => void
+  updateDetailItem: (
+    noDokumen: string,
+    itemId: string,
+    updates: Partial<OpnameDetailItem>
+  ) => void
   startAudit: (noDokumen: string) => void
   finalizeSession: (noDokumen: string) => void
 }
@@ -255,7 +259,12 @@ export const useOpnameStore = create<OpnameStore>()((set) => ({
       { ...defaultDetailItems[2], stokFisik: 300, selisih: 0 },
     ],
     "SO-202607-010": [
-      { ...defaultDetailItems[0], stokFisik: 152, selisih: 2, reasonCode: "Salah Catat" },
+      {
+        ...defaultDetailItems[0],
+        stokFisik: 152,
+        selisih: 2,
+        reasonCode: "Salah Catat",
+      },
       { ...defaultDetailItems[1], stokFisik: 45, selisih: 0 },
       { ...defaultDetailItems[2], stokFisik: 300, selisih: 0 },
     ],
@@ -324,7 +333,7 @@ export const useOpnameStore = create<OpnameStore>()((set) => ({
       const sessionItems = state.details[noDokumen] || []
       const totalItems = sessionItems.length
       const diffItems = sessionItems.filter((i) => i.selisih !== 0).length
-      
+
       // Calculate financial valuation variance
       const valuationVariance = sessionItems.reduce(
         (sum, item) => sum + item.selisih * item.cost,

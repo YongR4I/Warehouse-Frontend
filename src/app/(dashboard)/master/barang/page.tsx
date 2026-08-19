@@ -156,7 +156,9 @@ export default function BarangPage() {
             description="Kelola data barang dan SKU di gudang."
           />
           <div className="mt-4 flex items-center gap-2">
-            <Button variant="outline-black" onClick={() => setExportOpen(true)}>Export Excel/Pdf</Button>
+            <Button variant="outline-black" onClick={() => setExportOpen(true)}>
+              Export Excel/Pdf
+            </Button>
             <Button variant="default" onClick={() => setDrawerOpen(true)}>
               <BiCartAdd className="mr-2" />+ Tambah Barang
             </Button>
@@ -232,13 +234,19 @@ export default function BarangPage() {
           <TableBody className="min-h-[300px]">
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Memuat...
                 </TableCell>
               </TableRow>
             ) : filteredBarangs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data
                 </TableCell>
               </TableRow>
@@ -290,7 +298,7 @@ export default function BarangPage() {
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">

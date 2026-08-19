@@ -5,8 +5,7 @@ import { UploadInput, type UploadInputProps } from "@/components/input/upload"
 import { FormField, type FormFieldProps } from "./form-field"
 
 export interface FormUploadProps
-  extends Omit<FormFieldProps, "children">,
-    UploadInputProps {
+  extends Omit<FormFieldProps, "children">, UploadInputProps {
   uploadClassName?: string
 }
 
@@ -34,4 +33,3 @@ export function FormUpload({
     </FormField>
   )
 }
-

@@ -24,7 +24,8 @@ function flattenPermissions(user: User): string[] {
       perms.add(permission.name)
     }
   }
-  const directPermissions = (user as User & { permissions?: string[] }).permissions ?? []
+  const directPermissions =
+    (user as User & { permissions?: string[] }).permissions ?? []
   for (const permission of directPermissions) {
     perms.add(permission)
   }
@@ -39,14 +40,25 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       permissions: [],
       setAuth: (user, token) =>
-        set({ user, token, isAuthenticated: true, permissions: flattenPermissions(user) }),
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          permissions: flattenPermissions(user),
+        }),
       setToken: (token) => set({ token }),
       setUser: (user) => set({ user, permissions: flattenPermissions(user) }),
       hasPermission: (permission) => {
         const permissions = get().permissions
         return permissions.includes("*") || permissions.includes(permission)
       },
-      logout: () => set({ user: null, token: null, isAuthenticated: false, permissions: [] }),
+      logout: () =>
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          permissions: [],
+        }),
     }),
     {
       name: "auth-storage",

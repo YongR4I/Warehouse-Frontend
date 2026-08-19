@@ -12,13 +12,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { BiBuildings } from "react-icons/bi"
 import { toast } from "sonner"
-import { getErrorMessage } from "@/lib/api"
+import { getErrorMessage, handleApiValidationErrors } from "@/lib/api"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import type { Gudang, GudangPayload } from "@/types"
-import {
-  gudangSchema,
-  type GudangFormValues,
-} from "@/lib/validations/gudang"
+import { gudangSchema, type GudangFormValues } from "@/lib/validations/gudang"
 
 const statusOptions = [
   { value: "aktif", label: "Aktif" },
@@ -57,6 +54,7 @@ export function GudangForm({
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<GudangFormValues>({
@@ -87,6 +85,7 @@ export function GudangForm({
       onSuccess?.()
       onOpenChange(false)
     } catch (error) {
+      handleApiValidationErrors(error, setError)
       toast.error(getErrorMessage(error))
     }
   }

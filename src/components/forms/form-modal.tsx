@@ -41,7 +41,7 @@ export function FormModal({
       <DialogContent
         showCloseButton={true}
         className={cn(
-          "max-w-[540px]! gap-0 border border-border bg-background p-0 text-foreground overflow-hidden rounded-2xl shadow-2xl",
+          "max-w-[540px]! gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 text-foreground shadow-2xl",
           className
         )}
       >
@@ -54,7 +54,7 @@ export function FormModal({
               </div>
             )}
             <div>
-              <DialogTitle className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 font-heading text-lg font-bold text-foreground">
                 {title}
               </DialogTitle>
               {description && (
@@ -79,7 +79,7 @@ export interface FormModalBodyProps {
 
 function FormModalBody({ children, className }: FormModalBodyProps) {
   return (
-    <div className={cn("px-6 pb-6 pt-2 flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-4 px-6 pt-2 pb-6", className)}>
       {children}
     </div>
   )
@@ -104,7 +104,7 @@ function FormModalFooter({
       )}
     >
       {summary ? <div>{summary}</div> : <div />}
-      <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+      <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
         {children}
       </div>
     </div>

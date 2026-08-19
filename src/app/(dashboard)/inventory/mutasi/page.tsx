@@ -23,7 +23,6 @@ import {
   BiChevronRight,
   BiDotsVerticalRounded,
   BiRightArrowAlt,
-  BiFile,
   BiShow,
   BiTrash,
 } from "react-icons/bi"
@@ -108,7 +107,9 @@ export default function MutasiPage() {
   }
 
   const renderStatusBadge = (status: string) => (
-    <ColoredBadge color={statusColor(status)}>{statusLabel(status)}</ColoredBadge>
+    <ColoredBadge color={statusColor(status)}>
+      {statusLabel(status)}
+    </ColoredBadge>
   )
 
   return (
@@ -205,14 +206,20 @@ export default function MutasiPage() {
           <TableBody className="min-h-[300px]">
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={8} className="h-48 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="h-48 text-center text-sm text-muted-foreground"
+                >
                   Memuat data...
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="h-48 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="h-48 text-center text-sm text-muted-foreground"
+                >
                   Tidak ada data mutasi.
                 </TableCell>
               </TableRow>
@@ -255,19 +262,23 @@ export default function MutasiPage() {
                   <div className="flex items-center justify-end gap-1 text-muted-foreground">
                     <button
                       className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
-                      onClick={() => router.push(`/inventory/mutasi/detail/${row.id}`)}
+                      onClick={() =>
+                        router.push(`/inventory/mutasi/detail/${row.id}`)
+                      }
                     >
                       <BiChevronRight className="size-4 text-foreground/75" />
                     </button>
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted outline-none">
+                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                         <BiDotsVerticalRounded className="size-4 text-foreground/75" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44">
                         <DropdownMenuLabel>Aksi Mutasi</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => router.push(`/inventory/mutasi/detail/${row.id}`)}
+                          onClick={() =>
+                            router.push(`/inventory/mutasi/detail/${row.id}`)
+                          }
                         >
                           <BiShow />
                           <span>Lihat Detail</span>
@@ -275,7 +286,10 @@ export default function MutasiPage() {
                         {row.status === "pending" && (
                           <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive" onClick={() => handleDelete(row)}>
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => handleDelete(row)}
+                            >
                               <BiTrash />
                               <span>Batalkan</span>
                             </DropdownMenuItem>
@@ -293,9 +307,10 @@ export default function MutasiPage() {
               <TableCell colSpan={8} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
                   <span>
-                    Menampilkan {meta?.total ? (page - 1) * (meta.per_page || 15) + 1 : 0}-
-                    {Math.min(page * (meta?.per_page || 15), meta?.total ?? 0)} dari {meta?.total ?? 0}{" "}
-                    data
+                    Menampilkan{" "}
+                    {meta?.total ? (page - 1) * (meta.per_page || 15) + 1 : 0}-
+                    {Math.min(page * (meta?.per_page || 15), meta?.total ?? 0)}{" "}
+                    dari {meta?.total ?? 0} data
                   </span>
                   <div className="flex items-center">
                     <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
@@ -306,23 +321,27 @@ export default function MutasiPage() {
                       >
                         &lt;
                       </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                        <button
-                          key={p}
-                          className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
-                            page === p
-                              ? "bg-muted/60 text-foreground"
-                              : "text-muted-foreground hover:bg-muted"
-                          }`}
-                          onClick={() => setPage(p)}
-                        >
-                          {p}
-                        </button>
-                      ))}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (p) => (
+                          <button
+                            key={p}
+                            className={`flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 font-medium transition-colors last:border-r-0 ${
+                              page === p
+                                ? "bg-muted/60 text-foreground"
+                                : "text-muted-foreground hover:bg-muted"
+                            }`}
+                            onClick={() => setPage(p)}
+                          >
+                            {p}
+                          </button>
+                        )
+                      )}
                       <button
                         className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                         disabled={page === totalPages}
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setPage((p) => Math.min(totalPages, p + 1))
+                        }
                       >
                         &gt;
                       </button>

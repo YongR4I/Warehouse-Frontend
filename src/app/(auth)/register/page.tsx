@@ -41,7 +41,9 @@ export default function RegisterPage() {
         setAuth(data.user, data.token)
         router.push("/dashboard")
       } else {
-        setError("Pendaftaran berhasil, tetapi respons tidak valid. Silakan login.")
+        setError(
+          "Pendaftaran berhasil, tetapi respons tidak valid. Silakan login."
+        )
         router.push("/login")
       }
     } catch (err: unknown) {
@@ -56,7 +58,7 @@ export default function RegisterPage() {
       <div className="mx-auto flex max-w-[560px] flex-1 flex-col justify-center px-16 py-12 max-[900px]:max-w-full max-[900px]:px-6 max-[900px]:py-10">
         <div className="mb-12 text-xl font-bold tracking-[-0.02em]">adon</div>
 
-        <h1 className="mb-3 text-[32px] font-bold leading-[1.25] tracking-[-0.01em]">
+        <h1 className="mb-3 text-[32px] leading-[1.25] font-bold tracking-[-0.01em]">
           Buat akun,
           <br />
           mulai sekarang!
@@ -109,8 +111,8 @@ export default function RegisterPage() {
         <div className="my-5 text-center text-xs text-[#c9c9c9]">ATAU</div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-[10px] bg-red-500/10 p-3.5 text-xs text-red-500 border border-red-500/20">
-            <BiErrorCircle className="size-4 shrink-0 mt-0.5" />
+          <div className="mb-4 flex items-start gap-2.5 rounded-[10px] border border-red-500/20 bg-red-500/10 p-3.5 text-xs text-red-500">
+            <BiErrorCircle className="mt-0.5 size-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -129,7 +131,7 @@ export default function RegisterPage() {
               name="name"
               placeholder="Masukkan nama lengkap"
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
@@ -146,7 +148,7 @@ export default function RegisterPage() {
               name="email"
               placeholder="Masukkan email"
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
@@ -164,7 +166,7 @@ export default function RegisterPage() {
               placeholder="Buat password"
               minLength={8}
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
             <small className="mt-1.5 block text-xs text-[#8a8a8a]">
               Minimal 8 karakter
@@ -185,11 +187,11 @@ export default function RegisterPage() {
               placeholder="Ulangi password"
               minLength={8}
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] outline-none transition placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
-          <div className="mb-[22px] mt-1 flex items-start justify-between text-[13.5px]">
+          <div className="mt-1 mb-[22px] flex items-start justify-between text-[13.5px]">
             <label className="flex cursor-pointer items-start gap-2 leading-[1.4] text-[#111111]">
               <input
                 type="checkbox"
@@ -208,13 +210,13 @@ export default function RegisterPage() {
           </div>
 
           <button
-            className="w-full cursor-pointer rounded-[10px] bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#252525] active:translate-y-px flex items-center justify-center gap-2"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] bg-[#111111] py-3.5 text-[15px] font-semibold text-white transition hover:bg-[#252525] active:translate-y-px"
             type="submit"
             disabled={loading}
           >
             {loading ? (
               <>
-                <BiLoaderAlt className="animate-spin size-4" />
+                <BiLoaderAlt className="size-4 animate-spin" />
                 Mendaftarkan...
               </>
             ) : (
@@ -238,7 +240,7 @@ export default function RegisterPage() {
       <div className="relative flex flex-[1.15] items-center justify-center overflow-hidden bg-[radial-gradient(120%_100%_at_15%_0%,#ffb066_0%,transparent_55%),radial-gradient(120%_100%_at_85%_100%,#ff8a3d_0%,transparent_55%),linear-gradient(160deg,#ffcfa0_0%,#ff9a4d_55%,#ff7a30_100%)] px-10 py-14 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.25),transparent_60%)] before:content-[''] max-[900px]:order-first max-[900px]:min-h-[340px] max-[900px]:px-6 max-[900px]:py-10">
         <div className="relative flex w-full max-w-[440px] flex-col gap-6">
           <div className="rounded-[24px] border border-white/35 bg-white/[0.16] px-6 py-5 backdrop-blur-[6px]">
-            <p className="mb-4 text-base font-semibold leading-[1.5] text-white">
+            <p className="mb-4 text-base leading-[1.5] font-semibold text-white">
               &quot;...missing key to our success.&quot;
             </p>
             <div className="flex items-center gap-3">
@@ -251,7 +253,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <div className="text-sm font-semibold leading-[1.3] text-white">
+                <div className="text-sm leading-[1.3] font-semibold text-white">
                   Sarah Johnson
                 </div>
                 <div className="text-[13px] text-white/80">
@@ -304,7 +306,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="relative flex h-[150px] items-end gap-4 pl-[30px]">
-              <div className="absolute bottom-0 left-0 top-0 flex flex-col justify-between text-[11px] text-[#c2c2c2]">
+              <div className="absolute top-0 bottom-0 left-0 flex flex-col justify-between text-[11px] text-[#c2c2c2]">
                 <span>100</span>
                 <span>80</span>
                 <span>60</span>

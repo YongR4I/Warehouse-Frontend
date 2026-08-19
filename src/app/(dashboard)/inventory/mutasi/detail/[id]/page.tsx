@@ -106,7 +106,10 @@ export default function MutasiDetailPage() {
         <p className="text-sm text-muted-foreground">
           Mutasi dengan ID {id} tidak ada.
         </p>
-        <Button variant="default" onClick={() => router.push("/inventory/mutasi")}>
+        <Button
+          variant="default"
+          onClick={() => router.push("/inventory/mutasi")}
+        >
           Kembali ke Mutasi Stok
         </Button>
       </div>
@@ -133,51 +136,57 @@ export default function MutasiDetailPage() {
             icon={BiTransfer}
           />
           <div className="flex items-center gap-2">
-            {info.status === "pending" && hasPermission("mutasi-stok-approve") && (
-              <>
-                <Button
-                  variant="outline"
-                  className="h-[42px] rounded-[12px] text-rose-600"
-                  onClick={() =>
-                    runAction(rejectMutation, "reject", "Mutasi ditolak")
-                  }
-                >
-                  <BiX className="size-5" />
-                  <span>Tolak</span>
-                </Button>
+            {info.status === "pending" &&
+              hasPermission("mutasi-stok-approve") && (
+                <>
+                  <Button
+                    variant="outline"
+                    className="h-[42px] rounded-[12px] text-rose-600"
+                    onClick={() =>
+                      runAction(rejectMutation, "reject", "Mutasi ditolak")
+                    }
+                  >
+                    <BiX className="size-5" />
+                    <span>Tolak</span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="h-[42px] rounded-[12px] bg-black font-semibold text-white hover:bg-black/90"
+                    onClick={() =>
+                      runAction(approveMutation, "approve", "Mutasi disetujui")
+                    }
+                  >
+                    <BiCheck className="size-5" />
+                    <span>Setujui</span>
+                  </Button>
+                </>
+              )}
+            {info.status === "approved" &&
+              hasPermission("mutasi-stok-complete") && (
                 <Button
                   variant="default"
-                  className="h-[42px] rounded-[12px] bg-black font-semibold text-white hover:bg-black/90"
+                  className="h-[42px] rounded-[12px] bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
                   onClick={() =>
-                    runAction(approveMutation, "approve", "Mutasi disetujui")
+                    confirm({
+                      title: "Selesaikan Mutasi Stok",
+                      itemName: `No. Ref: ${info.no_referensi}`,
+                      description:
+                        "Selesaikan proses mutasi ini? Stok barang akan secara otomatis dipindahkan dari gudang asal ke gudang tujuan.",
+                      confirmLabel: "Ya, Selesaikan Mutasi",
+                      variant: "success",
+                      onConfirm: () =>
+                        runAction(
+                          completeMutation,
+                          "complete",
+                          "Mutasi selesai"
+                        ),
+                    })
                   }
                 >
-                  <BiCheck className="size-5" />
-                  <span>Setujui</span>
+                  <BiCheckDouble className="size-5" />
+                  <span>Selesaikan</span>
                 </Button>
-              </>
-            )}
-            {info.status === "approved" && hasPermission("mutasi-stok-complete") && (
-              <Button
-                variant="default"
-                className="h-[42px] rounded-[12px] bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
-                onClick={() =>
-                  confirm({
-                    title: "Selesaikan Mutasi Stok",
-                    itemName: `No. Ref: ${info.no_referensi}`,
-                    description:
-                      "Selesaikan proses mutasi ini? Stok barang akan secara otomatis dipindahkan dari gudang asal ke gudang tujuan.",
-                    confirmLabel: "Ya, Selesaikan Mutasi",
-                    variant: "success",
-                    onConfirm: () =>
-                      runAction(completeMutation, "complete", "Mutasi selesai"),
-                  })
-                }
-              >
-                <BiCheckDouble className="size-5" />
-                <span>Selesaikan</span>
-              </Button>
-            )}
+              )}
           </div>
         </div>
       </div>
@@ -191,7 +200,9 @@ export default function MutasiDetailPage() {
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Gudang Tujuan</div>
+          <div className="text-xs font-normal text-[#857F78]">
+            Gudang Tujuan
+          </div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {info.gudang_tujuan?.nama ?? "-"}
           </div>
@@ -255,7 +266,7 @@ export default function MutasiDetailPage() {
                 {paginatedData.map((row) => (
                   <TableRow
                     key={row.id ?? `${row.barang_id}-${row.qty}`}
-                    className="h-16 border-b border-border/40 hover:bg-muted/20 transition-colors"
+                    className="h-16 border-b border-border/40 transition-colors hover:bg-muted/20"
                   >
                     <TableCell className="pl-6 font-sans text-sm font-medium whitespace-nowrap text-foreground">
                       {row.barang?.sku ?? "-"}
@@ -263,13 +274,13 @@ export default function MutasiDetailPage() {
                     <TableCell className="font-sans text-sm font-semibold whitespace-nowrap text-foreground">
                       {row.barang?.nama ?? "-"}
                     </TableCell>
-                    <TableCell className="font-sans text-center text-sm whitespace-nowrap text-foreground">
+                    <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
                       {row.qty}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
                       {row.barang?.satuan?.nama ?? "-"}
                     </TableCell>
-                    <TableCell className="font-sans pr-6 text-sm whitespace-nowrap text-[#857F78]">
+                    <TableCell className="pr-6 font-sans text-sm whitespace-nowrap text-[#857F78]">
                       {info.keterangan || "-"}
                     </TableCell>
                   </TableRow>
@@ -278,7 +289,7 @@ export default function MutasiDetailPage() {
                   <TableRow>
                     <TableCell
                       colSpan={5}
-                      className="font-sans h-48 text-center text-sm text-muted-foreground"
+                      className="h-48 text-center font-sans text-sm text-muted-foreground"
                     >
                       Tidak ada data barang.
                     </TableCell>
@@ -291,21 +302,32 @@ export default function MutasiDetailPage() {
                     <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground select-none">
                       <span>
                         Menampilkan{" "}
-                        {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)} dari{" "}
-                        {filteredData.length} data
+                        {filteredData.length > 0
+                          ? (currentPage - 1) * itemsPerPage + 1
+                          : 0}
+                        -
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          filteredData.length
+                        )}{" "}
+                        dari {filteredData.length} data
                       </span>
                       <div className="flex items-center">
                         <div className="flex items-center overflow-hidden rounded-lg border border-border/80 bg-background">
                           <button
                             type="button"
-                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setCurrentPage((p) => Math.max(1, p - 1))
+                            }
                             disabled={currentPage === 1}
                             className="flex h-8 w-8 cursor-pointer items-center justify-center border-r border-border/80 text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                           >
                             &lt;
                           </button>
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                          {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1
+                          ).map((p) => (
                             <button
                               key={p}
                               type="button"
@@ -322,7 +344,9 @@ export default function MutasiDetailPage() {
                           ))}
                           <button
                             type="button"
-                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            onClick={() =>
+                              setCurrentPage((p) => Math.min(totalPages, p + 1))
+                            }
                             disabled={currentPage === totalPages}
                             className="flex h-8 w-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
                           >

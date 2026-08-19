@@ -13,8 +13,10 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-export interface UploadInputProps
-  extends Omit<React.ComponentProps<"input">, "value" | "onChange"> {
+export interface UploadInputProps extends Omit<
+  React.ComponentProps<"input">,
+  "value" | "onChange"
+> {
   value?: File | File[] | string | string[] | null
   initialUrl?: string | string[] | null
   onChange?: (files: File[]) => void
@@ -95,7 +97,8 @@ export function UploadInput({
         if (!urls.includes(initialUrl)) urls.push(initialUrl)
       } else if (Array.isArray(initialUrl)) {
         initialUrl.forEach((u) => {
-          if (typeof u === "string" && u.trim() && !urls.includes(u)) urls.push(u)
+          if (typeof u === "string" && u.trim() && !urls.includes(u))
+            urls.push(u)
         })
       }
     }
@@ -103,19 +106,21 @@ export function UploadInput({
   }, [value, initialUrl])
 
   // Track Object URLs for local files to prevent memory leaks
-  const [previewUrls, setPreviewUrls] = React.useState<{ file: File; url: string }[]>([])
-
-  React.useEffect(() => {
-    const newPreviews = normalizedFiles.map((file) => ({
+  const previewUrls = React.useMemo(() => {
+    if (typeof window === "undefined") return []
+    return normalizedFiles.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }))
-    setPreviewUrls(newPreviews)
-
-    return () => {
-      newPreviews.forEach((p) => URL.revokeObjectURL(p.url))
-    }
   }, [normalizedFiles])
+
+  React.useEffect(() => {
+    return () => {
+      previewUrls.forEach((p) => {
+        if (p.url) URL.revokeObjectURL(p.url)
+      })
+    }
+  }, [previewUrls])
 
   const handleFiles = (incomingFiles: FileList | File[]) => {
     setInternalError(null)
@@ -271,16 +276,22 @@ export function UploadInput({
           <div className="mt-2.5 flex items-center justify-between px-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-2 overflow-hidden">
               <BiImage className="size-4 shrink-0 text-primary" />
-              <span className="truncate font-medium text-foreground">{fileName}</span>
+              <span className="truncate font-medium text-foreground">
+                {fileName}
+              </span>
             </div>
             {fileSize && (
-              <span className="shrink-0 text-[11px] font-medium">{fileSize}</span>
+              <span className="shrink-0 text-[11px] font-medium">
+                {fileSize}
+              </span>
             )}
           </div>
         </div>
 
         {internalError && (
-          <p className="text-xs font-medium text-destructive">{internalError}</p>
+          <p className="text-xs font-medium text-destructive">
+            {internalError}
+          </p>
         )}
 
         <input
@@ -361,7 +372,7 @@ export function UploadInput({
             return (
               <div
                 key={`${file.name}-${idx}`}
-                className="shadow-2xs flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5 transition-colors dark:bg-zinc-900/50"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5 shadow-2xs transition-colors dark:bg-zinc-900/50"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   {isImg ? (
@@ -417,7 +428,7 @@ export function UploadInput({
             return (
               <div
                 key={`${url}-${idx}`}
-                className="shadow-2xs flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5 transition-colors dark:bg-zinc-900/50"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5 shadow-2xs transition-colors dark:bg-zinc-900/50"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   {isImg ? (
