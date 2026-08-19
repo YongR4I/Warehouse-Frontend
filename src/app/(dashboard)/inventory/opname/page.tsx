@@ -24,11 +24,12 @@ import {
 } from "react-icons/bi"
 import {
   FormModal,
-  FormInput,
   FormDate,
   FormSelect,
   FormTextarea,
+  FormReferenceInput,
 } from "@/components/forms"
+import { generateReferenceNumber } from "@/lib/reference-number"
 import {
   TableHeader,
   TableBody,
@@ -103,16 +104,23 @@ export default function OpnamePage() {
   const [submitting, setSubmitting] = useState(false)
 
   const handleOpenModal = () => {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, "0")
-    const date = String(now.getDate()).padStart(2, "0")
-    const nextNoDoc = `SO-${year}${month}-001`
+    const today = new Date().toISOString().slice(0, 10)
+    const existingRefs = rows.map((item) => item.no_referensi).filter(Boolean)
+    const nextNoDoc = generateReferenceNumber("SO", { date: today, existingRefs })
     setNewNoDokumen(nextNoDoc)
-    setNewTanggal(`${year}-${month}-${date}`)
+    setNewTanggal(today)
     setNewGudang("")
     setNewCatatan("")
     setIsModalOpen(true)
+  }
+
+  const handleRegenerateOpnameRef = () => {
+    const existingRefs = rows.map((item) => item.no_referensi).filter(Boolean)
+    const nextNoDoc = generateReferenceNumber("SO", {
+      date: newTanggal || new Date(),
+      existingRefs,
+    })
+    setNewNoDokumen(nextNoDoc)
   }
 
   const handleCreateOpname = async (e: React.FormEvent) => {
@@ -478,10 +486,12 @@ export default function OpnamePage() {
         <form onSubmit={handleCreateOpname}>
           <FormModal.Body>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput
+              <FormReferenceInput
                 label="Nomor Referensi"
                 required
                 value={newNoDokumen}
+                onRegenerate={handleRegenerateOpnameRef}
+                placeholder="cth. SO-202608-001"
                 onChange={(e) => setNewNoDokumen(e.target.value)}
               />
               <FormDate

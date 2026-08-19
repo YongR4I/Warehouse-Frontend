@@ -14,6 +14,7 @@ import {
   FormDate,
   FormTextarea,
   FormSection,
+  FormReferenceInput,
 } from "@/components/forms"
 import { ItemTable, ItemTableRow } from "@/components/item-table"
 import {
@@ -29,6 +30,7 @@ import { TableCell } from "@/components/ui/table"
 import { BiUpArrowCircle, BiSearch } from "react-icons/bi"
 import { toast } from "sonner"
 import { barangKeluarSchema } from "@/lib/validations/barang-keluar"
+import { generateReferenceNumber } from "@/lib/reference-number"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage, uploadFile } from "@/lib/api"
@@ -111,6 +113,7 @@ export function BarangKeluarForm({
     handleSubmit,
     watch,
     getValues,
+    setValue,
     setError,
     clearErrors,
     formState: { errors, isSubmitting },
@@ -121,6 +124,13 @@ export function BarangKeluarForm({
     ) as unknown as Resolver<BarangKeluarFormValues>,
     defaultValues,
   })
+
+  const handleRegenerateRef = () => {
+    const currentDate = getValues("tanggal") || new Date()
+    const newRef = generateReferenceNumber("BK", currentDate)
+    setValue("noReferensi", newRef, { shouldValidate: true })
+    clearErrors("noReferensi")
+  }
 
   useEffect(() => {
     if (!open) return
@@ -144,7 +154,12 @@ export function BarangKeluarForm({
           : defaultValues.items,
       })
     } else {
-      reset(defaultValues)
+      const today = new Date().toISOString().split("T")[0]
+      reset({
+        ...defaultValues,
+        tanggal: today,
+        noReferensi: generateReferenceNumber("BK", today),
+      })
     }
   }, [open, initialData, reset])
 
@@ -228,22 +243,19 @@ export function BarangKeluarForm({
           className="space-y-6"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-            <FormField
+            <FormReferenceInput
               label="No. Referensi"
               required
               error={errors.noReferensi}
-            >
-              <input
-                type="text"
-                placeholder="cth. BK-20260818-001"
-                {...register("noReferensi")}
-                onChange={(e) => {
-                  register("noReferensi").onChange(e)
-                  clearErrors("noReferensi")
-                }}
-                className="h-10 min-h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-              />
-            </FormField>
+              disabled={!!initialData}
+              onRegenerate={!initialData ? handleRegenerateRef : undefined}
+              placeholder="cth. BK-20260818-001"
+              {...register("noReferensi")}
+              onChange={(e) => {
+                register("noReferensi").onChange(e)
+                clearErrors("noReferensi")
+              }}
+            />
 
             <FormField label="No. Surat Jalan (Opsional)">
               <input

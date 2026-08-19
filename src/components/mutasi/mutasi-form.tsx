@@ -9,6 +9,7 @@ import {
   FormDate,
   FormTextarea,
   FormSection,
+  FormReferenceInput,
 } from "@/components/forms"
 import { ItemTable, ItemTableRow } from "@/components/item-table"
 import {
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { TableCell } from "@/components/ui/table"
 import { BiTransfer } from "react-icons/bi"
 import { toast } from "sonner"
+import { generateReferenceNumber } from "@/lib/reference-number"
 import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
 import { useOptions, toOptions, toBarangOptions } from "@/hooks/use-options"
 import { getErrorMessage } from "@/lib/api"
@@ -72,9 +74,10 @@ export function MutasiForm({
               : [{ barangId: "", jumlah: 1 }],
       }
     }
+    const today = new Date().toISOString().slice(0, 10)
     return {
-      noReferensi: "",
-      tanggal: new Date().toISOString().slice(0, 10),
+      noReferensi: generateReferenceNumber("MS", today),
+      tanggal: today,
       gudangAsalId: "",
       gudangTujuanId: "",
       catatan: "",
@@ -87,12 +90,22 @@ export function MutasiForm({
     control,
     handleSubmit,
     watch,
+    setValue,
+    getValues,
+    clearErrors,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<MutasiFormValues>({
     resolver: zodResolver(mutasiSchema),
     values: defaultValues,
   })
+
+  const handleRegenerateRef = () => {
+    const currentDate = getValues("tanggal") || new Date()
+    const newRef = generateReferenceNumber("MS", currentDate)
+    setValue("noReferensi", newRef, { shouldValidate: true })
+    clearErrors("noReferensi")
+  }
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" })
   const watchItems = watch("items")
@@ -144,15 +157,15 @@ export function MutasiForm({
           className="space-y-6"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-            <FormField label="No. referensi" error={errors.noReferensi}>
-              <input
-                type="text"
-                placeholder="contoh: MS-20260818-001"
-                disabled={!!initialData}
-                {...register("noReferensi")}
-                className="h-10 min-h-10 w-full rounded-xl border border-border bg-card px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:opacity-60"
-              />
-            </FormField>
+            <FormReferenceInput
+              label="No. referensi"
+              required
+              error={errors.noReferensi}
+              disabled={!!initialData}
+              onRegenerate={!initialData ? handleRegenerateRef : undefined}
+              placeholder="contoh: MS-20260818-001"
+              {...register("noReferensi")}
+            />
 
             <FormField label="Tanggal" error={errors.tanggal}>
               <FormDate {...register("tanggal")} />

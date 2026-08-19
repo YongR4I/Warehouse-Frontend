@@ -33,5 +33,9 @@ export type {
   FormModalFooterProps,
 } from "./form-modal"
 
+export { FormReferenceInput } from "./form-reference-input"
+export type { FormReferenceInputProps } from "./form-reference-input"
+
 export { ShiftDayPicker } from "./shift-day-picker"
 export type { ShiftDayPickerValue } from "./shift-day-picker"
+
