@@ -4,7 +4,7 @@ import { useDeferredValue, useMemo, useState } from "react"
 import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch, DateInput } from "@/components/input"
+import { InputSearch, DateRangeFilter } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Card } from "@/components/ui/card"
@@ -340,15 +340,22 @@ export default function LaporanSelisihOpnamePage() {
               setCurrentPage(1)
             }}
           />
-          <DateInput
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="h-[42px] w-[150px] rounded-2xl"
-          />
-          <DateInput
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="h-[42px] w-[150px] rounded-2xl"
+          <DateRangeFilter
+            startDate={fromDate}
+            endDate={toDate}
+            onStartDateChange={(val) => {
+              setFromDate(val)
+              setCurrentPage(1)
+            }}
+            onEndDateChange={(val) => {
+              setToDate(val)
+              setCurrentPage(1)
+            }}
+            onChange={({ startDate, endDate }) => {
+              setFromDate(startDate)
+              setToDate(endDate)
+              setCurrentPage(1)
+            }}
           />
           <Opsion
             placeholder="Semua Gudang"

@@ -1,11 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
+import {
+  FormDrawer,
+  FormInput,
+  FormSelect,
+  FormReferenceInput,
+} from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
+import { generateReferenceNumber } from "@/lib/reference-number"
 import {
   petugasSchema,
   type PetugasFormValues,
@@ -38,13 +44,15 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
     register,
     control,
     handleSubmit,
+    setValue,
     getValues,
+    clearErrors,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<PetugasFormValues>({
     resolver: zodResolver(petugasSchema),
     defaultValues: {
-      kode: "",
+      kode: generateReferenceNumber("PG"),
       namaLengkap: "",
       nomorTelepon: "",
       peran: "",
@@ -53,6 +61,26 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
       status: "Aktif",
     },
   })
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        kode: generateReferenceNumber("PG"),
+        namaLengkap: "",
+        nomorTelepon: "",
+        peran: "",
+        areaKerja: "",
+        tanggalBergabung: "",
+        status: "Aktif",
+      })
+    }
+  }, [open, reset])
+
+  const handleRegenerateKode = () => {
+    const nextKode = generateReferenceNumber("PG")
+    setValue("kode", nextKode, { shouldValidate: true })
+    clearErrors("kode")
+  }
 
   const onSubmit = (data: PetugasFormValues) => {
     console.log("Submitted Petugas:", data)
@@ -89,11 +117,12 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
               1. Identitas Karyawan
             </p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-              <FormInput
+              <FormReferenceInput
                 label="Kode Unik Pegawai *"
                 placeholder="Contoh : PG-005"
                 className="col-span-2"
                 error={errors.kode}
+                onRegenerate={handleRegenerateKode}
                 {...register("kode")}
               />
 

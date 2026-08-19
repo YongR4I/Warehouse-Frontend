@@ -4,7 +4,7 @@ import { ExportModal } from "@/components/export-modal"
 import { useMemo, useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch, DateInput } from "@/components/input"
+import { InputSearch, DateRangeFilter } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import {
   BiChevronRight,
@@ -321,21 +321,22 @@ export default function RekapPage() {
             onChange={(e) => handleSearchChange(e.target.value)}
             className="flex-1"
           />
-          <DateInput
-            value={fromDate}
-            onChange={(e) => {
-              setFromDate(e.target.value)
+          <DateRangeFilter
+            startDate={fromDate}
+            endDate={toDate}
+            onStartDateChange={(val) => {
+              setFromDate(val)
               setCurrentPage(1)
             }}
-            className="h-[42px] w-[160px] rounded-2xl"
-          />
-          <DateInput
-            value={toDate}
-            onChange={(e) => {
-              setToDate(e.target.value)
+            onEndDateChange={(val) => {
+              setToDate(val)
               setCurrentPage(1)
             }}
-            className="h-[42px] w-[160px] rounded-2xl"
+            onChange={({ startDate, endDate }) => {
+              setFromDate(startDate)
+              setToDate(endDate)
+              setCurrentPage(1)
+            }}
           />
           <Opsion
             placeholder="Semua Status Kehadiran"

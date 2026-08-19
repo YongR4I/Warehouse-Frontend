@@ -18,7 +18,9 @@ import {
   BiDotsVerticalRounded,
   BiEditAlt,
   BiTrash,
+  BiTimeFive,
 } from "react-icons/bi"
+import { StockCardDrawer } from "@/components/stock-card/stock-card-drawer"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -50,8 +52,10 @@ const statusOptions = [
 
 export default function BarangPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [stockCardOpen, setStockCardOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [selectedBarang, setSelectedBarang] = useState<Barang | null>(null)
+  const [selectedStockCardBarang, setSelectedStockCardBarang] = useState<Barang | null>(null)
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [page, setPage] = useState(1)
@@ -306,6 +310,15 @@ export default function BarangPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
+                              setSelectedStockCardBarang(row)
+                              setStockCardOpen(true)
+                            }}
+                          >
+                            <BiTimeFive />
+                            <span>Kartu Stok</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
                               setSelectedBarang(row)
                               setDrawerOpen(true)
                             }}
@@ -342,6 +355,12 @@ export default function BarangPage() {
           </TableFooter>
         </Table>
       </div>
+
+      <StockCardDrawer
+        open={stockCardOpen}
+        onOpenChange={setStockCardOpen}
+        barang={selectedStockCardBarang}
+      />
 
       <ExportModal
         isOpen={exportOpen}

@@ -35,7 +35,13 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
-import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
+import {
+  FormDrawer,
+  FormInput,
+  FormSelect,
+  FormReferenceInput,
+} from "@/components/forms"
+import { generateReferenceNumber } from "@/lib/reference-number"
 import {
   useApiList,
   useApiCreate,
@@ -156,8 +162,19 @@ export default function DaftarPetugasPage() {
 
   const openCreate = () => {
     setEditingUser(null)
-    setForm(EMPTY_FORM)
+    const existingCodes = items.map((u) => u.no_pegawai).filter(Boolean) as string[]
+    const autoKode = generateReferenceNumber("PG", { existingRefs: existingCodes })
+    setForm({
+      ...EMPTY_FORM,
+      noPegawai: autoKode,
+    })
     setDrawerOpen(true)
+  }
+
+  const handleRegenerateKode = () => {
+    const existingCodes = items.map((u) => u.no_pegawai).filter(Boolean) as string[]
+    const autoKode = generateReferenceNumber("PG", { existingRefs: existingCodes })
+    setForm((prev) => ({ ...prev, noPegawai: autoKode }))
   }
 
   const openEdit = (user: User) => {
@@ -493,10 +510,13 @@ export default function DaftarPetugasPage() {
                     required
                   />
                 )}
-                <FormInput
+                <FormReferenceInput
                   label="Kode Pegawai"
+                  required={false}
                   placeholder="Contoh : PG-005"
                   value={form.noPegawai}
+                  disabled={!!editingUser}
+                  onRegenerate={!editingUser ? handleRegenerateKode : undefined}
                   onChange={(e) =>
                     setForm({ ...form, noPegawai: e.target.value })
                   }

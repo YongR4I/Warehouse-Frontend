@@ -1,4 +1,4 @@
-export type ReferenceType = "BM" | "BK" | "MS" | "SO" | "ADJ"
+export type ReferenceType = "BM" | "BK" | "MS" | "SO" | "ADJ" | "PG"
 
 export interface GenerateReferenceOptions {
   date?: Date | string
@@ -7,12 +7,13 @@ export interface GenerateReferenceOptions {
 }
 
 /**
- * Menghasilkan nomor referensi otomatis dengan format standar:
+ * Menghasilkan nomor referensi / kode otomatis dengan format standar:
  * - BM (Barang Masuk): BM-YYYYMMDD-XXX (cth: BM-20260819-001)
  * - BK (Barang Keluar): BK-YYYYMMDD-XXX (cth: BK-20260819-001)
  * - MS (Mutasi Stok): MS-YYYYMMDD-XXX (cth: MS-20260819-001)
  * - SO (Stok Opname): SO-YYYYMM-XXX (cth: SO-202608-001)
  * - ADJ (Penyesuaian): ADJ-YYYYMMDD-XXX (cth: ADJ-20260819-001)
+ * - PG (Petugas / Pegawai Gudang): PG-XXX (cth: PG-001, PG-005)
  */
 export function generateReferenceNumber(
   type: ReferenceType,
@@ -25,8 +26,8 @@ export function generateReferenceNumber(
     if (options instanceof Date) {
       dateVal = options
     } else if (typeof options === "string") {
-      // If a reference string like "BM-20260819-001" was passed
-      if (/^[A-Z]{2,3}-\d+/i.test(options)) {
+      // If a reference string like "BM-20260819-001" or "PG-005" was passed
+      if (/^[A-Z]{2,3}(-\d+)+$/i.test(options)) {
         existingRefs.push(options)
       } else {
         dateVal = options
@@ -46,14 +47,20 @@ export function generateReferenceNumber(
   const day = String(validDate.getDate()).padStart(2, "0")
 
   let prefixWithDate = ""
-  if (type === "SO") {
+  let pattern: RegExp
+
+  if (type === "PG") {
+    prefixWithDate = "PG"
+    pattern = /^PG-(\d+)$/i
+  } else if (type === "SO") {
     prefixWithDate = `${type}-${year}${month}`
+    pattern = new RegExp(`^${prefixWithDate}-(\\d+)$`, "i")
   } else {
     prefixWithDate = `${type}-${year}${month}${day}`
+    pattern = new RegExp(`^${prefixWithDate}-(\\d+)$`, "i")
   }
 
   let maxSeq = 0
-  const pattern = new RegExp(`^${prefixWithDate}-(\\d+)$`, "i")
 
   if (existingRefs && existingRefs.length > 0) {
     for (const ref of existingRefs) {
