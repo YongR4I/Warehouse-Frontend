@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { ExportModal } from "@/components/export-modal"
 import { useMemo, useState } from "react"
@@ -95,7 +95,8 @@ const GROUP_BY_OPTIONS = [
 ]
 
 interface RekapPetugas {
-  key: number
+  // "p{petugas_id}" utk karyawan native, "u{user_id}" utk akun (kontrak v3)
+  key: string
   nama: string
   nik: string
   gudang: string
@@ -145,8 +146,9 @@ export default function RekapPage() {
   const filteredData = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
     return rawRows.filter((row) => {
-      const nama = row.user?.name ?? ""
-      const nik = row.user?.no_pegawai ?? ""
+      // Kontrak v3: baris bisa milik karyawan native (petugas) atau akun
+      const nama = row.nama ?? row.user?.name ?? ""
+      const nik = row.petugas?.kode ?? row.user?.no_pegawai ?? ""
       const shift = row.shift?.nama ?? ""
       const matchesSearch =
         !query ||
@@ -174,9 +176,9 @@ export default function RekapPage() {
   const rekapData = useMemo(() => {
     if (groupBy === "petugas") {
       const map = new Map<
-        number,
+        string,
         {
-          key: number
+          key: string
           nama: string
           nik: string
           gudang: string
@@ -190,12 +192,18 @@ export default function RekapPage() {
         }
       >()
       for (const row of filteredData) {
-        const id = row.user_id
-        if (!map.has(id)) {
-          map.set(id, {
-            key: id,
-            nama: row.user?.name ?? `User #${id}`,
-            nik: row.user?.no_pegawai ?? "-",
+        // Kontrak v3: subjek = karyawan native ATAU akun — id-space beda,
+        // jadi kunci pakai prefix.
+        const key = row.petugas_id ? `p${row.petugas_id}` : `u${row.user_id}`
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            nama:
+              row.nama ??
+              row.user?.name ??
+              row.petugas?.nama ??
+              `Subjek #${key}`,
+            nik: row.petugas?.kode ?? row.user?.no_pegawai ?? "-",
             gudang: row.gudang?.nama ?? "-",
             hadir: 0,
             terlambat: 0,
@@ -206,7 +214,7 @@ export default function RekapPage() {
             total: 0,
           })
         }
-        const g = map.get(id)!
+        const g = map.get(key)!
         g.total++
         if (row.status === "hadir") g.hadir++
         else if (row.status === "terlambat") g.terlambat++
@@ -225,7 +233,7 @@ export default function RekapPage() {
       {
         key: number
         nama: string
-        petugasSet: Set<number>
+        petugasSet: Set<string>
         hadir: number
         terlambat: number
         alpha: number
@@ -252,7 +260,7 @@ export default function RekapPage() {
         })
       }
       const g = map.get(id)!
-      g.petugasSet.add(row.user_id)
+      g.petugasSet.add(row.petugas_id ? `p${row.petugas_id}` : `u${row.user_id}`)
       g.total++
       if (row.status === "hadir") g.hadir++
       else if (row.status === "terlambat") g.terlambat++
@@ -586,6 +594,9 @@ export default function RekapPage() {
                     <TableHead className="text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                       Status Kehadiran
                     </TableHead>
+                    <TableHead className="text-center text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
+                      Sumber
+                    </TableHead>
                     <TableHead className="text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                       Petugas Audit
                     </TableHead>
@@ -598,7 +609,7 @@ export default function RekapPage() {
                   {absensiQuery.isLoading && (
                     <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                       <TableCell
-                        colSpan={14}
+                        colSpan={15}
                         className="text-center text-sm text-muted-foreground"
                       >
                         Memuat data...
@@ -608,7 +619,7 @@ export default function RekapPage() {
                   {!absensiQuery.isLoading && paginatedData.length === 0 && (
                     <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                       <TableCell
-                        colSpan={14}
+                        colSpan={15}
                         className="text-center text-sm text-muted-foreground"
                       >
                         Tidak ada data rekap kehadiran.
@@ -628,11 +639,11 @@ export default function RekapPage() {
                         </TableCell>
                         <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
                           <ColoredBadge color="gray">
-                            {row.user?.no_pegawai ?? "-"}
+                            {row.petugas?.kode ?? row.user?.no_pegawai ?? "-"}
                           </ColoredBadge>
                         </TableCell>
                         <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                          {row.user?.name ?? `User #${row.user_id}`}
+                          {row.nama ?? row.user?.name ?? "-"}
                         </TableCell>
                         <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground/80">
                           {row.gudang?.nama ?? "-"}
@@ -672,8 +683,18 @@ export default function RekapPage() {
                         <TableCell className="text-center font-sans text-sm whitespace-nowrap">
                           {renderStatusBadge(row.status)}
                         </TableCell>
+                        <TableCell className="text-center font-sans text-sm whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <ColoredBadge color={row.sumber === "manual" ? "gray" : "blue"}>
+                              {row.sumber === "manual" ? "Manual" : "Scan QR"}
+                            </ColoredBadge>
+                            {row.di_luar_jadwal && (
+                              <ColoredBadge color="yellow">Di Luar Jadwal</ColoredBadge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                          {row.user?.name ?? "-"}
+                          {row.nama ?? row.user?.name ?? "-"}
                         </TableCell>
                         <TableCell className="pr-6 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1 text-muted-foreground">
@@ -690,7 +711,7 @@ export default function RekapPage() {
                       style={{ height: `${(6 - paginatedData.length) * 64}px` }}
                       className="pointer-events-none border-none hover:bg-transparent"
                     >
-                      <TableCell colSpan={14} className="border-none p-0" />
+                      <TableCell colSpan={15} className="border-none p-0" />
                     </TableRow>
                   )}
                 </TableBody>

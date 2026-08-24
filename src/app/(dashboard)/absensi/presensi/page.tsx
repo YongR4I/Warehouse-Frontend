@@ -1,10 +1,11 @@
-"use client"
+﻿"use client"
 
 import { useMemo, useState } from "react"
 import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch, DateInput } from "@/components/input"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import {
   BiUserCheck,
@@ -13,6 +14,7 @@ import {
   BiSolidReport,
   BiShow,
   BiEditAlt,
+  BiQr,
 } from "react-icons/bi"
 import {
   DropdownMenu,
@@ -36,6 +38,7 @@ import { useApiList, useApiCreate } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage } from "@/lib/api"
 import { statusColor, statusLabel } from "@/lib/status"
+import { QrScannerPanel } from "@/components/absensi/qr-scanner-panel"
 import type { Absensi, AbsensiPayload, Gudang, Shift, User } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
@@ -65,6 +68,7 @@ const ABSENSI_STATUS_OPTIONS = [
 
 export default function PresensiPage() {
   const [exportOpen, setExportOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("hari-ini")
   const [selectedDate, setSelectedDate] = useState(() =>
     toDateParam(new Date())
   )
@@ -100,10 +104,11 @@ export default function PresensiPage() {
     const query = searchQuery.toLowerCase().trim()
     if (!query) return rawRows
     return rawRows.filter((row) => {
-      const nama = row.user?.name ?? ""
-      const nip = row.user?.no_pegawai ?? ""
+      // Kontrak v3: baris bisa milik karyawan native (petugas) atau akun
+      const nama = row.nama ?? row.user?.name ?? ""
+      const kode = row.petugas?.kode ?? row.user?.no_pegawai ?? ""
       return (
-        nama.toLowerCase().includes(query) || nip.toLowerCase().includes(query)
+        nama.toLowerCase().includes(query) || kode.toLowerCase().includes(query)
       )
     })
   }, [rawRows, searchQuery])
@@ -143,6 +148,11 @@ export default function PresensiPage() {
       toast.error("Petugas, gudang, dan shift wajib diisi")
       return
     }
+    // Kontrak v4: koreksi manual wajib keterangan utk audit
+    if (!formKeterangan.trim()) {
+      toast.error("Koreksi manual wajib menyertakan keterangan")
+      return
+    }
     setSubmitting(true)
     try {
       await createMutation.mutateAsync({
@@ -174,7 +184,7 @@ export default function PresensiPage() {
             items={[{ label: "SDM & Kehadiran" }, { label: "Presensi Harian" }]}
             title="Presensi Harian"
             icon={BiUserCheck}
-            description="Rekam kehadiran harian petugas via absensi."
+            description="Rekam kehadiran harian petugas via scan QR atau input manual."
           />
           <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black" onClick={() => setExportOpen(true)}>
@@ -183,150 +193,207 @@ export default function PresensiPage() {
             </Button>
             <Button variant="default" onClick={openCreate}>
               <BiUserCheck className="mr-2" />
-              Catat Absensi
+              Input Manual
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-2">
-          <InputSearch
-            placeholder="Cari NIK, nama, atau nomor HP..."
-            className="flex-1"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <DateInput
-            value={selectedDate}
-            onChange={(e) =>
-              setSelectedDate(e.target.value || toDateParam(new Date()))
-            }
-            className="h-[42px] w-[170px] rounded-2xl"
-          />
-        </div>
+      {/* Tabs */}
+      <div className="wrapper mt-[30px]">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="hari-ini">
+              <BiUserCheck className="mr-1.5 size-4" />
+              Presensi Hari Ini
+            </TabsTrigger>
+            <TabsTrigger value="scan-qr">
+              <BiQr className="mr-1.5 size-4" />
+              Scan QR
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab: Presensi Hari Ini */}
+          <TabsContent value="hari-ini">
+            <div className="mt-4 flex items-center gap-2">
+              <InputSearch
+                placeholder="Cari NIK, nama, atau nomor HP..."
+                className="flex-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <DateInput
+                value={selectedDate}
+                onChange={(e) =>
+                  setSelectedDate(e.target.value || toDateParam(new Date()))
+                }
+                className="h-[42px] w-[170px] rounded-2xl"
+              />
+            </div>
+
+            <div className="mt-4">
+              <Table>
+                <TableHeader className="border-b border-border/60 bg-white">
+                  <TableRow className="h-14 hover:bg-transparent">
+                    <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Kode Pegawai
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Nama Lengkap
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Tanggung Jawab
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Shift Kerja
+                    </TableHead>
+                    <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Jam Masuk
+                    </TableHead>
+                    <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Jam Keluar
+                    </TableHead>
+                    <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Keterangan Kehadiran
+                    </TableHead>
+                    <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Sumber
+                    </TableHead>
+                    <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
+                      Aksi
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {absensiQuery.isLoading && (
+                    <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                      <TableCell
+                        colSpan={9}
+                        className="text-center text-sm text-muted-foreground"
+                      >
+                        Memuat data...
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!absensiQuery.isLoading && rows.length === 0 && (
+                    <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
+                      <TableCell
+                        colSpan={9}
+                        className="text-center text-sm text-muted-foreground"
+                      >
+                        Tidak ada data presensi pada tanggal terpilih.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      className="h-16 border-b border-border/40 hover:bg-muted/30"
+                    >
+                      <TableCell className="pl-6 font-sans text-sm text-foreground">
+                        {row.petugas?.kode ?? row.user?.no_pegawai ?? "-"}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                        {row.nama ?? row.user?.name ?? "-"}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
+                        {row.petugas?.jabatan ??
+                          (row.user?.roles
+                            ?.map((role) => role.name)
+                            .join(", ") || "-")}
+                      </TableCell>
+                      <TableCell className="font-sans text-sm">
+                        <ColoredBadge color="gray">
+                          {row.shift?.nama ?? "-"}
+                        </ColoredBadge>
+                      </TableCell>
+                      <TableCell className="text-center font-sans text-sm text-foreground">
+                        {row.jam_masuk ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-center font-sans text-sm text-foreground">
+                        {row.jam_pulang ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-center font-sans text-sm">
+                        <ColoredBadge color={statusColor(row.status)}>
+                          {statusLabel(row.status)}
+                        </ColoredBadge>
+                      </TableCell>
+                      <TableCell className="text-center font-sans text-sm">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <ColoredBadge color={row.sumber === "manual" ? "gray" : "blue"}>
+                            {row.sumber === "manual" ? "Manual" : "Scan QR"}
+                          </ColoredBadge>
+                          {row.di_luar_jadwal && (
+                            <ColoredBadge color="yellow">Di Luar Jadwal</ColoredBadge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="pr-6 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                          <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                            <BiChevronRight className="size-4 text-foreground/75" />
+                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
+                              <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuLabel>
+                                Aksi Presensi
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <BiShow />
+                                <span>Lihat Detail</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <BiEditAlt />
+                                <span>Koreksi Absen</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          {/* Tab: Scan QR */}
+          <TabsContent value="scan-qr">
+            <div className="mx-auto mt-4 max-w-lg">
+              <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <p className="text-sm font-medium text-blue-800">
+                  💡 Mode Scan QR — Arahkan kamera ke QR Card petugas.
+                </p>
+                <p className="mt-0.5 text-xs text-blue-600">
+                  Sistem akan otomatis mendeteksi apakah petugas sedang masuk
+                  atau pulang berdasarkan data hari ini.
+                </p>
+              </div>
+              <QrScannerPanel
+                onSuccess={() => {
+                  void absensiQuery.refetch()
+                  setActiveTab("hari-ini")
+                }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <div className="wrapper mt-[25px]">
-        <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
-            <TableRow className="h-14 hover:bg-transparent">
-              <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
-                Kode Pegawai
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Nama Lengkap
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Tanggung Jawab
-              </TableHead>
-              <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
-                Shift Kerja
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jam Masuk
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jam Keluar
-              </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Keterangan Kehadiran
-              </TableHead>
-              <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {absensiQuery.isLoading && (
-              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                <TableCell
-                  colSpan={8}
-                  className="text-center text-sm text-muted-foreground"
-                >
-                  Memuat data...
-                </TableCell>
-              </TableRow>
-            )}
-            {!absensiQuery.isLoading && rows.length === 0 && (
-              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                <TableCell
-                  colSpan={8}
-                  className="text-center text-sm text-muted-foreground"
-                >
-                  Tidak ada data presensi pada tanggal terpilih.
-                </TableCell>
-              </TableRow>
-            )}
-            {rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="h-16 border-b border-border/40 hover:bg-muted/30"
-              >
-                <TableCell className="pl-6 font-sans text-sm text-foreground">
-                  {row.user?.no_pegawai ?? "-"}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.user?.name ?? `User #${row.user_id}`}
-                </TableCell>
-                <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                  {row.user?.roles?.map((role) => role.name).join(", ") || "-"}
-                </TableCell>
-                <TableCell className="font-sans text-sm">
-                  <ColoredBadge color="gray">
-                    {row.shift?.nama ?? "-"}
-                  </ColoredBadge>
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.jam_masuk ?? "-"}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm text-foreground">
-                  {row.jam_pulang ?? "-"}
-                </TableCell>
-                <TableCell className="text-center font-sans text-sm">
-                  <ColoredBadge color={statusColor(row.status)}>
-                    {statusLabel(row.status)}
-                  </ColoredBadge>
-                </TableCell>
-                <TableCell className="pr-6 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                    <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
-                      <BiChevronRight className="size-4 text-foreground/75" />
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
-                        <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuLabel>Aksi Presensi</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <BiShow />
-                          <span>Lihat Detail</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <BiEditAlt />
-                          <span>Koreksi Absen</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
+      {/* Manual Input Drawer */}
       <FormDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title="Catat Absensi"
+        title="Input Manual Absensi"
         description={`Rekam kehadiran petugas untuk tanggal ${selectedDate}.`}
         icon={BiUserCheck}
       >
         <FormDrawer.Body>
-          <form id="absensi-form" onSubmit={handleSubmit} className="space-y-5">
+          <form id="absensi-form" onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <FormSelect
                 label="Nama Petugas *"
@@ -370,8 +437,8 @@ export default function PresensiPage() {
               />
             </div>
             <FormInput
-              label="Keterangan"
-              placeholder="Catatan tambahan (opsional)..."
+              label="Keterangan *"
+              placeholder="Wajib — alasan/konteks koreksi manual..."
               value={formKeterangan}
               onChange={(e) => setFormKeterangan(e.target.value)}
             />
@@ -407,26 +474,10 @@ export default function PresensiPage() {
         filterLabel="Filter Aktif"
         exportUrl={exportUrl}
         checkboxes={[
-          {
-            id: "nama",
-            label: "Nama & NIP",
-            defaultChecked: true,
-          },
-          {
-            id: "jadwal",
-            label: "Jadwal Shift",
-            defaultChecked: true,
-          },
-          {
-            id: "jamMasuk",
-            label: "Jam Masuk & Keluar",
-            defaultChecked: true,
-          },
-          {
-            id: "status",
-            label: "Status Kehadiran",
-            defaultChecked: true,
-          },
+          { id: "nama", label: "Nama & NIP", defaultChecked: true },
+          { id: "jadwal", label: "Jadwal Shift", defaultChecked: true },
+          { id: "jamMasuk", label: "Jam Masuk & Keluar", defaultChecked: true },
+          { id: "status", label: "Status Kehadiran", defaultChecked: true },
         ]}
       />
     </>

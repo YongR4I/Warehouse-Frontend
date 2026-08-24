@@ -324,13 +324,21 @@ export interface Shift {
 
 export interface Absensi {
   id: number
-  user_id: number
+  // Kontrak v3: baris absensi bisa milik akun (user_id) ATAU karyawan
+  // tanpa akun (petugas_id) — salah satu pasti terisi.
+  user_id: number | null
+  petugas_id?: number | null
+  // Nama ternormalisasi dari BE: petugas.nama ?? user.name
+  nama?: string | null
   gudang_id: number
   shift_id: number
   tanggal: string
   jam_masuk?: string | null
   jam_pulang?: string | null
   status: string
+  // Kontrak v4 ([[TODO-ABSENSI-SCAN]]): audit sumber absen + flag lembur/dadakan
+  sumber?: "qr" | "manual"
+  di_luar_jadwal?: boolean
   lokasi_checkin?: string | null
   lokasi_checkout?: string | null
   radius_validasi?: number | null
@@ -340,6 +348,12 @@ export interface Absensi {
   approved_by?: number | null
   approved_at?: string | null
   user?: User | null
+  petugas?: {
+    id: number
+    nama: string
+    kode: string
+    jabatan?: string | null
+  } | null
   gudang?: Gudang | null
   shift?: Shift | null
   created_at?: string
@@ -361,9 +375,14 @@ export interface JadwalPetugas {
 export interface Notifikasi {
   id: number
   user_id?: number
+  // Kolom BE: judul/pesan (title/message dipertahankan utk kompatibilitas lama)
+  judul?: string
+  pesan?: string
   title?: string
   message?: string
   type?: string
+  priority?: string
+  link?: string | null
   is_read?: boolean
   read_at?: string | null
   created_at?: string
@@ -534,6 +553,138 @@ export interface JadwalPetugasPayload {
   tanggal: string
 }
 
+export interface QrIssueData {
+  payload: string
+  version: number
+  issued_at: string
+}
+
+export interface AbsensiScanUser {
+  id: number
+  name: string
+  no_pegawai?: string | null
+}
+
+export type AbsensiScanTipe = "masuk" | "pulang" | "duplicate"
+
+export type ScanIdentitasJenis = "petugas" | "user"
+
+// Blok identitas ternormalisasi dari POST /absensi/scan (kontrak v3):
+// sumber nama/kode/jabatan untuk UI scanner, terlepas dari subjek token.
+export interface ScanIdentitas {
+  jenis: ScanIdentitasJenis
+  id: number
+  nama: string
+  kode?: string | null
+  jabatan?: string | null
+  no_pegawai?: string | null
+}
+
+export interface AbsensiScanResult {
+  tipe: AbsensiScanTipe
+  duplicate?: boolean
+  identitas: ScanIdentitas
+  petugas?: {
+    id: number
+    nama: string
+    kode: string
+    jabatan?: string | null
+    status_operasional: PetugasStatusOperasional
+  } | null
+  // Backward-compat: hanya terisi jika token milik akun login (users).
+  // Karyawan tanpa akun = null.
+  user: AbsensiScanUser | null
+  absensi: {
+    id: number
+    tanggal: string
+    jam_masuk: string | null
+    jam_pulang: string | null
+    status: string
+  } | null
+  shift: {
+    id: number
+    nama: string
+    jam_masuk: string
+    jam_pulang: string
+  } | null
+  gudang: { id: number; nama: string } | null
+}
+
+export type IzinJenis = "izin" | "sakit" | "cuti"
+
+export type IzinStatus =
+  | "menunggu"
+  | "disetujui"
+  | "ditolak"
+  | "dibatalkan"
+
+export interface IzinRequest {
+  id: number
+  // Kontrak portal-izin v2: subjek bisa akun (user_id) ATAU karyawan native
+  // (petugas_id) — salah satu pasti terisi
+  user_id: number | null
+  petugas_id?: number | null
+  nama?: string | null
+  jenis: IzinJenis
+  tanggal_mulai: string
+  tanggal_selesai: string
+  jumlah_hari?: number
+  alasan?: string | null
+  bukti?: string | null
+  status: IzinStatus
+  catatan_penolakan?: string | null
+  approved_by?: number | null
+  approved_at?: string | null
+  user?: User | null
+  petugas?: {
+    id: number
+    nama: string
+    kode: string
+    jabatan?: string | null
+  } | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface IzinPayload {
+  jenis: IzinJenis
+  tanggal_mulai: string
+  tanggal_selesai: string
+  alasan: string
+  bukti?: string
+  // Kontrak izin-v2: hanya dipakai pemegang izin-edit (pengajuan atas nama)
+  user_id?: number
+}
+
+export type PetugasStatusOperasional = "Aktif" | "Cuti" | "Non-Aktif"
+
+// Petugas = master karyawan gudang (mandiri, tidak wajib punya akun login).
+// user_id/user hanya terisi jika karyawan diberi akses sistem WMS.
+export interface Petugas {
+  id: number
+  nama: string
+  kode: string
+  telepon?: string | null
+  jabatan?: string | null
+  area_kerja?: string | null
+  tanggal_bergabung?: string | null
+  status_operasional: PetugasStatusOperasional
+  user_id?: number | null
+  user?: User | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface PetugasPayload {
+  nama: string
+  kode?: string
+  telepon?: string
+  jabatan?: string
+  area_kerja?: string
+  tanggal_bergabung?: string
+  status_operasional?: PetugasStatusOperasional
+}
+
 export interface BarangMasukPayload {
   no_referensi: string
   nomor_surat_jalan?: string
@@ -608,13 +759,6 @@ export interface UserPayload {
 export interface RolePayload {
   name: string
   permissions?: string[]
-}
-
-export interface Petugas {
-  id: number
-  nama: string
-  nip: string
-  telepon: string
 }
 
 export interface JadwalShift {

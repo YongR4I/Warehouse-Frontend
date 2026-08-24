@@ -4,6 +4,7 @@ import * as React from "react"
 import { BiCog, BiLogOut } from "react-icons/bi"
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { SettingsModal } from "@/components/settings-modal"
+import { NotificationBell } from "@/components/layout/notification-bell"
 import { useAuth } from "@/hooks/use-auth"
 
 export function AppHeader() {
@@ -22,6 +23,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-end border-b border-border/40 bg-white px-6">
       <div className="flex w-fit items-center gap-3 rounded-xl px-4 py-1.5">
+        <NotificationBell />
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tl from-[#93cce8] from-[#ffffff] via-[#0063b5] to-[#cbf9ff] text-[12px] font-semibold tracking-tight text-white shadow-xs">
           {initials}
         </div>

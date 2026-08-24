@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -11,13 +11,21 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { BiUser } from "react-icons/bi"
+import { toast } from "sonner"
 import { generateReferenceNumber } from "@/lib/reference-number"
+import { useApiCreate, useApiUpdate } from "@/hooks/use-api"
+import { getErrorMessage } from "@/lib/api"
 import {
   petugasSchema,
   type PetugasFormValues,
 } from "@/lib/validations/petugas"
+import type {
+  Petugas,
+  PetugasPayload,
+  PetugasStatusOperasional,
+} from "@/types"
 
-const mockPeran = [
+export const JABATAN_OPTIONS = [
   { value: "operator-forklift", label: "Operator Forklift" },
   { value: "admin-inbound", label: "Admin Inbound" },
   { value: "packer-outbound", label: "Packer Outbound" },
@@ -26,7 +34,10 @@ const mockPeran = [
   { value: "staff-administrasi", label: "Staff Administrasi" },
 ]
 
-const mockStatus = [
+export const STATUS_OPERASIONAL_OPTIONS: {
+  value: PetugasStatusOperasional
+  label: string
+}[] = [
   { value: "Aktif", label: "Aktif" },
   { value: "Cuti", label: "Cuti" },
   { value: "Non-Aktif", label: "Non-Aktif" },
@@ -35,80 +46,117 @@ const mockStatus = [
 interface PetugasFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  editing: Petugas | null
+  existingKodes?: string[]
+  onSaved?: () => void
 }
 
-export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
-  const [submitted, setSubmitted] = useState(false)
+function toFormValues(
+  petugas: Petugas | null,
+  fallbackKode: string
+): PetugasFormValues {
+  return {
+    namaLengkap: petugas?.nama ?? "",
+    kode: petugas?.kode ?? fallbackKode,
+    nomorTelepon: petugas?.telepon ?? "",
+    peran: petugas?.jabatan ?? "",
+    areaKerja: petugas?.area_kerja ?? "",
+    tanggalBergabung: petugas?.tanggal_bergabung ?? "",
+    status: petugas?.status_operasional ?? "Aktif",
+  }
+}
 
+// Petugas = master karyawan gudang. Tidak terikat akun login —
+// akses ke sistem WMS adalah urusan terpisah (kelola akun di Pengaturan).
+export function PetugasForm({
+  open,
+  onOpenChange,
+  editing,
+  existingKodes = [],
+  onSaved,
+}: PetugasFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setValue,
-    getValues,
     clearErrors,
-    formState: { errors, isSubmitting },
     reset,
+    formState: { errors, isSubmitting },
   } = useForm<PetugasFormValues>({
     resolver: zodResolver(petugasSchema),
-    defaultValues: {
-      kode: generateReferenceNumber("PG"),
-      namaLengkap: "",
-      nomorTelepon: "",
-      peran: "",
-      areaKerja: "",
-      tanggalBergabung: "",
-      status: "Aktif",
-    },
+    defaultValues: toFormValues(
+      editing,
+      generateReferenceNumber("PG", { existingRefs: existingKodes })
+    ),
   })
 
   useEffect(() => {
     if (open) {
-      reset({
-        kode: generateReferenceNumber("PG"),
-        namaLengkap: "",
-        nomorTelepon: "",
-        peran: "",
-        areaKerja: "",
-        tanggalBergabung: "",
-        status: "Aktif",
-      })
+      reset(
+        toFormValues(
+          editing,
+          generateReferenceNumber("PG", { existingRefs: existingKodes })
+        )
+      )
     }
-  }, [open, reset])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editing, reset])
+
+  const createMutation = useApiCreate<Petugas, PetugasPayload>(
+    "petugas",
+    "/petugas"
+  )
+  const updateMutation = useApiUpdate<Petugas, Partial<PetugasPayload>>(
+    "petugas",
+    "/petugas"
+  )
 
   const handleRegenerateKode = () => {
-    const nextKode = generateReferenceNumber("PG")
+    const nextKode = generateReferenceNumber("PG", {
+      existingRefs: existingKodes,
+    })
     setValue("kode", nextKode, { shouldValidate: true })
     clearErrors("kode")
   }
 
-  const onSubmit = (data: PetugasFormValues) => {
-    console.log("Submitted Petugas:", data)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      reset()
+  const onSubmit = async (data: PetugasFormValues) => {
+    const payload: PetugasPayload = {
+      nama: data.namaLengkap.trim(),
+      kode: data.kode.trim(),
+      telepon: data.nomorTelepon.trim(),
+      jabatan: data.peran,
+      area_kerja: data.areaKerja.trim(),
+      tanggal_bergabung: data.tanggalBergabung,
+      status_operasional: data.status,
+    }
+    try {
+      if (editing) {
+        await updateMutation.mutateAsync({ id: editing.id, data: payload })
+        toast.success("Data petugas berhasil diperbarui")
+      } else {
+        await createMutation.mutateAsync(payload)
+        toast.success("Petugas berhasil ditambahkan")
+      }
+      onSaved?.()
       onOpenChange(false)
-    }, 1500)
-  }
-
-  const handleDraft = () => {
-    console.log("Draft Petugas:", { ...getValues(), isDraft: true })
-    onOpenChange(false)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
   }
 
   return (
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Tambah Petugas Gudang"
-      description="Kelola data karyawan dan status operasional."
+      title={editing ? "Ubah Data Karyawan" : "Tambah Karyawan"}
+      description="Data karyawan gudang. Akses login ke sistem WMS dikelola terpisah di Pengaturan."
       icon={BiUser}
     >
       <FormDrawer.Body>
         <form
           id="petugas-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={(e) => void handleSubmit(onSubmit)(e)}
           className="space-y-6"
         >
           {/* Section 1: Identitas Karyawan */}
@@ -117,20 +165,21 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
               1. Identitas Karyawan
             </p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              <FormInput
+                label="Nama Lengkap *"
+                placeholder="Nama persis sesuai KTP"
+                className="col-span-2"
+                error={errors.namaLengkap}
+                {...register("namaLengkap")}
+              />
+
               <FormReferenceInput
                 label="Kode Unik Pegawai *"
                 placeholder="Contoh : PG-005"
-                className="col-span-2"
                 error={errors.kode}
-                onRegenerate={handleRegenerateKode}
+                disabled={!!editing}
+                onRegenerate={!editing ? handleRegenerateKode : undefined}
                 {...register("kode")}
-              />
-
-              <FormInput
-                label="Nama Lengkap *"
-                placeholder="Nama persis sesuai ktp"
-                error={errors.namaLengkap}
-                {...register("namaLengkap")}
               />
 
               <FormInput
@@ -157,7 +206,7 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
                     value={field.value}
                     onValueChange={(val) => field.onChange(val || "")}
                     placeholder="Pilih peran...."
-                    options={mockPeran}
+                    options={JABATAN_OPTIONS}
                     error={errors.peran}
                   />
                 )}
@@ -185,9 +234,9 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
                   <FormSelect
                     label="Status Operasional *"
                     value={field.value}
-                    onValueChange={(val) => field.onChange(val || "")}
+                    onValueChange={(val) => field.onChange(val || "Aktif")}
                     placeholder="Pilih status"
-                    options={mockStatus}
+                    options={STATUS_OPERASIONAL_OPTIONS}
                     error={errors.status}
                   />
                 )}
@@ -201,18 +250,22 @@ export function PetugasForm({ open, onOpenChange }: PetugasFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={handleDraft}
+          onClick={() => onOpenChange(false)}
           className="rounded-xl"
         >
-          Draft
+          Batal
         </Button>
         <Button
           type="submit"
           form="petugas-form"
           className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting}
         >
-          {submitted ? "Tersimpan!" : "Simpan Shift"}
+          {isSubmitting
+            ? "Menyimpan..."
+            : editing
+              ? "Simpan Perubahan"
+              : "Simpan Petugas"}
         </Button>
       </FormDrawer.Footer>
     </FormDrawer>

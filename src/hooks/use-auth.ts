@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/use-auth-store"
 import api from "@/lib/api"
+import { isPortalOnlyUser } from "@/lib/auth"
 import type { User } from "@/types"
 
 export function useAuth() {
@@ -27,7 +28,8 @@ export function useAuth() {
       )
     }
     setAuth(data.user as User, data.token as string)
-    router.push("/dashboard")
+    // Pemisahan akses (portal-izin): non-admin mendarat di portal, bukan WMS
+    router.push(isPortalOnlyUser(data.user as User) ? "/portal-izin" : "/dashboard")
   }
 
   const fetchMe = async (): Promise<User | null> => {

@@ -112,7 +112,7 @@ const navGroups: NavGroup[] = [
         label: "Presensi Harian",
         path: "/absensi/presensi",
       },
-      { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/rekap" },
+      { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/cuti-izin" },
     ],
   },
   {

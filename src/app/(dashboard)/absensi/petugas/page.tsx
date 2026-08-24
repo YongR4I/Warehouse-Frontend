@@ -15,9 +15,13 @@ import {
   BiChevronRight,
   BiEditAlt,
   BiTrash,
-  BiToggleRight,
-  BiToggleLeft,
+  BiQr,
 } from "react-icons/bi"
+import { QrCardDialog } from "@/components/absensi/qr-card-dialog"
+import {
+  PetugasForm,
+  JABATAN_OPTIONS,
+} from "@/components/petugas/petugas-form"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,22 +39,10 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
-import {
-  FormDrawer,
-  FormInput,
-  FormSelect,
-  FormReferenceInput,
-} from "@/components/forms"
-import { generateReferenceNumber } from "@/lib/reference-number"
-import {
-  useApiList,
-  useApiCreate,
-  useApiUpdate,
-  useApiDelete,
-} from "@/hooks/use-api"
+import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { formatDate } from "@/lib/status"
-import type { Role, User, UserPayload } from "@/types"
+import type { Petugas, PetugasStatusOperasional } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
   const body = data as { data?: unknown } | T[] | null | undefined
@@ -61,38 +53,29 @@ function unwrapRows<T>(data: unknown): T[] {
   return []
 }
 
-interface PetugasFormState {
-  name: string
-  email: string
-  password: string
-  noPegawai: string
-  telepon: string
-  roleName: string
-}
-
-const EMPTY_FORM: PetugasFormState = {
-  name: "",
-  email: "",
-  password: "",
-  noPegawai: "",
-  telepon: "",
-  roleName: "",
+const STATUS_BADGE: Record<
+  PetugasStatusOperasional,
+  { color: "green" | "yellow" | "gray"; label: string }
+> = {
+  Aktif: { color: "green", label: "Aktif" },
+  Cuti: { color: "yellow", label: "Cuti" },
+  "Non-Aktif": { color: "gray", label: "Non-Aktif" },
 }
 
 export default function DaftarPetugasPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [form, setForm] = useState<PetugasFormState>(EMPTY_FORM)
-  const [submitting, setSubmitting] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingPetugas, setEditingPetugas] = useState<Petugas | null>(null)
+  const [qrTarget, setQrTarget] = useState<Petugas | null>(null)
 
   const deferredSearch = useDeferredValue(searchQuery)
 
-  const usersQuery = useApiList<User>({
-    key: "users",
-    url: "/user",
+  // Sumber data = profil operasional /petugas (bukan akun login /user)
+  const petugasQuery = useApiList<Petugas>({
+    key: "petugas",
+    url: "/petugas",
     params: {
       page: currentPage,
       per_page: 15,
@@ -100,29 +83,17 @@ export default function DaftarPetugasPage() {
     },
   })
 
-  const rolesQuery = useApiList<Role>({
-    key: "roles",
-    url: "/role",
-    params: { per_page: 100 },
-  })
-
-  const items = usersQuery.data?.data ?? []
-  const meta = usersQuery.data?.meta
+  const items = useMemo(() => unwrapRows<Petugas>(petugasQuery.data), [petugasQuery.data])
+  const meta = petugasQuery.data?.meta
   const total = meta?.total ?? items.length
   const totalPages = Math.max(1, meta?.last_page ?? 1)
 
-  const roleOptions = useMemo(
-    () =>
-      unwrapRows<Role>(rolesQuery.data).map((role) => ({
-        value: role.name,
-        label: role.name,
-      })),
-    [rolesQuery.data]
-  )
+  const deleteMutation = useApiDelete("petugas", "/petugas")
 
-  const createMutation = useApiCreate<User, UserPayload>("users", "/user")
-  const updateMutation = useApiUpdate<User, UserPayload>("users", "/user")
-  const deleteMutation = useApiDelete("users", "/user")
+  const existingKodes = useMemo(
+    () => items.map((p) => p.kode).filter(Boolean),
+    [items]
+  )
 
   const handlePrev = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1)
@@ -132,9 +103,9 @@ export default function DaftarPetugasPage() {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1)
   }
 
-  const renderStatusBadge = (isActive: boolean) => {
-    if (isActive) return <ColoredBadge color="green">Aktif</ColoredBadge>
-    return <ColoredBadge color="gray">Non-Aktif</ColoredBadge>
+  const renderStatusBadge = (status: PetugasStatusOperasional) => {
+    const badge = STATUS_BADGE[status] ?? STATUS_BADGE["Non-Aktif"]
+    return <ColoredBadge color={badge.color}>{badge.label}</ColoredBadge>
   }
 
   const renderPaginationButtons = () => {
@@ -161,103 +132,28 @@ export default function DaftarPetugasPage() {
   }
 
   const openCreate = () => {
-    setEditingUser(null)
-    const existingCodes = items.map((u) => u.no_pegawai).filter(Boolean) as string[]
-    const autoKode = generateReferenceNumber("PG", { existingRefs: existingCodes })
-    setForm({
-      ...EMPTY_FORM,
-      noPegawai: autoKode,
-    })
-    setDrawerOpen(true)
+    setEditingPetugas(null)
+    setFormOpen(true)
   }
 
-  const handleRegenerateKode = () => {
-    const existingCodes = items.map((u) => u.no_pegawai).filter(Boolean) as string[]
-    const autoKode = generateReferenceNumber("PG", { existingRefs: existingCodes })
-    setForm((prev) => ({ ...prev, noPegawai: autoKode }))
-  }
-
-  const openEdit = (user: User) => {
-    setEditingUser(user)
-    setForm({
-      name: user.name,
-      email: user.email,
-      password: "",
-      noPegawai: user.no_pegawai ?? "",
-      telepon: user.telepon ?? "",
-      roleName: user.roles?.[0]?.name ?? "",
-    })
-    setDrawerOpen(true)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim() || !form.email.trim()) {
-      toast.error("Nama lengkap dan email wajib diisi")
-      return
-    }
-    if (!editingUser && !form.password.trim()) {
-      toast.error("Password wajib diisi saat membuat petugas baru")
-      return
-    }
-    setSubmitting(true)
-    try {
-      const payload: UserPayload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        no_pegawai: form.noPegawai.trim() || undefined,
-        telepon: form.telepon.trim() || undefined,
-        roles: form.roleName ? [form.roleName] : undefined,
-      }
-      if (!editingUser) {
-        payload.password = form.password
-        await createMutation.mutateAsync(payload)
-        toast.success("Petugas berhasil ditambahkan")
-      } else {
-        await updateMutation.mutateAsync({ id: editingUser.id, data: payload })
-        toast.success("Data petugas berhasil diperbarui")
-      }
-      setDrawerOpen(false)
-      setForm(EMPTY_FORM)
-      setEditingUser(null)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleToggleActive = async (user: User) => {
-    try {
-      await updateMutation.mutateAsync({
-        id: user.id,
-        data: {
-          name: user.name,
-          email: user.email,
-          is_active: !user.is_active,
-        },
-      })
-      toast.success(
-        user.is_active ? "Petugas dinonaktifkan" : "Petugas diaktifkan"
-      )
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    }
+  const openEdit = (petugas: Petugas) => {
+    setEditingPetugas(petugas)
+    setFormOpen(true)
   }
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
-  const handleDelete = (user: User) => {
+  const handleDelete = (petugas: Petugas) => {
     confirm({
-      title: "Hapus Petugas",
-      itemName: `${user.name} (${user.email})`,
+      title: "Hapus Data Karyawan",
+      itemName: `${petugas.nama} (${petugas.kode})`,
       description:
-        "Apakah Anda yakin ingin menghapus data petugas ini? Riwayat absensi dan aktivitas terkait akun ini akan terpengaruh.",
-      confirmLabel: "Ya, Hapus Petugas",
+        "Data karyawan akan dihapus. Akun login (jika pernah ditautkan) tetap ada dan dikelola di Pengaturan.",
+      confirmLabel: "Ya, Hapus Data",
       onConfirm: async () => {
         try {
-          await deleteMutation.mutateAsync(user.id)
-          toast.success("Petugas berhasil dihapus")
+          await deleteMutation.mutateAsync(petugas.id)
+          toast.success("Data karyawan berhasil dihapus")
         } catch (error) {
           toast.error(getErrorMessage(error))
         }
@@ -277,7 +173,7 @@ export default function DaftarPetugasPage() {
             ]}
             title="Daftar Petugas Gudang"
             icon={BiUser}
-            description="Kelola data karyawan dan status operasional."
+            description="Kelola data operasional karyawan dan status penugasan."
           />
           <div className="mt-4 flex items-center gap-2">
             <Button variant="outline-black" onClick={() => setExportOpen(true)}>
@@ -338,7 +234,7 @@ export default function DaftarPetugasPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {usersQuery.isLoading && (
+              {petugasQuery.isLoading && (
                 <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                   <TableCell
                     colSpan={8}
@@ -348,7 +244,7 @@ export default function DaftarPetugasPage() {
                   </TableCell>
                 </TableRow>
               )}
-              {!usersQuery.isLoading && items.length === 0 && (
+              {!petugasQuery.isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={8}
@@ -358,38 +254,40 @@ export default function DaftarPetugasPage() {
                   </TableCell>
                 </TableRow>
               )}
-              {items.map((user) => (
+              {items.map((petugas) => (
                 <TableRow
-                  key={user.id}
+                  key={petugas.id}
                   className="h-16 border-b border-border/40 hover:bg-muted/30"
                 >
                   <TableCell className="pl-6 font-sans text-sm text-foreground">
-                    {user.no_pegawai ?? "-"}
+                    {petugas.kode}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
                     <ColoredBadge color="gray">
-                      {user.roles?.map((role) => role.name).join(", ") || "-"}
+                      {JABATAN_OPTIONS.find(
+                        (opt) => opt.value === petugas.jabatan
+                      )?.label ?? petugas.jabatan ?? "-"}
                     </ColoredBadge>
                   </TableCell>
                   <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                    {user.name}
+                    {petugas.nama}
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
-                    {user.gudang?.nama ?? "-"}
+                    {petugas.area_kerja ?? "-"}
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
-                    {user.telepon ?? "-"}
+                    {petugas.telepon ?? "-"}
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground">
-                    {formatDate(user.created_at)}
+                    {formatDate(petugas.tanggal_bergabung)}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
-                    {renderStatusBadge(user.is_active)}
+                    {renderStatusBadge(petugas.status_operasional)}
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
                       <button
-                        onClick={() => openEdit(user)}
+                        onClick={() => openEdit(petugas)}
                         className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
                       >
                         <BiChevronRight className="size-4 text-foreground/75" />
@@ -401,26 +299,19 @@ export default function DaftarPetugasPage() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuLabel>Aksi Petugas</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => openEdit(user)}>
+                          <DropdownMenuItem onClick={() => openEdit(petugas)}>
                             <BiEditAlt />
                             <span>Ubah Profil</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleToggleActive(user)}
-                          >
-                            {user.is_active ? (
-                              <BiToggleLeft />
-                            ) : (
-                              <BiToggleRight />
-                            )}
-                            <span>
-                              {user.is_active ? "Nonaktifkan" : "Aktifkan"}
-                            </span>
+                          {/* Kontrak v3: semua karyawan punya QR native petugas */}
+                          <DropdownMenuItem onClick={() => setQrTarget(petugas)}>
+                            <BiQr />
+                            <span>Lihat QR Card</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             variant="destructive"
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(petugas)}
                           >
                             <BiTrash />
                             <span>Hapus</span>
@@ -466,113 +357,13 @@ export default function DaftarPetugasPage() {
         </div>
       </div>
 
-      <FormDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        title={editingUser ? "Ubah Petugas Gudang" : "Tambah Petugas Gudang"}
-        description="Kelola data karyawan dan status operasional."
-        icon={BiUser}
-      >
-        <FormDrawer.Body>
-          <form id="petugas-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <p className="text-xs font-semibold text-foreground">
-                1. Identitas Karyawan
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                <FormInput
-                  label="Nama Lengkap *"
-                  placeholder="Nama persis sesuai KTP"
-                  className="col-span-2"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-                <FormInput
-                  label="Email *"
-                  type="email"
-                  placeholder="contoh@sabiru.com"
-                  className="col-span-2"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                />
-                {!editingUser && (
-                  <FormInput
-                    label="Password *"
-                    type="password"
-                    placeholder="Minimal 8 karakter"
-                    className="col-span-2"
-                    value={form.password}
-                    onChange={(e) =>
-                      setForm({ ...form, password: e.target.value })
-                    }
-                    required
-                  />
-                )}
-                <FormReferenceInput
-                  label="Kode Pegawai"
-                  required={false}
-                  placeholder="Contoh : PG-005"
-                  value={form.noPegawai}
-                  disabled={!!editingUser}
-                  onRegenerate={!editingUser ? handleRegenerateKode : undefined}
-                  onChange={(e) =>
-                    setForm({ ...form, noPegawai: e.target.value })
-                  }
-                />
-                <FormInput
-                  label="Nomor Telepon"
-                  placeholder="0812-1212-12"
-                  value={form.telepon}
-                  onChange={(e) =>
-                    setForm({ ...form, telepon: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <p className="text-xs font-semibold text-foreground">
-                2. Hak Akses
-              </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                <FormSelect
-                  label="Role Akses"
-                  placeholder="Pilih role..."
-                  value={form.roleName}
-                  onValueChange={(val) =>
-                    setForm({ ...form, roleName: val ?? "" })
-                  }
-                  options={roleOptions}
-                />
-              </div>
-            </div>
-          </form>
-        </FormDrawer.Body>
-
-        <FormDrawer.Footer>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setDrawerOpen(false)}
-            className="rounded-xl"
-          >
-            Batal
-          </Button>
-          <Button
-            type="submit"
-            form="petugas-form"
-            className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-            disabled={submitting}
-          >
-            {submitting
-              ? "Menyimpan..."
-              : editingUser
-                ? "Simpan Perubahan"
-                : "Simpan Petugas"}
-          </Button>
-        </FormDrawer.Footer>
-      </FormDrawer>
+      <PetugasForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        editing={editingPetugas}
+        existingKodes={existingKodes}
+        onSaved={() => void petugasQuery.refetch()}
+      />
 
       <ExportModal
         isOpen={exportOpen}
@@ -584,7 +375,12 @@ export default function DaftarPetugasPage() {
         checkboxes={[
           {
             id: "nama",
-            label: "Nama & NIP",
+            label: "Nama & Kode",
+            defaultChecked: true,
+          },
+          {
+            id: "penempatan",
+            label: "Jabatan & Area Kerja",
             defaultChecked: true,
           },
           {
@@ -594,10 +390,28 @@ export default function DaftarPetugasPage() {
           },
           {
             id: "status",
-            label: "Status Keaktifan",
+            label: "Status Operasional",
             defaultChecked: true,
           },
         ]}
+        exportUrl={undefined}
+      />
+
+      <QrCardDialog
+        open={qrTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setQrTarget(null)
+        }}
+        petugas={
+          qrTarget
+            ? {
+                id: qrTarget.id,
+                nama: qrTarget.nama,
+                kode: qrTarget.kode,
+                jabatan: qrTarget.jabatan,
+              }
+            : null
+        }
       />
     </>
   )
