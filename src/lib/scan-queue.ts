@@ -6,6 +6,7 @@ import api from "@/lib/api"
 
 export interface QueuedScan {
   qr_payload: string
+  gudang_id?: number | null
   waktu_scan: string
   client_ref: string
 }
@@ -32,7 +33,10 @@ export function loadQueue(): QueuedScan[] {
 }
 
 function saveQueue(items: QueuedScan[]) {
-  window.localStorage.setItem(QUEUE_KEY, JSON.stringify(items.slice(-MAX_QUEUE)))
+  window.localStorage.setItem(
+    QUEUE_KEY,
+    JSON.stringify(items.slice(-MAX_QUEUE))
+  )
 }
 
 // Format lokal YYYY-MM-DDTHH:mm:ss sesuai kontrak waktu_scan
@@ -47,10 +51,15 @@ function makeClientRef(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-export function enqueueScan(qrPayload: string, waktuScan = nowForQueue()): number {
+export function enqueueScan(
+  qrPayload: string,
+  waktuScan = nowForQueue(),
+  gudangId?: number | null
+): number {
   const items = loadQueue()
   items.push({
     qr_payload: qrPayload,
+    gudang_id: gudangId ?? null,
     waktu_scan: waktuScan,
     client_ref: makeClientRef(),
   })

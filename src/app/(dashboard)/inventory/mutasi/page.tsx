@@ -1,7 +1,7 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useDeferredValue, useState } from "react"
+import { useDeferredValue, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import { getErrorMessage } from "@/lib/api"
 import { statusLabel, statusColor, formatDate } from "@/lib/status"
 import type { Gudang, MutasiStok } from "@/types"
@@ -84,6 +85,33 @@ export default function MutasiPage() {
   const rows = data?.data ?? []
   const meta = data?.meta
   const totalPages = meta?.last_page ?? 1
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/mutasi-stok", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+          status: status && status !== "all" ? status : undefined,
+          gudang_id: gudang && gudang !== "all" ? Number(gudang) : undefined,
+        },
+      })
+      const items = (res.data?.data ?? []) as Array<Record<string, unknown>>
+      return items.map((row) => ({
+        no_referensi: row.no_referensi ?? "-",
+        gudang_asal: (row.gudang_asal as Record<string, unknown>)?.nama ?? "-",
+        gudang_tujuan:
+          (row.gudang_tujuan as Record<string, unknown>)?.nama ?? "-",
+        barang: (row.barang as Record<string, unknown>)?.nama ?? "-",
+        qty: row.qty ?? "-",
+        tanggal: formatDate(row.tanggal as string),
+        dibuat_oleh: (row.createdBy as Record<string, unknown>)?.name ?? "-",
+        status: statusLabel(row.status as string),
+      }))
+    },
+    [deferredSearch, status, gudang]
+  )
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
@@ -378,6 +406,17 @@ export default function MutasiPage() {
             label: "Detail Barang & Qty",
             defaultChecked: true,
           },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "No. Referensi", accessor: "no_referensi" },
+          { header: "Gudang Asal", accessor: "gudang_asal" },
+          { header: "Gudang Tujuan", accessor: "gudang_tujuan" },
+          { header: "Barang", accessor: "barang" },
+          { header: "Qty", accessor: "qty" },
+          { header: "Tanggal", accessor: "tanggal" },
+          { header: "Dibuat Oleh", accessor: "dibuat_oleh" },
+          { header: "Status", accessor: "status" },
         ]}
       />
     </>

@@ -375,12 +375,9 @@ export interface JadwalPetugas {
 export interface Notifikasi {
   id: number
   user_id?: number
-  // Kolom BE: judul/pesan (title/message dipertahankan utk kompatibilitas lama)
   judul?: string
   pesan?: string
-  title?: string
-  message?: string
-  type?: string
+  tipe?: string
   priority?: string
   link?: string | null
   is_read?: boolean
@@ -562,7 +559,8 @@ export interface QrIssueData {
 export interface AbsensiScanUser {
   id: number
   name: string
-  no_pegawai?: string | null
+  kode_petugas?: string | null
+  jabatan?: string | null
 }
 
 export type AbsensiScanTipe = "masuk" | "pulang" | "duplicate"
@@ -600,6 +598,8 @@ export interface AbsensiScanResult {
     jam_masuk: string | null
     jam_pulang: string | null
     status: string
+    sumber?: string | null
+    di_luar_jadwal?: boolean | null
   } | null
   shift: {
     id: number
@@ -612,11 +612,7 @@ export interface AbsensiScanResult {
 
 export type IzinJenis = "izin" | "sakit" | "cuti"
 
-export type IzinStatus =
-  | "menunggu"
-  | "disetujui"
-  | "ditolak"
-  | "dibatalkan"
+export type IzinStatus = "menunggu" | "disetujui" | "ditolak" | "dibatalkan"
 
 export interface IzinRequest {
   id: number

@@ -55,14 +55,10 @@ export function QrCardDialog({
   const [regenerating, setRegenerating] = useState(false)
 
   const isPetugasMode = !!petugas
-  const subjectId = isPetugasMode ? petugas!.id : user?.id ?? null
+  const subjectId = isPetugasMode ? petugas!.id : (user?.id ?? null)
 
   const qrQuery = useQuery({
-    queryKey: [
-      "qr-issue",
-      isPetugasMode ? "petugas" : "user",
-      subjectId,
-    ],
+    queryKey: ["qr-issue", isPetugasMode ? "petugas" : "user", subjectId],
     queryFn: async () => {
       const res = isPetugasMode
         ? await api.post<{ data: QrIssueData }>(
@@ -92,7 +88,9 @@ export function QrCardDialog({
       await queryClient.invalidateQueries({
         queryKey: ["qr-issue", isPetugasMode ? "petugas" : "user", subjectId],
       })
-      toast.success("Token QR diterbitkan ulang — kartu cetak lama tidak berlaku")
+      toast.success(
+        "Token QR diterbitkan ulang — kartu cetak lama tidak berlaku"
+      )
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
@@ -100,9 +98,8 @@ export function QrCardDialog({
     }
   }, [isPetugasMode, petugas, user, subjectId, queryClient])
 
-  const displayName = isPetugasMode ? petugas!.nama : user?.name ?? ""
-  const displayKode =
-    (isPetugasMode ? petugas?.kode : user?.no_pegawai) ?? null
+  const displayName = isPetugasMode ? petugas!.nama : (user?.name ?? "")
+  const displayKode = (isPetugasMode ? petugas?.kode : user?.no_pegawai) ?? null
   const displayJabatan = isPetugasMode
     ? (petugas?.jabatan ?? "Karyawan Gudang")
     : null
@@ -163,7 +160,7 @@ export function QrCardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 mb-2">
+          <DialogTitle className="mb-2 flex items-center gap-2">
             <BiQr className="size-6" />
             QR Card Petugas
           </DialogTitle>

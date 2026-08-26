@@ -14,16 +14,9 @@ import {
 } from "react-icons/bi"
 import { Button } from "@/components/ui/button"
 import { ColoredBadge } from "@/components/ui/colored-badge"
-import {
-  FormSelect,
-  FormDate,
-  FormTextarea,
-} from "@/components/forms"
+import { FormSelect, FormDate, FormTextarea } from "@/components/forms"
 import api, { getErrorMessage, uploadFile } from "@/lib/api"
-import {
-  useCameraScanner,
-  useWedgeScanner,
-} from "@/hooks/use-scan-input"
+import { useCameraScanner, useWedgeScanner } from "@/hooks/use-scan-input"
 import { formatDate } from "@/lib/status"
 import type { IzinJenis, IzinRequest } from "@/types"
 
@@ -81,9 +74,9 @@ export default function PortalIzinPage() {
     if (!qrPayload) return
     try {
       const res = await api.post<{
-        data: PortalSesi["petugas"]
+        data: { petugas: PortalSesi["petugas"] }
       }>("/portal/auth", { qr_payload: qrPayload })
-      const petugas = res.data.data
+      const petugas = res.data.data?.petugas
       if (!petugas) throw new Error("Kartu tidak dikenali")
       setSesi({ qr: qrPayload, petugas })
       toast.success(`Selamat datang, ${petugas.nama}`)
@@ -94,8 +87,12 @@ export default function PortalIzinPage() {
 
   useWedgeScanner((p) => void handlePayload(p), true)
 
-  const { videoRef, cameraOn: camActive, startCamera, stopCamera } =
-    useCameraScanner((p) => void handlePayload(p))
+  const {
+    videoRef,
+    cameraOn: camActive,
+    startCamera,
+    stopCamera,
+  } = useCameraScanner((p) => void handlePayload(p))
 
   const toggleCamera = async () => {
     try {

@@ -55,7 +55,8 @@ export default function BarangPage() {
   const [stockCardOpen, setStockCardOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [selectedBarang, setSelectedBarang] = useState<Barang | null>(null)
-  const [selectedStockCardBarang, setSelectedStockCardBarang] = useState<Barang | null>(null)
+  const [selectedStockCardBarang, setSelectedStockCardBarang] =
+    useState<Barang | null>(null)
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [page, setPage] = useState(1)

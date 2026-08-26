@@ -260,7 +260,9 @@ export default function RekapPage() {
         })
       }
       const g = map.get(id)!
-      g.petugasSet.add(row.petugas_id ? `p${row.petugas_id}` : `u${row.user_id}`)
+      g.petugasSet.add(
+        row.petugas_id ? `p${row.petugas_id}` : `u${row.user_id}`
+      )
       g.total++
       if (row.status === "hadir") g.hadir++
       else if (row.status === "terlambat") g.terlambat++
@@ -685,11 +687,15 @@ export default function RekapPage() {
                         </TableCell>
                         <TableCell className="text-center font-sans text-sm whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1.5">
-                            <ColoredBadge color={row.sumber === "manual" ? "gray" : "blue"}>
+                            <ColoredBadge
+                              color={row.sumber === "manual" ? "gray" : "blue"}
+                            >
                               {row.sumber === "manual" ? "Manual" : "Scan QR"}
                             </ColoredBadge>
                             {row.di_luar_jadwal && (
-                              <ColoredBadge color="yellow">Di Luar Jadwal</ColoredBadge>
+                              <ColoredBadge color="yellow">
+                                Di Luar Jadwal
+                              </ColoredBadge>
                             )}
                           </div>
                         </TableCell>
@@ -724,8 +730,8 @@ export default function RekapPage() {
                 {filteredData.length > 0
                   ? (currentPage - 1) * itemsPerPage + 1
                   : 0}
-                -{Math.min(currentPage * itemsPerPage, filteredData.length)} dari{" "}
-                {filteredData.length} data
+                -{Math.min(currentPage * itemsPerPage, filteredData.length)}{" "}
+                dari {filteredData.length} data
               </span>
               {totalPages > 1 && (
                 <div className="flex items-center">

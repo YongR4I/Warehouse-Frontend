@@ -1,12 +1,13 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useDeferredValue, useMemo, useState } from "react"
+import { useDeferredValue, useMemo, useState, useCallback } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import {
   BiUser,
   BiUserPlus,
@@ -18,10 +19,7 @@ import {
   BiQr,
 } from "react-icons/bi"
 import { QrCardDialog } from "@/components/absensi/qr-card-dialog"
-import {
-  PetugasForm,
-  JABATAN_OPTIONS,
-} from "@/components/petugas/petugas-form"
+import { PetugasForm, JABATAN_OPTIONS } from "@/components/petugas/petugas-form"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -83,12 +81,44 @@ export default function DaftarPetugasPage() {
     },
   })
 
-  const items = useMemo(() => unwrapRows<Petugas>(petugasQuery.data), [petugasQuery.data])
+  const items = useMemo(
+    () => unwrapRows<Petugas>(petugasQuery.data),
+    [petugasQuery.data]
+  )
   const meta = petugasQuery.data?.meta
   const total = meta?.total ?? items.length
   const totalPages = Math.max(1, meta?.last_page ?? 1)
 
   const deleteMutation = useApiDelete("petugas", "/petugas")
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/petugas", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+        },
+      })
+      const body = res.data as { data?: unknown } | unknown[] | null
+      const items = Array.isArray(body) ? body : (body?.data ?? [])
+      return (items as Record<string, unknown>[]).map((row) => ({
+        kode: row.kode ?? "-",
+        nama: row.nama ?? "-",
+        jabatan: row.jabatan ?? "-",
+        area_kerja: row.area_kerja ?? "-",
+        telepon: row.telepon ?? "-",
+        tanggal_bergabung: row.tanggal_bergabung
+          ? new Date(row.tanggal_bergabung as string).toLocaleDateString(
+              "id-ID",
+              { day: "2-digit", month: "short", year: "numeric" }
+            )
+          : "-",
+        status: row.status_operasional ?? "-",
+      }))
+    },
+    [deferredSearch]
+  )
 
   const existingKodes = useMemo(
     () => items.map((p) => p.kode).filter(Boolean),
@@ -266,7 +296,9 @@ export default function DaftarPetugasPage() {
                     <ColoredBadge color="gray">
                       {JABATAN_OPTIONS.find(
                         (opt) => opt.value === petugas.jabatan
-                      )?.label ?? petugas.jabatan ?? "-"}
+                      )?.label ??
+                        petugas.jabatan ??
+                        "-"}
                     </ColoredBadge>
                   </TableCell>
                   <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
@@ -304,7 +336,9 @@ export default function DaftarPetugasPage() {
                             <span>Ubah Profil</span>
                           </DropdownMenuItem>
                           {/* Kontrak v3: semua karyawan punya QR native petugas */}
-                          <DropdownMenuItem onClick={() => setQrTarget(petugas)}>
+                          <DropdownMenuItem
+                            onClick={() => setQrTarget(petugas)}
+                          >
                             <BiQr />
                             <span>Lihat QR Card</span>
                           </DropdownMenuItem>
@@ -394,7 +428,16 @@ export default function DaftarPetugasPage() {
             defaultChecked: true,
           },
         ]}
-        exportUrl={undefined}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "Kode", accessor: "kode" },
+          { header: "Nama", accessor: "nama" },
+          { header: "Jabatan", accessor: "jabatan" },
+          { header: "Area Kerja", accessor: "area_kerja" },
+          { header: "Telepon", accessor: "telepon" },
+          { header: "Tanggal Bergabung", accessor: "tanggal_bergabung" },
+          { header: "Status", accessor: "status" },
+        ]}
       />
 
       <QrCardDialog

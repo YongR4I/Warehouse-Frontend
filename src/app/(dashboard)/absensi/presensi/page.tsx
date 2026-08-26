@@ -86,7 +86,7 @@ export default function PresensiPage() {
   const absensiQuery = useApiList<Absensi>({
     key: "absensi",
     url: "/absensi",
-    params: { from: selectedDate, to: selectedDate, per_page: 100 },
+    params: { tanggal: selectedDate, per_page: 100 },
   })
 
   const usersOptions = useOptions<User>("users", "/user")
@@ -148,9 +148,9 @@ export default function PresensiPage() {
       toast.error("Petugas, gudang, dan shift wajib diisi")
       return
     }
-    // Kontrak v4: koreksi manual wajib keterangan utk audit
-    if (!formKeterangan.trim()) {
-      toast.error("Koreksi manual wajib menyertakan keterangan")
+    // Kontrak v4: koreksi manual wajib keterangan utk audit (min 5 karakter)
+    if (!formKeterangan.trim() || formKeterangan.trim().length < 5) {
+      toast.error("Keterangan wajib diisi minimal 5 karakter")
       return
     }
     setSubmitting(true)
@@ -300,7 +300,8 @@ export default function PresensiPage() {
                         {row.petugas?.jabatan ??
                           (row.user?.roles
                             ?.map((role) => role.name)
-                            .join(", ") || "-")}
+                            .join(", ") ||
+                            "-")}
                       </TableCell>
                       <TableCell className="font-sans text-sm">
                         <ColoredBadge color="gray">
@@ -320,11 +321,15 @@ export default function PresensiPage() {
                       </TableCell>
                       <TableCell className="text-center font-sans text-sm">
                         <div className="flex items-center justify-center gap-1.5">
-                          <ColoredBadge color={row.sumber === "manual" ? "gray" : "blue"}>
+                          <ColoredBadge
+                            color={row.sumber === "manual" ? "gray" : "blue"}
+                          >
                             {row.sumber === "manual" ? "Manual" : "Scan QR"}
                           </ColoredBadge>
                           {row.di_luar_jadwal && (
-                            <ColoredBadge color="yellow">Di Luar Jadwal</ColoredBadge>
+                            <ColoredBadge color="yellow">
+                              Di Luar Jadwal
+                            </ColoredBadge>
                           )}
                         </div>
                       </TableCell>
@@ -393,7 +398,11 @@ export default function PresensiPage() {
         icon={BiUserCheck}
       >
         <FormDrawer.Body>
-          <form id="absensi-form" onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+          <form
+            id="absensi-form"
+            onSubmit={(e) => void handleSubmit(e)}
+            className="space-y-5"
+          >
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <FormSelect
                 label="Nama Petugas *"

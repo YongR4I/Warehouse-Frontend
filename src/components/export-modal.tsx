@@ -14,11 +14,19 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import api from "@/lib/api"
 import axios from "axios"
+import * as XLSX from "xlsx"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 export interface ExportCheckboxOption {
   id: string
   label: string
   defaultChecked?: boolean
+}
+
+export interface ExportColumn {
+  header: string
+  accessor: string
 }
 
 export interface ExportModalProps {
@@ -30,12 +38,64 @@ export interface ExportModalProps {
   totalItemsCount?: string | number
   filterLabel?: string
   checkboxes?: ExportCheckboxOption[]
-  exportUrl?: string // Backend endpoint, e.g. "/barang/export/excel"
+  exportUrl?: string
   onExport?: (
     format: "xlsx" | "pdf",
     coverage: "all" | "filtered",
     options: Record<string, boolean>
   ) => void
+  fetchExportData?: (
+    coverage: "all" | "filtered"
+  ) => Promise<Record<string, unknown>[]>
+  exportColumns?: ExportColumn[]
+}
+
+function getByPath(obj: unknown, path: string): unknown {
+  return path.split(".").reduce<unknown>((acc, key) => {
+    if (
+      acc !== null &&
+      acc !== undefined &&
+      typeof acc === "object" &&
+      key in (acc as Record<string, unknown>)
+    ) {
+      return (acc as Record<string, unknown>)[key]
+    }
+    return undefined
+  }, obj)
+}
+
+function generateExcel(
+  title: string,
+  headers: string[],
+  rows: (string | number | boolean)[][]
+) {
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Data")
+  const filename = `${title.toLowerCase().replace(/\s+/g, "-")}.xlsx`
+  XLSX.writeFile(wb, filename)
+}
+
+function generatePdf(
+  title: string,
+  headers: string[],
+  rows: (string | number | boolean)[][]
+) {
+  const doc = new jsPDF({
+    orientation: headers.length > 5 ? "landscape" : "portrait",
+  })
+  doc.setFontSize(14)
+  doc.text(title, 14, 20)
+  autoTable(doc, {
+    startY: 28,
+    head: [headers],
+    body: rows,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [30, 30, 30] },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+  })
+  const filename = `${title.toLowerCase().replace(/\s+/g, "-")}.pdf`
+  doc.save(filename)
 }
 
 export function ExportModal({
@@ -54,6 +114,8 @@ export function ExportModal({
   ],
   exportUrl,
   onExport,
+  fetchExportData,
+  exportColumns,
 }: ExportModalProps) {
   const [format, setFormat] = React.useState<"xlsx" | "pdf">("xlsx")
   const [coverage, setCoverage] = React.useState<"all" | "filtered">("filtered")
@@ -89,8 +151,8 @@ export function ExportModal({
 
   const [isLoading, setIsLoading] = React.useState(false)
 
-  // Determine if PDF is supported (not supported for bulk exportUrl endpoints)
-  const isPdfUnsupported = !!exportUrl
+  const hasClientExport = !!fetchExportData && !!exportColumns
+  const isPdfUnsupported = !!exportUrl && !hasClientExport
 
   const activeFormat: "xlsx" | "pdf" =
     isPdfUnsupported && format === "pdf" ? "xlsx" : format
@@ -98,19 +160,17 @@ export function ExportModal({
   const handleDownload = async () => {
     setIsLoading(true)
 
-    // Case 1: Real export to backend
+    // Case 1: Real export to backend (Excel via exportUrl)
     if (exportUrl && activeFormat === "xlsx") {
       try {
         const response = await api.get(exportUrl, {
           responseType: "blob",
         })
 
-        // Create Blob and trigger browser download
         const blob = new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         })
 
-        // Extract filename from Content-Disposition if present
         const contentDisposition = response.headers["content-disposition"]
         let filename = `${title.toLowerCase().replace(/\s+/g, "-")}.xlsx`
         if (contentDisposition) {
@@ -129,7 +189,6 @@ export function ExportModal({
         document.body.appendChild(link)
         link.click()
 
-        // Clean up
         link.parentNode?.removeChild(link)
         window.URL.revokeObjectURL(url)
 
@@ -159,7 +218,47 @@ export function ExportModal({
       return
     }
 
-    // Case 2: Dummy export simulation
+    // Case 2: Client-side export
+    if (hasClientExport) {
+      try {
+        const data = await fetchExportData(coverage)
+        if (!data || data.length === 0) {
+          toast.warning("Tidak ada data untuk diekspor.")
+          setIsLoading(false)
+          return
+        }
+
+        const headers = exportColumns.map((c) => c.header)
+        const rows = data.map((row) =>
+          exportColumns.map((c) => {
+            const val = getByPath(row, c.accessor)
+            if (val === null || val === undefined) return ""
+            if (typeof val === "boolean") return val ? "Ya" : "Tidak"
+            return String(val)
+          })
+        )
+
+        if (activeFormat === "pdf") {
+          generatePdf(title, headers, rows)
+        } else {
+          generateExcel(title, headers, rows)
+        }
+
+        toast.success(`Berhasil mengunduh file ${activeFormat.toUpperCase()}`)
+        if (onExport) {
+          onExport(activeFormat, coverage, selectedOptions)
+        }
+        onClose()
+      } catch (error) {
+        console.error("Export error:", error)
+        toast.error("Gagal membuat file. Silakan coba lagi.")
+      } finally {
+        setIsLoading(false)
+      }
+      return
+    }
+
+    // Case 3: Fallback (no exportUrl, no clientExport)
     setTimeout(() => {
       setIsLoading(false)
       if (onExport) {

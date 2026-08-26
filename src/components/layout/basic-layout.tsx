@@ -18,14 +18,19 @@ export function BasicLayout({ children }: { children: React.ReactNode }) {
 
   // Gate rehidrasi zustand-persist: JANGAN memutuskan redirect sebelum
   // localStorage selesai dibaca — ini akar bug "refresh -> disuruh login".
-  const [hydrated, setHydrated] = useState(
-    () => useAuthStore.persist.hasHydrated()
-  )
+  const [hydrated, setHydrated] = useState(() => {
+    try {
+      return useAuthStore.persist?.hasHydrated() ?? false
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
+    if (!useAuthStore.persist) return
     // Fallback utk storage asinkron: cek ulang setelah tick
     const t = setTimeout(() => {
-      if (useAuthStore.persist.hasHydrated()) setHydrated(true)
+      if (useAuthStore.persist?.hasHydrated()) setHydrated(true)
     }, 0)
     const unsub = useAuthStore.persist.onFinishHydration(() =>
       setHydrated(true)
@@ -54,9 +59,7 @@ export function BasicLayout({ children }: { children: React.ReactNode }) {
     fetchMe().catch((err) => {
       // Hanya keluar bila server MENOLAK sesi (401/403).
       // Error jaringan/server down jangan mengusir user dari halaman.
-      const status = axios.isAxiosError(err)
-        ? err.response?.status
-        : undefined
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined
       if (status === 401 || status === 403) {
         router.replace("/login")
       }

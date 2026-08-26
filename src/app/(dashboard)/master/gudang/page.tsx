@@ -1,12 +1,13 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState, useDeferredValue } from "react"
+import { useState, useDeferredValue, useCallback } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import { getErrorMessage } from "@/lib/api"
 import { statusColor, statusLabel } from "@/lib/status"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
@@ -95,6 +96,20 @@ export default function GudangPage() {
 
   const aktifGudang = gudangs.filter((g) => g.status === "aktif").length
   const nonAktifGudang = gudangs.length - aktifGudang
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/gudang", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+        },
+      })
+      return (res.data?.data ?? []) as Record<string, unknown>[]
+    },
+    [deferredSearch]
+  )
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
@@ -510,6 +525,14 @@ export default function GudangPage() {
             label: "Kapasitas Unit",
             defaultChecked: true,
           },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "Kode", accessor: "kode" },
+          { header: "Nama Gudang", accessor: "nama" },
+          { header: "Alamat", accessor: "alamat" },
+          { header: "PIC", accessor: "pic" },
+          { header: "Status", accessor: "status" },
         ]}
       />
     </>

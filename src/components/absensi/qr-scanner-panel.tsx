@@ -151,15 +151,15 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
             {/* Corner frame */}
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="relative size-48">
-                <span className="absolute top-0 left-0 h-8 w-8 border-t-2 border-l-2 border-white rounded-tl-sm" />
-                <span className="absolute top-0 right-0 h-8 w-8 border-t-2 border-r-2 border-white rounded-tr-sm" />
-                <span className="absolute bottom-0 left-0 h-8 w-8 border-b-2 border-l-2 border-white rounded-bl-sm" />
-                <span className="absolute bottom-0 right-0 h-8 w-8 border-b-2 border-r-2 border-white rounded-br-sm" />
+                <span className="absolute top-0 left-0 h-8 w-8 rounded-tl-sm border-t-2 border-l-2 border-white" />
+                <span className="absolute top-0 right-0 h-8 w-8 rounded-tr-sm border-t-2 border-r-2 border-white" />
+                <span className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-sm border-b-2 border-l-2 border-white" />
+                <span className="absolute right-0 bottom-0 h-8 w-8 rounded-br-sm border-r-2 border-b-2 border-white" />
                 {/* Scan line animation */}
                 <div className="absolute inset-x-0 top-0 h-0.5 animate-bounce bg-green-400/80" />
               </div>
             </div>
-            <p className="absolute bottom-3 left-0 right-0 text-center text-xs font-medium text-white/70">
+            <p className="absolute right-0 bottom-3 left-0 text-center text-xs font-medium text-white/70">
               Arahkan kamera ke QR Card petugas
             </p>
           </>
@@ -236,13 +236,11 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {result.identitas.jenis === "petugas"
-                      ? [
-                          result.identitas.kode,
-                          result.identitas.jabatan,
-                        ]
-                            .filter(Boolean)
-                            .join(" · ") || `PID-${result.identitas.id}`
-                      : (result.user?.no_pegawai ?? `#${result.identitas.id}`)}
+                      ? [result.identitas.kode, result.identitas.jabatan]
+                          .filter(Boolean)
+                          .join(" · ") || `PID-${result.identitas.id}`
+                      : (result.user?.kode_petugas ??
+                        `#${result.identitas.id}`)}
                     {result.gudang ? ` · ${result.gudang.nama}` : ""}
                   </p>
                 </div>

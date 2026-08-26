@@ -1,11 +1,12 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState, useDeferredValue } from "react"
+import { useState, useDeferredValue, useCallback } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import { getErrorMessage } from "@/lib/api"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useConfirmDialog } from "@/components/confirm-dialog"
@@ -79,6 +80,20 @@ export default function KategoriPage() {
   const kategoriMeta = kategoriData?.meta
   const satuans = satuanData?.data ?? []
   const satuanMeta = satuanData?.meta
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/kategori", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+        },
+      })
+      return (res.data?.data ?? []) as Record<string, unknown>[]
+    },
+    [deferredSearch]
+  )
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
@@ -458,6 +473,11 @@ export default function KategoriPage() {
             label: "Keterangan / Deskripsi",
             defaultChecked: true,
           },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "Nama Kategori", accessor: "nama" },
+          { header: "Deskripsi", accessor: "deskripsi" },
         ]}
       />
     </>

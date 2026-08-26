@@ -160,7 +160,8 @@ export default function StokPage() {
       const stok = b.total_stok ?? b.stok ?? 0
       const min = b.min_stok ?? 0
       if (statusStokFilter === "habis") return stok <= 0
-      if (statusStokFilter === "kritis") return min > 0 && stok <= min && stok > 0
+      if (statusStokFilter === "kritis")
+        return min > 0 && stok <= min && stok > 0
       if (statusStokFilter === "aman") return stok > min
       return true
     })
@@ -173,10 +174,7 @@ export default function StokPage() {
   // KPI Calculations
   const totalSkuCount = metaBarang?.total ?? rawBarangs.length
   const totalStokFisik = useMemo(() => {
-    return rawBarangs.reduce(
-      (acc, b) => acc + (b.total_stok ?? b.stok ?? 0),
-      0
-    )
+    return rawBarangs.reduce((acc, b) => acc + (b.total_stok ?? b.stok ?? 0), 0)
   }, [rawBarangs])
 
   const lowStockCount = useMemo(() => {
@@ -221,10 +219,10 @@ export default function StokPage() {
       {/* KPI Cards Overview */}
       <div className="wrapper mt-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="min-h-[105px] w-full p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white border-border/70">
+          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex h-full flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   Total SKU Aktif
                 </span>
                 <BiPackage className="size-5 text-foreground" />
@@ -240,10 +238,10 @@ export default function StokPage() {
             </div>
           </Card>
 
-          <Card className="min-h-[105px] w-full p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white border-border/70">
+          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex h-full flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                <span className="text-xs font-semibold tracking-wider text-emerald-600 uppercase">
                   Total Unit Fisik
                 </span>
                 <BiTrendingDown className="size-5 text-emerald-500" />
@@ -259,10 +257,10 @@ export default function StokPage() {
             </div>
           </Card>
 
-          <Card className="min-h-[105px] w-full p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white border-border/70">
+          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex h-full flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
+                <span className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
                   Perlu Restock
                 </span>
                 <BiErrorCircle className="size-5 text-amber-500" />
@@ -278,10 +276,10 @@ export default function StokPage() {
             </div>
           </Card>
 
-          <Card className="min-h-[105px] w-full p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white border-border/70">
+          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex h-full flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                <span className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
                   Log Transaksi
                 </span>
                 <BiTimeFive className="size-5 text-blue-500" />
@@ -304,11 +302,17 @@ export default function StokPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <TabsList className="bg-muted/70 p-1">
-              <TabsTrigger value="ringkasan" className="gap-2 px-4 py-1.5 text-xs font-medium">
+              <TabsTrigger
+                value="ringkasan"
+                className="gap-2 px-4 py-1.5 text-xs font-medium"
+              >
                 <BiGridAlt className="size-4" />
                 Posisi Stok per Barang (SKU)
               </TabsTrigger>
-              <TabsTrigger value="log" className="gap-2 px-4 py-1.5 text-xs font-medium">
+              <TabsTrigger
+                value="log"
+                className="gap-2 px-4 py-1.5 text-xs font-medium"
+              >
                 <BiListUl className="size-4" />
                 Semua Log Mutasi & Aktivitas
               </TabsTrigger>
@@ -321,7 +325,7 @@ export default function StokPage() {
             <div className="flex flex-wrap items-center gap-3">
               <InputSearch
                 placeholder="Cari SKU, barcode, atau nama barang..."
-                className="flex-1 min-w-[240px]"
+                className="min-w-[240px] flex-1"
                 value={searchBarang}
                 onChange={(e) => {
                   setSearchBarang(e.target.value)
@@ -408,7 +412,8 @@ export default function StokPage() {
                     const stok = row.total_stok ?? row.stok ?? 0
                     const min = row.min_stok ?? 0
                     const max = row.max_stok ?? 0
-                    const satuan = row.satuan?.singkatan || row.satuan?.nama || "Unit"
+                    const satuan =
+                      row.satuan?.singkatan || row.satuan?.nama || "Unit"
 
                     let statusBadge = (
                       <ColoredBadge color="green">
@@ -435,7 +440,7 @@ export default function StokPage() {
                     return (
                       <TableRow
                         key={row.id}
-                        className="h-16 cursor-pointer border-b border-border/40 hover:bg-muted/30 transition-colors"
+                        className="h-16 cursor-pointer border-b border-border/40 transition-colors hover:bg-muted/30"
                         onClick={() => handleOpenStockCard(row)}
                       >
                         <TableCell className="pl-6 font-mono text-sm font-semibold text-foreground">
@@ -444,7 +449,7 @@ export default function StokPage() {
                         <TableCell className="font-medium text-foreground">
                           <div className="font-semibold">{row.nama}</div>
                           {row.barcode && (
-                            <div className="text-[11px] text-muted-foreground font-mono">
+                            <div className="font-mono text-[11px] text-muted-foreground">
                               Barcode: {row.barcode}
                             </div>
                           )}
@@ -461,7 +466,7 @@ export default function StokPage() {
                             "-"
                           )}
                         </TableCell>
-                        <TableCell className="text-center font-bold text-sm text-foreground">
+                        <TableCell className="text-center text-sm font-bold text-foreground">
                           <span
                             className={cn(
                               stok <= 0
@@ -477,7 +482,9 @@ export default function StokPage() {
                             {satuan}
                           </span>
                         </TableCell>
-                        <TableCell className="text-center">{statusBadge}</TableCell>
+                        <TableCell className="text-center">
+                          {statusBadge}
+                        </TableCell>
                         <TableCell className="pr-6 text-right">
                           <Button
                             variant="outline"
@@ -516,7 +523,8 @@ export default function StokPage() {
                           <button
                             className={cn(
                               "flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted",
-                              pageBarang === 1 && "pointer-events-none opacity-40"
+                              pageBarang === 1 &&
+                                "pointer-events-none opacity-40"
                             )}
                             onClick={() =>
                               setPageBarang((p) => Math.max(1, p - 1))
@@ -571,7 +579,7 @@ export default function StokPage() {
             <div className="flex flex-wrap items-center gap-3">
               <InputSearch
                 placeholder="Cari barang, no referensi transaksi..."
-                className="flex-1 min-w-[240px]"
+                className="min-w-[240px] flex-1"
                 value={searchLog}
                 onChange={(e) => {
                   setSearchLog(e.target.value)
@@ -664,7 +672,7 @@ export default function StokPage() {
                     return (
                       <TableRow
                         key={row.id}
-                        className="h-16 border-b border-border/40 hover:bg-muted/30 transition-colors"
+                        className="h-16 border-b border-border/40 transition-colors hover:bg-muted/30"
                       >
                         <TableCell className="pl-6 font-mono text-xs text-foreground">
                           {formatDateTime(row.created_at)}
@@ -689,7 +697,7 @@ export default function StokPage() {
                               onClick={() =>
                                 router.push(tipeConfig.href(row.referensi_id!))
                               }
-                              className="hover:underline cursor-pointer"
+                              className="cursor-pointer hover:underline"
                             >
                               {row.referensi_type
                                 ? `${row.referensi_type}-${row.referensi_id}`
@@ -715,7 +723,7 @@ export default function StokPage() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-center font-bold text-sm text-foreground bg-muted/10">
+                        <TableCell className="bg-muted/10 text-center text-sm font-bold text-foreground">
                           {`${formatNumber(row.saldo_sesudah)} ${row.barang?.satuan?.nama ?? ""}`.trim()}
                         </TableCell>
                         <TableCell className="pr-6 text-right">
@@ -723,7 +731,7 @@ export default function StokPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenStockCard(row.barang!)}
-                              className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors"
+                              className="cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                               title="Buka Kartu Stok SKU ini"
                             >
                               <BiChevronRight className="size-5" />
@@ -756,7 +764,9 @@ export default function StokPage() {
                               "flex h-7 w-7 cursor-pointer items-center justify-center rounded-[6px] border border-border/70 text-muted-foreground transition-colors hover:bg-muted",
                               pageLog === 1 && "pointer-events-none opacity-40"
                             )}
-                            onClick={() => setPageLog((p) => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setPageLog((p) => Math.max(1, p - 1))
+                            }
                           >
                             &lt;
                           </button>
@@ -821,8 +831,16 @@ export default function StokPage() {
           { id: "sku", label: "Kode SKU & Barcode", defaultChecked: true },
           { id: "nama", label: "Nama Barang & Satuan", defaultChecked: true },
           { id: "kategori", label: "Kategori Barang", defaultChecked: true },
-          { id: "stok", label: "Posisi Saldo & Batas Min/Max", defaultChecked: true },
-          { id: "mutasi", label: "Rincian Transaksi Masuk/Keluar", defaultChecked: true },
+          {
+            id: "stok",
+            label: "Posisi Saldo & Batas Min/Max",
+            defaultChecked: true,
+          },
+          {
+            id: "mutasi",
+            label: "Rincian Transaksi Masuk/Keluar",
+            defaultChecked: true,
+          },
         ]}
       />
     </>

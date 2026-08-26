@@ -16,10 +16,7 @@ import { Button } from "@/components/ui/button"
 import { FormSelect } from "@/components/forms"
 import api, { getErrorMessage } from "@/lib/api"
 import { useOptions } from "@/hooks/use-options"
-import {
-  useCameraScanner,
-  useWedgeScanner,
-} from "@/hooks/use-scan-input"
+import { useCameraScanner, useWedgeScanner } from "@/hooks/use-scan-input"
 import {
   enqueueScan,
   flushScanQueue,
@@ -135,7 +132,7 @@ export default function ScanAbsensiPage() {
 
       const waktuScan = nowForQueue()
       const queueIt = () => {
-        enqueueScan(qrPayload, waktuScan)
+        enqueueScan(qrPayload, waktuScan, activeConfig.gudangId)
         refreshPending()
         setDisplay({ kind: "queued" })
       }
@@ -160,10 +157,7 @@ export default function ScanAbsensiPage() {
             ? (r.absensi?.jam_pulang ?? "-")
             : (r.absensi?.jam_masuk ?? "-")
         const sub =
-          [
-            r.identitas.kode,
-            r.identitas.jabatan ?? r.user?.no_pegawai,
-          ]
+          [r.identitas.kode, r.identitas.jabatan ?? r.user?.kode_petugas]
             .filter(Boolean)
             .join(" · ") || ""
         setDisplay({
@@ -189,12 +183,12 @@ export default function ScanAbsensiPage() {
   )
 
   // USB scanner keyboard-wedge aktif saat layar siap memindai
-  const scannerActive =
-    !!config && display.kind !== "processing" && setupReady
+  const scannerActive = !!config && display.kind !== "processing" && setupReady
   useWedgeScanner(handleDetect, scannerActive)
 
-  const { videoRef, cameraOn, startCamera, stopCamera } =
-    useCameraScanner((payload) => void handleDetect(payload))
+  const { videoRef, cameraOn, startCamera, stopCamera } = useCameraScanner(
+    (payload) => void handleDetect(payload)
+  )
 
   const handleCameraToggle = useCallback(async () => {
     try {
@@ -357,7 +351,7 @@ export default function ScanAbsensiPage() {
             <p className="mt-3 text-lg text-white/60">
               Tempelkan kartu QR pada pemindai
             </p>
-            <p className="mt-10 font-mono text-7xl font-bold tabular-nums tracking-tight sm:text-8xl">
+            <p className="mt-10 font-mono text-7xl font-bold tracking-tight tabular-nums sm:text-8xl">
               {clock}
             </p>
           </>
@@ -402,7 +396,7 @@ export default function ScanAbsensiPage() {
             {display.sub && (
               <p className="mt-1 text-base text-white/50">{display.sub}</p>
             )}
-            <p className="mt-4 font-mono text-6xl font-bold tabular-nums tracking-tight">
+            <p className="mt-4 font-mono text-6xl font-bold tracking-tight tabular-nums">
               {display.waktu}
             </p>
             {display.tipe === "duplicate" && (
@@ -446,9 +440,7 @@ export default function ScanAbsensiPage() {
 
       {/* Bar bawah */}
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-6 pb-6">
-        {lastSync && (
-          <p className="text-xs text-emerald-300/80">{lastSync}</p>
-        )}
+        {lastSync && <p className="text-xs text-emerald-300/80">{lastSync}</p>}
         <Button
           variant="outline"
           onClick={() => void handleCameraToggle()}

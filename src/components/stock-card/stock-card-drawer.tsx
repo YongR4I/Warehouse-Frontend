@@ -128,20 +128,18 @@ export function StockCardDrawer({
 
   const gudangIdParam =
     gudangFilter && gudangFilter !== "all" ? Number(gudangFilter) : undefined
-  const tipeParam =
-    tipeFilter && tipeFilter !== "all" ? tipeFilter : undefined
+  const tipeParam = tipeFilter && tipeFilter !== "all" ? tipeFilter : undefined
 
   // Fetch riwayat mutasi kartu stok untuk barang terpilih
   const { data, isLoading } = useApiList<KartuStok>({
     key: `kartu-stok-barang-${barang?.id}-${gudangFilter}-${fromDate}-${toDate}-${tipeFilter}`,
-    url: "/kartu-stok",
+    url: "/kartu-stok/riwayat",
     params: {
       barang_id: barang?.id,
       gudang_id: gudangIdParam,
       tipe: tipeParam,
       from: fromDate,
       to: toDate,
-      per_page: 100,
     },
     enabled: !!barang?.id && open,
   })
@@ -189,7 +187,8 @@ export function StockCardDrawer({
         }
       }
 
-      const finalBalance = lastRow.saldo_sesudah ?? initialBalance + masuk - keluar
+      const finalBalance =
+        lastRow.saldo_sesudah ?? initialBalance + masuk - keluar
 
       return {
         saldoAwal: initialBalance,
@@ -200,8 +199,7 @@ export function StockCardDrawer({
       }
     }, [sortedRows, barang])
 
-  const satuanNama =
-    barang?.satuan?.singkatan || barang?.satuan?.nama || "Unit"
+  const satuanNama = barang?.satuan?.singkatan || barang?.satuan?.nama || "Unit"
   const minStok = barang?.min_stok ?? 0
   const maxStok = barang?.max_stok ?? 0
 
@@ -314,10 +312,10 @@ export function StockCardDrawer({
         </SheetHeader>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto bg-[#FAFAFA] p-6 space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto bg-[#FAFAFA] p-6">
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Card className="p-4 shadow-2xs bg-white border-border/70">
+            <Card className="border-border/70 bg-white p-4 shadow-2xs">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Saldo Awal</span>
                 <BiTimeFive className="size-4 text-muted-foreground" />
@@ -333,8 +331,8 @@ export function StockCardDrawer({
               </p>
             </Card>
 
-            <Card className="p-4 shadow-2xs bg-white border-border/70">
-              <div className="flex items-center justify-between text-xs text-emerald-600 font-medium">
+            <Card className="border-border/70 bg-white p-4 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-medium text-emerald-600">
                 <span>Total Masuk</span>
                 <BiTrendingDown className="size-4 text-emerald-500" />
               </div>
@@ -349,8 +347,8 @@ export function StockCardDrawer({
               </p>
             </Card>
 
-            <Card className="p-4 shadow-2xs bg-white border-border/70">
-              <div className="flex items-center justify-between text-xs text-rose-600 font-medium">
+            <Card className="border-border/70 bg-white p-4 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-medium text-rose-600">
                 <span>Total Keluar</span>
                 <BiTrendingUp className="size-4 text-rose-500" />
               </div>
@@ -365,8 +363,8 @@ export function StockCardDrawer({
               </p>
             </Card>
 
-            <Card className="p-4 shadow-2xs bg-white border-border/70">
-              <div className="flex items-center justify-between text-xs text-foreground font-medium">
+            <Card className="border-border/70 bg-white p-4 shadow-2xs">
+              <div className="flex items-center justify-between text-xs font-medium text-foreground">
                 <span>Saldo Akhir</span>
                 <BiBarChartAlt2 className="size-4 text-blue-500" />
               </div>
@@ -419,7 +417,7 @@ export function StockCardDrawer({
           {/* Ledger Table with Running Balance */}
           <div className="overflow-hidden rounded-xl border border-border/60 bg-white shadow-2xs">
             <Table>
-              <TableHeader className="bg-muted/40 border-b border-border/60">
+              <TableHeader className="border-b border-border/60 bg-muted/40">
                 <TableRow className="h-11 hover:bg-transparent">
                   <TableHead className="w-[140px] pl-4 text-xs font-semibold text-foreground">
                     Waktu & Tanggal
@@ -439,22 +437,29 @@ export function StockCardDrawer({
                   <TableHead className="w-[90px] text-right text-xs font-semibold text-foreground">
                     Keluar (-)
                   </TableHead>
-                  <TableHead className="w-[110px] text-right pr-4 text-xs font-bold text-foreground">
+                  <TableHead className="w-[110px] pr-4 text-right text-xs font-bold text-foreground">
                     Saldo Berjalan
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {/* Initial Opening Balance Row */}
-                <TableRow className="h-10 bg-muted/20 font-medium text-xs border-b border-dashed border-border/60">
-                  <TableCell className="pl-4 text-muted-foreground font-mono">
+                <TableRow className="h-10 border-b border-dashed border-border/60 bg-muted/20 text-xs font-medium">
+                  <TableCell className="pl-4 font-mono text-muted-foreground">
                     {fromDate} 00:00
                   </TableCell>
-                  <TableCell colSpan={3} className="text-muted-foreground font-medium italic">
+                  <TableCell
+                    colSpan={3}
+                    className="font-medium text-muted-foreground italic"
+                  >
                     Saldo Awal Periode
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground">-</TableCell>
-                  <TableCell className="text-right text-muted-foreground">-</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    -
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    -
+                  </TableCell>
                   <TableCell className="pr-4 text-right font-bold text-foreground">
                     {formatNumber(saldoAwal)} {satuanNama}
                   </TableCell>
@@ -477,7 +482,8 @@ export function StockCardDrawer({
                       colSpan={7}
                       className="h-28 text-center text-xs text-muted-foreground"
                     >
-                      Tidak ada pergerakan stok pada periode dan filter yang dipilih.
+                      Tidak ada pergerakan stok pada periode dan filter yang
+                      dipilih.
                     </TableCell>
                   </TableRow>
                 )}
@@ -494,7 +500,7 @@ export function StockCardDrawer({
                   return (
                     <TableRow
                       key={row.id}
-                      className="h-12 border-b border-border/40 hover:bg-muted/30 transition-colors text-xs"
+                      className="h-12 border-b border-border/40 text-xs transition-colors hover:bg-muted/30"
                     >
                       <TableCell className="pl-4 font-mono text-muted-foreground">
                         {formatDateTime(row.created_at)}
@@ -509,7 +515,7 @@ export function StockCardDrawer({
                           <button
                             type="button"
                             onClick={() => router.push(refLink)}
-                            className="font-medium text-blue-600 hover:underline cursor-pointer"
+                            className="cursor-pointer font-medium text-blue-600 hover:underline"
                           >
                             {row.referensi_type
                               ? `${row.referensi_type}-${row.referensi_id}`
@@ -530,7 +536,7 @@ export function StockCardDrawer({
                       <TableCell className="text-right font-medium text-rose-600">
                         {isOut ? `-${formatNumber(qtyAbs)}` : "-"}
                       </TableCell>
-                      <TableCell className="pr-4 text-right font-bold text-foreground bg-muted/10">
+                      <TableCell className="bg-muted/10 pr-4 text-right font-bold text-foreground">
                         {formatNumber(row.saldo_sesudah)} {satuanNama}
                       </TableCell>
                     </TableRow>
@@ -544,7 +550,8 @@ export function StockCardDrawer({
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border/50 bg-white px-6 py-4">
           <div className="text-xs text-muted-foreground">
-            Total Transaksi: <strong className="text-foreground">{sortedRows.length}</strong> | 
+            Total Transaksi:{" "}
+            <strong className="text-foreground">{sortedRows.length}</strong> |
             Net Perubahan:{" "}
             <strong
               className={cn(

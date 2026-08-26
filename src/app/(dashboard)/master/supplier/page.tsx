@@ -1,11 +1,12 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useState, useDeferredValue } from "react"
+import { useState, useDeferredValue, useCallback } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import { getErrorMessage } from "@/lib/api"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useConfirmDialog } from "@/components/confirm-dialog"
@@ -83,6 +84,20 @@ export default function SupplierPage() {
   const supplierMeta = supplierData?.meta
   const customers = customerData?.data ?? []
   const customerMeta = customerData?.meta
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/supplier", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+        },
+      })
+      return (res.data?.data ?? []) as Record<string, unknown>[]
+    },
+    [deferredSearch]
+  )
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
@@ -523,6 +538,14 @@ export default function SupplierPage() {
             label: "Alamat Perusahaan",
             defaultChecked: true,
           },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "Kode", accessor: "kode" },
+          { header: "Nama Supplier", accessor: "nama" },
+          { header: "Telp", accessor: "telepon" },
+          { header: "Email", accessor: "email" },
+          { header: "Alamat", accessor: "alamat" },
         ]}
       />
     </>

@@ -29,7 +29,9 @@ export function useAuth() {
     }
     setAuth(data.user as User, data.token as string)
     // Pemisahan akses (portal-izin): non-admin mendarat di portal, bukan WMS
-    router.push(isPortalOnlyUser(data.user as User) ? "/portal-izin" : "/dashboard")
+    router.push(
+      isPortalOnlyUser(data.user as User) ? "/portal-izin" : "/dashboard"
+    )
   }
 
   const fetchMe = async (): Promise<User | null> => {

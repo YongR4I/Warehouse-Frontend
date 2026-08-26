@@ -19,11 +19,7 @@ import {
   petugasSchema,
   type PetugasFormValues,
 } from "@/lib/validations/petugas"
-import type {
-  Petugas,
-  PetugasPayload,
-  PetugasStatusOperasional,
-} from "@/types"
+import type { Petugas, PetugasPayload, PetugasStatusOperasional } from "@/types"
 
 export const JABATAN_OPTIONS = [
   { value: "operator-forklift", label: "Operator Forklift" },

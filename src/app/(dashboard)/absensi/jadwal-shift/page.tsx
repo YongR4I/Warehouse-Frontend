@@ -1,11 +1,12 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import {
   BiCalendar,
   BiChevronLeft,
@@ -280,6 +281,70 @@ export default function JadwalShiftPage() {
     "/jadwal-petugas"
   )
   const deleteMutation = useApiDelete("jadwal-petugas", "/jadwal-petugas")
+
+  const fetchExportData = useCallback(async () => {
+    const weekStartStr = toDateParam(currentWeekStart)
+    const weekEndStr = toDateParam(addDays(currentWeekStart, 6))
+
+    const [jadwalRes, shiftsRes, usersRes] = await Promise.all([
+      api.get("/jadwal-petugas", { params: { per_page: 9999 } }),
+      api.get("/shift", { params: { per_page: 100 } }),
+      api.get("/user", { params: { per_page: 9999 } }),
+    ])
+
+    const unwrap = <T,>(d: unknown): T[] => {
+      const body = d as { data?: unknown } | T[] | null
+      if (Array.isArray(body)) return body as T[]
+      if (body && typeof body === "object" && Array.isArray(body.data))
+        return body.data as T[]
+      return []
+    }
+
+    const allJadwal = unwrap<JadwalPetugas>(jadwalRes.data)
+    const allShifts = unwrap<Shift>(shiftsRes.data)
+    const allUsers = unwrap<User>(usersRes.data)
+
+    const shiftMap = new Map<number, Shift>()
+    for (const s of allShifts) shiftMap.set(s.id, s)
+
+    const userMap = new Map<number, User>()
+    for (const u of allUsers) userMap.set(u.id, u)
+    for (const j of allJadwal) {
+      if (j.user) userMap.set(j.user.id, j.user)
+    }
+
+    const weekJadwal = allJadwal.filter((j) => {
+      const t = j.tanggal
+      return t && t >= weekStartStr && t <= weekEndStr
+    })
+
+    const weekUserIds = [...new Set(weekJadwal.map((j) => j.user_id))]
+
+    return weekUserIds.map((userId) => {
+      const user = userMap.get(userId)
+      const userName = user?.name ?? `Petugas #${userId}`
+      const peran = user?.roles?.map((r) => r.name).join(", ") || "-"
+      const row: Record<string, unknown> = {
+        nama: userName,
+        peran,
+      }
+      for (let i = 0; i < 7; i++) {
+        const dayDate = addDays(currentWeekStart, i)
+        const param = toDateParam(dayDate)
+        const entry = weekJadwal.find(
+          (e) => e.user_id === userId && e.tanggal === param
+        )
+        const dayLabel = HARI_LABELS[i]
+        row[dayLabel] =
+          entry?.shift?.nama ??
+          (entry?.shift_id != null
+            ? shiftMap.get(entry.shift_id)?.nama
+            : undefined) ??
+          "OFF"
+      }
+      return row
+    })
+  }, [currentWeekStart])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -636,6 +701,12 @@ export default function JadwalShiftPage() {
             label: "Keterangan Tambahan",
             defaultChecked: false,
           },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "Nama Petugas", accessor: "nama" },
+          { header: "Peran", accessor: "peran" },
+          ...HARI_LABELS.map((label) => ({ header: label, accessor: label })),
         ]}
       />
     </>

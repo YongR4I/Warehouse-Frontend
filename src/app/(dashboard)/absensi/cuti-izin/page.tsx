@@ -54,12 +54,7 @@ import { useConfirmDialog } from "@/components/confirm-dialog"
 import api, { getErrorMessage, uploadFile } from "@/lib/api"
 import { formatDate } from "@/lib/status"
 import { useAuthStore } from "@/store/use-auth-store"
-import type {
-  IzinJenis,
-  IzinPayload,
-  IzinRequest,
-  User,
-} from "@/types"
+import type { IzinJenis, IzinPayload, IzinRequest, User } from "@/types"
 
 // Cuti & Izin — modul /api/izin dengan alur pengajuan → persetujuan
 
@@ -154,9 +149,7 @@ export default function CutiIzinPage() {
       // Kontrak portal-izin v2: baris bisa ber-subjek petugas native
       const nama = r.nama ?? r.user?.name ?? ""
       const kode = r.petugas?.kode ?? r.user?.no_pegawai ?? ""
-      return (
-        nama.toLowerCase().includes(q) || kode.toLowerCase().includes(q)
-      )
+      return nama.toLowerCase().includes(q) || kode.toLowerCase().includes(q)
     })
   }, [izinQuery.data, deferredSearch])
 
@@ -395,8 +388,7 @@ export default function CutiIzinPage() {
               // Kontrak izin-v2: batalkan = owner saat menunggu, atau
               // pemegang izin-delete utk yang sudah disetujui
               const canBatalkan =
-                (row.status === "menunggu" &&
-                  row.user_id === authUser?.id) ||
+                (row.status === "menunggu" && row.user_id === authUser?.id) ||
                 (canDeleteIzin && row.status === "disetujui")
               const hasRowMenu =
                 (canApprove && row.status === "menunggu") || canBatalkan
@@ -412,7 +404,15 @@ export default function CutiIzinPage() {
                     {row.nama ?? row.petugas?.nama ?? row.user?.name ?? "-"}
                   </TableCell>
                   <TableCell className="font-sans text-sm">
-                    <ColoredBadge color={row.jenis === "sakit" ? "red" : row.jenis === "cuti" ? "blue" : "gray"}>
+                    <ColoredBadge
+                      color={
+                        row.jenis === "sakit"
+                          ? "red"
+                          : row.jenis === "cuti"
+                            ? "blue"
+                            : "gray"
+                      }
+                    >
                       {JENIS_LABEL[row.jenis] ?? row.jenis}
                     </ColoredBadge>
                   </TableCell>
@@ -443,7 +443,9 @@ export default function CutiIzinPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-center font-sans text-sm">
-                    <ColoredBadge color={status.color}>{status.label}</ColoredBadge>
+                    <ColoredBadge color={status.color}>
+                      {status.label}
+                    </ColoredBadge>
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
@@ -543,7 +545,9 @@ export default function CutiIzinPage() {
                 label="Jenis Pengajuan *"
                 placeholder="Pilih jenis..."
                 value={formJenis}
-                onValueChange={(val) => setFormJenis((val ?? "cuti") as IzinJenis)}
+                onValueChange={(val) =>
+                  setFormJenis((val ?? "cuti") as IzinJenis)
+                }
                 options={JENIS_OPTIONS}
               />
               <div />
@@ -640,12 +644,10 @@ export default function CutiIzinPage() {
               onChange={(e) => setRejectNote(e.target.value)}
               rows={3}
               placeholder="Minimal 5 karakter — misal: kuota cuti habis, jadwal kritis..."
-              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2.5 text-sm outline-none transition-colors focus:border-foreground/40"
+              className="w-full rounded-xl border border-border/60 bg-background px-3 py-2.5 text-sm transition-colors outline-none focus:border-foreground/40"
             />
             {rejectNote.trim().length > 0 && rejectNote.trim().length < 5 && (
-              <p className="text-xs text-red-500">
-                Minimal 5 karakter.
-              </p>
+              <p className="text-xs text-red-500">Minimal 5 karakter.</p>
             )}
           </div>
           <div className="flex gap-2 pt-1">

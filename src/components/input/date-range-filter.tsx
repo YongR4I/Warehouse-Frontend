@@ -121,16 +121,21 @@ export function DateRangeFilter({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-2xl border border-border bg-card px-3 text-sm text-foreground transition-[color,box-shadow] duration-200",
         "focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30",
-        isSmall ? "h-9 text-xs px-2.5 rounded-xl" : "h-[42px]",
-        disabled && "opacity-50 pointer-events-none",
+        isSmall ? "h-9 rounded-xl px-2.5 text-xs" : "h-[42px]",
+        disabled && "pointer-events-none opacity-50",
         className
       )}
     >
-      <BiCalendar className={cn("shrink-0 text-muted-foreground", isSmall ? "size-3.5" : "size-4")} />
-      
+      <BiCalendar
+        className={cn(
+          "shrink-0 text-muted-foreground",
+          isSmall ? "size-3.5" : "size-4"
+        )}
+      />
+
       {/* Start Date */}
       <div className="flex items-center gap-1">
-        <span className="text-[11px] font-medium text-muted-foreground select-none hidden sm:inline">
+        <span className="hidden text-[11px] font-medium text-muted-foreground select-none sm:inline">
           Dari
         </span>
         <input
@@ -140,7 +145,7 @@ export function DateRangeFilter({
           disabled={disabled}
           onChange={(e) => handleStart(e.target.value)}
           className={cn(
-            "bg-transparent text-foreground outline-none font-medium cursor-pointer",
+            "cursor-pointer bg-transparent font-medium text-foreground outline-none",
             "transition-colors hover:text-foreground/80 focus:text-foreground",
             isSmall ? "w-[108px] text-xs" : "w-[124px] text-sm"
           )}
@@ -148,13 +153,13 @@ export function DateRangeFilter({
         />
       </div>
 
-      <span className="text-xs font-semibold text-muted-foreground/60 select-none px-0.5">
+      <span className="px-0.5 text-xs font-semibold text-muted-foreground/60 select-none">
         —
       </span>
 
       {/* End Date */}
       <div className="flex items-center gap-1">
-        <span className="text-[11px] font-medium text-muted-foreground select-none hidden sm:inline">
+        <span className="hidden text-[11px] font-medium text-muted-foreground select-none sm:inline">
           S/d
         </span>
         <input
@@ -164,7 +169,7 @@ export function DateRangeFilter({
           disabled={disabled}
           onChange={(e) => handleEnd(e.target.value)}
           className={cn(
-            "bg-transparent text-foreground outline-none font-medium cursor-pointer",
+            "cursor-pointer bg-transparent font-medium text-foreground outline-none",
             "transition-colors hover:text-foreground/80 focus:text-foreground",
             isSmall ? "w-[108px] text-xs" : "w-[124px] text-sm"
           )}
@@ -175,17 +180,17 @@ export function DateRangeFilter({
       {/* Quick Presets Dropdown */}
       {showPresets && (
         <>
-          <div className="h-4 w-px bg-border my-auto mx-0.5" />
+          <div className="mx-0.5 my-auto h-4 w-px bg-border" />
           <DropdownMenu>
             <DropdownMenuTrigger
               type="button"
               className={cn(
-                "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                activePreset && "text-foreground font-semibold"
+                "inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors outline-none hover:bg-muted/80 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring",
+                activePreset && "font-semibold text-foreground"
               )}
               title="Pilih Preset Rentang Waktu"
             >
-              <span className="hidden md:inline max-w-[80px] truncate">
+              <span className="hidden max-w-[80px] truncate md:inline">
                 {activePreset ? activePreset.label : "Preset"}
               </span>
               <BiChevronDown className="size-3.5 opacity-70" />
@@ -202,11 +207,11 @@ export function DateRangeFilter({
                   <DropdownMenuItem
                     key={preset.id}
                     onClick={() => handleSelectPreset(preset.start, preset.end)}
-                    className="flex items-center justify-between cursor-pointer py-1.5 text-xs"
+                    className="flex cursor-pointer items-center justify-between py-1.5 text-xs"
                   >
                     <span>{preset.label}</span>
                     {isSelected && (
-                      <BiCheck className="size-4 text-primary shrink-0 ml-2" />
+                      <BiCheck className="ml-2 size-4 shrink-0 text-primary" />
                     )}
                   </DropdownMenuItem>
                 )

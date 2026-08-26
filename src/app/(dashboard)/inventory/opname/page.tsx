@@ -1,7 +1,7 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useDeferredValue, useState } from "react"
+import { useDeferredValue, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useApiList, useApiAction, useApiCreate } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { toast } from "sonner"
+import api from "@/lib/api"
 import { getErrorMessage } from "@/lib/api"
 import { statusLabel, statusColor, formatDate } from "@/lib/status"
 import { useAuthStore } from "@/store/use-auth-store"
@@ -100,6 +101,34 @@ export default function OpnamePage() {
   const rows = data?.data ?? []
   const meta = data?.meta
   const totalPages = Math.max(1, meta?.last_page ?? 1)
+
+  const fetchExportData = useCallback(
+    async (coverage: "all" | "filtered") => {
+      const res = await api.get("/stok-opname", {
+        params: {
+          per_page: 9999,
+          search:
+            coverage === "filtered" ? deferredSearch || undefined : undefined,
+          status:
+            statusFilter && statusFilter !== "all" ? statusFilter : undefined,
+          gudang_id:
+            gudangFilter && gudangFilter !== "all"
+              ? Number(gudangFilter)
+              : undefined,
+        },
+      })
+      const items = (res.data?.data ?? []) as Array<Record<string, unknown>>
+      return items.map((row) => ({
+        no_referensi: row.no_referensi ?? "-",
+        tanggal: formatDate(row.tanggal as string),
+        gudang: (row.gudang as Record<string, unknown>)?.nama ?? "-",
+        total_sku: Array.isArray(row.details) ? row.details.length : 0,
+        petugas: (row.createdBy as Record<string, unknown>)?.name ?? "-",
+        status: statusLabel(row.status as string),
+      }))
+    },
+    [deferredSearch, statusFilter, gudangFilter]
+  )
 
   // Modal form states
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -584,6 +613,15 @@ export default function OpnamePage() {
           { id: "gudang", label: "Lokasi Gudang", defaultChecked: true },
           { id: "barang", label: "Detail Barang & SKU", defaultChecked: true },
           { id: "status", label: "Status Opname", defaultChecked: true },
+        ]}
+        fetchExportData={fetchExportData}
+        exportColumns={[
+          { header: "No. Dokumen", accessor: "no_referensi" },
+          { header: "Tanggal", accessor: "tanggal" },
+          { header: "Gudang", accessor: "gudang" },
+          { header: "Total SKU", accessor: "total_sku" },
+          { header: "Petugas", accessor: "petugas" },
+          { header: "Status", accessor: "status" },
         ]}
       />
     </>

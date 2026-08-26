@@ -42,13 +42,21 @@ export function NotificationBell() {
     void queryClient.invalidateQueries({ queryKey: ["notifikasi-bell"] })
 
   const markRead = async (id: number) => {
-    await api.post(`/notifikasi/${id}/read`)
-    invalidate()
+    try {
+      await api.post(`/notifikasi/${id}/read`)
+      invalidate()
+    } catch {
+      // silent
+    }
   }
 
   const markAllRead = async () => {
-    await api.post("/notifikasi/read-all")
-    invalidate()
+    try {
+      await api.post("/notifikasi/read-all")
+      invalidate()
+    } catch {
+      // silent
+    }
   }
 
   return (
@@ -62,7 +70,7 @@ export function NotificationBell() {
           >
             <BiBell className="!size-[16px]" />
             {unread > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] leading-none font-bold text-white">
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
@@ -108,22 +116,22 @@ export function NotificationBell() {
               <span className="flex items-start gap-2">
                 <span
                   className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
-                    TIPE_DOT[n.type ?? "info"] ?? "bg-blue-500"
+                    TIPE_DOT[n.tipe ?? "info"] ?? "bg-blue-500"
                   } ${n.is_read ? "opacity-30" : ""}`}
                 />
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-xs font-semibold text-foreground">
-                    {n.judul ?? n.title ?? "Notifikasi"}
+                    {n.judul ?? "Notifikasi"}
                   </span>
                   <span className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">
-                    {n.pesan ?? n.message ?? ""}
+                    {n.pesan ?? ""}
                   </span>
                   <span className="mt-0.5 text-[10px] text-muted-foreground/70">
                     {formatDateTime(n.created_at)}
                   </span>
                 </span>
                 {!n.is_read && (
-                  <span className="ml-auto mt-1 size-2 shrink-0 rounded-full bg-blue-500" />
+                  <span className="mt-1 ml-auto size-2 shrink-0 rounded-full bg-blue-500" />
                 )}
               </span>
             </button>
