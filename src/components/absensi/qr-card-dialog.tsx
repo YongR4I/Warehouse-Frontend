@@ -175,7 +175,7 @@ export function QrCardDialog({
           <div
             ref={cardRef}
             style={{ fontFamily: "sans-serif" }}
-            className="relative w-72 overflow-hidden rounded-2xl border border-border/60 bg-white shadow-lg"
+            className="relative w-72 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg"
           >
             {/* Header strip */}
             <div className="bg-foreground px-5 py-4">
@@ -222,7 +222,7 @@ export function QrCardDialog({
               </div>
 
               {/* QR Code */}
-              <div className="flex h-[164px] w-[164px] items-center justify-center rounded-xl border border-border/40 bg-white p-3 shadow-xs">
+              <div className="flex h-[164px] w-[164px] items-center justify-center rounded-xl border border-border/40 bg-card p-3 shadow-xs">
                 {loading && (
                   <div className="flex flex-col items-center gap-2">
                     <div className="size-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />

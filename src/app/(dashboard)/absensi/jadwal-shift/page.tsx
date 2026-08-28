@@ -33,6 +33,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { TableSkeletonRows } from "@/components/skeletons"
 import { JadwalShiftForm } from "@/components/jadwal-shift/jadwal-shift-form"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
@@ -439,7 +440,7 @@ export default function JadwalShiftPage() {
       {/* ── Schedule Table ── */}
       <div className="wrapper mt-[25px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Nama Petugas
@@ -473,16 +474,7 @@ export default function JadwalShiftPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jadwalQuery.isLoading && (
-              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                <TableCell
-                  colSpan={9}
-                  className="text-center text-sm text-muted-foreground"
-                >
-                  Memuat data...
-                </TableCell>
-              </TableRow>
-            )}
+            {jadwalQuery.isLoading && <TableSkeletonRows columns={10} rows={6} />}
             {!jadwalQuery.isLoading && weekUserIds.length === 0 && (
               <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                 <TableCell

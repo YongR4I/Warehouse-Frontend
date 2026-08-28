@@ -37,6 +37,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { TableSkeletonRows, KpiGridSkeleton } from "@/components/skeletons"
 
 export interface StockCardDrawerProps {
   open: boolean
@@ -240,7 +241,7 @@ export function StockCardDrawer({
         className="flex w-full flex-col border-l border-border bg-background p-0 text-foreground sm:max-w-4xl!"
       >
         {/* Header */}
-        <SheetHeader className="border-b border-border/60 bg-white px-6 py-5">
+        <SheetHeader className="border-b border-border/60 bg-card px-6 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex size-11 items-center justify-center rounded-xl border border-border/60 bg-muted/40 text-foreground shadow-2xs">
@@ -312,76 +313,80 @@ export function StockCardDrawer({
         </SheetHeader>
 
         {/* Body */}
-        <div className="flex-1 space-y-6 overflow-y-auto bg-[#FAFAFA] p-6">
+        <div className="flex-1 space-y-6 overflow-y-auto bg-muted/30 p-6">
           {/* KPI Summary Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Card className="border-border/70 bg-white p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Saldo Awal</span>
-                <BiTimeFive className="size-4 text-muted-foreground" />
-              </div>
-              <div className="mt-2 text-xl font-bold tracking-tight text-foreground">
-                {isLoading ? "-" : formatNumber(saldoAwal)}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {satuanNama}
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Posisi per {fromDate}
-              </p>
-            </Card>
+          {isLoading ? (
+            <KpiGridSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Card className="border-border/70 bg-card p-4 shadow-2xs">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Saldo Awal</span>
+                  <BiTimeFive className="size-4 text-muted-foreground" />
+                </div>
+                <div className="mt-2 text-xl font-bold tracking-tight text-foreground">
+                  {formatNumber(saldoAwal)}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {satuanNama}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Posisi per {fromDate}
+                </p>
+              </Card>
 
-            <Card className="border-border/70 bg-white p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-xs font-medium text-emerald-600">
-                <span>Total Masuk</span>
-                <BiTrendingDown className="size-4 text-emerald-500" />
-              </div>
-              <div className="mt-2 text-xl font-bold tracking-tight text-emerald-600">
-                {isLoading ? "-" : `+${formatNumber(totalMasuk)}`}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {satuanNama}
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Penerimaan / Mutasi In
-              </p>
-            </Card>
+              <Card className="border-border/70 bg-card p-4 shadow-2xs">
+                <div className="flex items-center justify-between text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  <span>Total Masuk</span>
+                  <BiTrendingDown className="size-4 text-emerald-500" />
+                </div>
+                <div className="mt-2 text-xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                  {`+${formatNumber(totalMasuk)}`}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {satuanNama}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Penerimaan / Mutasi In
+                </p>
+              </Card>
 
-            <Card className="border-border/70 bg-white p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-xs font-medium text-rose-600">
-                <span>Total Keluar</span>
-                <BiTrendingUp className="size-4 text-rose-500" />
-              </div>
-              <div className="mt-2 text-xl font-bold tracking-tight text-rose-600">
-                {isLoading ? "-" : `-${formatNumber(totalKeluar)}`}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {satuanNama}
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Pengiriman / Mutasi Out
-              </p>
-            </Card>
+              <Card className="border-border/70 bg-card p-4 shadow-2xs">
+                <div className="flex items-center justify-between text-xs font-medium text-rose-600 dark:text-rose-400">
+                  <span>Total Keluar</span>
+                  <BiTrendingUp className="size-4 text-rose-500" />
+                </div>
+                <div className="mt-2 text-xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
+                  {`-${formatNumber(totalKeluar)}`}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {satuanNama}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Pengiriman / Mutasi Out
+                </p>
+              </Card>
 
-            <Card className="border-border/70 bg-white p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-xs font-medium text-foreground">
-                <span>Saldo Akhir</span>
-                <BiBarChartAlt2 className="size-4 text-blue-500" />
-              </div>
-              <div className="mt-2 text-xl font-bold tracking-tight text-foreground">
-                {isLoading ? "-" : formatNumber(saldoAkhir)}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {satuanNama}
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Posisi per {toDate}
-              </p>
-            </Card>
-          </div>
+              <Card className="border-border/70 bg-card p-4 shadow-2xs">
+                <div className="flex items-center justify-between text-xs font-medium text-foreground">
+                  <span>Saldo Akhir</span>
+                  <BiBarChartAlt2 className="size-4 text-blue-500" />
+                </div>
+                <div className="mt-2 text-xl font-bold tracking-tight text-foreground">
+                  {formatNumber(saldoAkhir)}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {satuanNama}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Posisi per {toDate}
+                </p>
+              </Card>
+            </div>
+          )}
 
           {/* Filter Bar */}
-          <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-white p-3 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-card p-3 shadow-2xs">
             <DateRangeFilter
               startDate={fromDate}
               endDate={toDate}
@@ -415,7 +420,7 @@ export function StockCardDrawer({
           </div>
 
           {/* Ledger Table with Running Balance */}
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-white shadow-2xs">
+          <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xs">
             <Table>
               <TableHeader className="border-b border-border/60 bg-muted/40">
                 <TableRow className="h-11 hover:bg-transparent">
@@ -465,16 +470,7 @@ export function StockCardDrawer({
                   </TableCell>
                 </TableRow>
 
-                {isLoading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="h-36 text-center text-xs text-muted-foreground"
-                    >
-                      Memuat data mutasi kartu stok...
-                    </TableCell>
-                  </TableRow>
-                )}
+                {isLoading && <TableSkeletonRows columns={7} rows={6} />}
 
                 {!isLoading && sortedRows.length === 0 && (
                   <TableRow>
@@ -530,10 +526,10 @@ export function StockCardDrawer({
                       <TableCell className="text-foreground">
                         {row.gudang?.nama ?? "-"}
                       </TableCell>
-                      <TableCell className="text-right font-medium text-emerald-600">
+                      <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400">
                         {isIn ? `+${formatNumber(qtyAbs)}` : "-"}
                       </TableCell>
-                      <TableCell className="text-right font-medium text-rose-600">
+                      <TableCell className="text-right font-medium text-rose-600 dark:text-rose-400">
                         {isOut ? `-${formatNumber(qtyAbs)}` : "-"}
                       </TableCell>
                       <TableCell className="bg-muted/10 pr-4 text-right font-bold text-foreground">
@@ -548,7 +544,7 @@ export function StockCardDrawer({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border/50 bg-white px-6 py-4">
+        <div className="flex items-center justify-between border-t border-border/50 bg-card px-6 py-4">
           <div className="text-xs text-muted-foreground">
             Total Transaksi:{" "}
             <strong className="text-foreground">{sortedRows.length}</strong> |
@@ -556,9 +552,9 @@ export function StockCardDrawer({
             <strong
               className={cn(
                 netMutasi > 0
-                  ? "text-emerald-600"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : netMutasi < 0
-                    ? "text-rose-600"
+                    ? "text-rose-600 dark:text-rose-400"
                     : "text-foreground"
               )}
             >

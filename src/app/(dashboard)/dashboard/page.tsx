@@ -9,6 +9,12 @@ import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
 import { DashboardChart } from "@/components/dashboard/dashboard-chart"
 import { DashboardLogTable } from "@/components/dashboard/dashboard-log-table"
 import { DashboardInsightsPanel } from "@/components/dashboard/dashboard-insights-panel"
+import {
+  DashboardMetricsSkeleton,
+  DashboardChartSkeleton,
+  DashboardLogTableSkeleton,
+  DashboardInsightsSkeleton,
+} from "@/components/skeletons"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
 import type { Gudang } from "@/types"
@@ -86,7 +92,11 @@ export default function DashboardPage() {
 
       {/* ── 2. Cloudflare-Style Top Metrics Summary Strip ── */}
       <div className="wrapper mt-6">
-        <DashboardMetrics data={metricsData} />
+        {isLoading ? (
+          <DashboardMetricsSkeleton />
+        ) : (
+          <DashboardMetrics data={metricsData} />
+        )}
       </div>
 
       {/* ── 3. Main Body: Chart + Sampled Logs + Right Insights Panel ── */}
@@ -94,21 +104,34 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column (Chart + Sampled Logs) — takes 2 cols on lg */}
           <div className="space-y-8 lg:col-span-2">
-            <DashboardChart
-              data={data?.chart}
-              range={chartRange}
-              onRangeChange={setChartRange}
-            />
-            <DashboardLogTable logs={data?.recent_activity} />
+            {isLoading ? (
+              <>
+                <DashboardChartSkeleton />
+                <DashboardLogTableSkeleton />
+              </>
+            ) : (
+              <>
+                <DashboardChart
+                  data={data?.chart}
+                  range={chartRange}
+                  onRangeChange={setChartRange}
+                />
+                <DashboardLogTable logs={data?.recent_activity} />
+              </>
+            )}
           </div>
 
           {/* Right Column (Cloudflare Insights & Detection Tests style) */}
           <div className="border-l border-border/40 lg:col-span-1 lg:pl-6">
-            <DashboardInsightsPanel
-              alerts={data?.alerts}
-              warehouseCapacity={data?.warehouse_capacity}
-              attendanceToday={data?.attendance_today}
-            />
+            {isLoading ? (
+              <DashboardInsightsSkeleton />
+            ) : (
+              <DashboardInsightsPanel
+                alerts={data?.alerts}
+                warehouseCapacity={data?.warehouse_capacity}
+                attendanceToday={data?.attendance_today}
+              />
+            )}
           </div>
         </div>
       </div>

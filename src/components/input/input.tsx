@@ -43,7 +43,7 @@ function InputWrapper({
     >
       <Label
         className={cn(
-          "text-xs font-medium text-slate-600 select-none md:text-sm dark:text-zinc-400",
+          "text-xs font-medium text-muted-foreground select-none md:text-sm dark:text-zinc-400",
           required && "after:ml-0.5 after:text-destructive after:content-['*']"
         )}
       >

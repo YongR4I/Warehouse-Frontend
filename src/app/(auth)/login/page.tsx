@@ -48,7 +48,7 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await login(data.email, data.password)
+      await login(data.email, data.password, data.remember)
     } catch (err: unknown) {
       console.error(err)
       let message =
@@ -69,7 +69,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-white font-sans text-[#111111] max-[900px]:flex-col">
+    <div className="flex min-h-screen w-full bg-card font-sans text-[#111111] max-[900px]:flex-col">
       {/* LEFT: PIXEL ART ILLUSTRATION PANEL */}
       <div className="relative flex-[1.15] overflow-hidden bg-muted max-[900px]:order-first max-[900px]:min-h-[340px]">
         <Image
@@ -82,7 +82,7 @@ export default function LoginPage() {
       </div>
 
       {/* RIGHT: LOGIN FORM */}
-      <div className="mx-auto flex max-w-[560px] flex-1 flex-col justify-center bg-white px-16 py-12 max-[900px]:max-w-full max-[900px]:px-6 max-[900px]:py-10">
+      <div className="mx-auto flex max-w-[560px] flex-1 flex-col justify-center bg-card px-16 py-12 max-[900px]:max-w-full max-[900px]:px-6 max-[900px]:py-10">
         <div className="mx-auto w-full max-w-[440px]">
           <h1 className="mb-3 text-[32px] leading-[1.25] font-bold tracking-[-0.01em]">
             Welcome To Sabiru Warehouse
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="Enter your email"
                 {...register("email")}
-                className={`h-auto w-full rounded-[10px] border bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] ${
+                className={`h-auto w-full rounded-[10px] border bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] ${
                   errors.email
                     ? "border-red-500 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.12)]"
                     : "border-[#e6e6e6] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
@@ -136,7 +136,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="Enter your password"
                 {...register("password")}
-                className={`h-auto w-full rounded-[10px] border bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] ${
+                className={`h-auto w-full rounded-[10px] border bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] ${
                   errors.password
                     ? "border-red-500 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.12)]"
                     : "border-[#e6e6e6] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"

@@ -38,6 +38,7 @@ import {
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { SupplierForm } from "@/components/partner/supplier-form"
 import { CustomerForm } from "@/components/partner/customer-form"
+import { TableSkeletonRows } from "@/components/skeletons"
 
 const PER_PAGE = 15
 
@@ -222,7 +223,7 @@ export default function SupplierPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode
@@ -249,14 +250,7 @@ export default function SupplierPage() {
           </TableHeader>
           <TableBody>
             {supplierLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={7} rows={PER_PAGE} />
             ) : suppliers.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -335,10 +329,10 @@ export default function SupplierPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={7} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Pemasok: {supplierMeta?.total ?? 0} Perusahaan Pemasok
                     / Supplier
@@ -364,7 +358,7 @@ export default function SupplierPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode
@@ -391,14 +385,7 @@ export default function SupplierPage() {
           </TableHeader>
           <TableBody>
             {customerLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={7} rows={PER_PAGE} />
             ) : customers.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -477,10 +464,10 @@ export default function SupplierPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={7} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Pelanggan: {customerMeta?.total ?? 0} Data Pelanggan /
                     Customer

@@ -99,7 +99,7 @@ function FormModalFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-t border-border/60 bg-white px-6 py-4.5",
+        "flex items-center justify-between border-t border-border/60 bg-card px-6 py-4.5",
         className
       )}
     >

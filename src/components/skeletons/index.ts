@@ -1,0 +1,5 @@
+export * from "./table-skeleton"
+export * from "./kpi-card-skeleton"
+export * from "./dashboard-skeleton"
+export * from "./detail-skeleton"
+export * from "./filter-skeleton"

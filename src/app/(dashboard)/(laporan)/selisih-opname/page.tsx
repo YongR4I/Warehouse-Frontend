@@ -8,6 +8,7 @@ import { InputSearch, DateRangeFilter } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { Card } from "@/components/ui/card"
+import { TableSkeletonRows, StatGridSkeleton } from "@/components/skeletons"
 import { useApiList } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import {
@@ -269,109 +270,115 @@ export default function LaporanSelisihOpnamePage() {
       </div>
 
       {/* KPI Cards Section - Plain Boxes without color accents */}
-      <div className="wrapper mt-6">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Card 1: Total Item Diperiksa */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiPackage className="size-4 text-zinc-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Total Item Diperiksa
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    {query.isLoading ? "-" : formatNumber(rows.length)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Baris Selisih
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Sesi audit pada periode terpilih
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 2: Total Selisih Minus (Defisit) */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTrendingDown className="size-4 text-rose-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Total Selisih Minus (Defisit)
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    {query.isLoading ? "-" : formatNumber(totalMinus)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Unit (Defisit)
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Total kekurangan stok fisik
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 3: Total Selisih Plus (Surplus) */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTrendingUp className="size-4 text-emerald-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Total Selisih Plus (Surplus)
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    {query.isLoading ? "-" : `+${formatNumber(totalPlus)}`}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Unit (Surplus)
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Total kelebihan stok fisik
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Card 4: Tingkat Akurasi Stok */}
-          <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between px-5 py-4">
-              <div className="flex items-center gap-2">
-                <BiTargetLock className="size-4 text-blue-500" />
-                <span className="text-sm font-medium text-foreground">
-                  Tingkat Akurasi Stok
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">
-                    {query.isLoading ? "-" : `${akurasi.toFixed(1)}%`}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Sesuai Fisik
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {formatNumber(akuratCount)} SKU Klop Sesuai Sistem
-                </p>
-              </div>
-            </div>
-          </Card>
+      {query.isLoading ? (
+        <div className="wrapper mt-6">
+          <StatGridSkeleton count={4} />
         </div>
-      </div>
+      ) : (
+        <div className="wrapper mt-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {/* Card 1: Total Item Diperiksa */}
+            <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <BiPackage className="size-4 text-zinc-500" />
+                  <span className="text-sm font-medium text-foreground">
+                    Total Item Diperiksa
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatNumber(rows.length)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Baris Selisih
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Sesi audit pada periode terpilih
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Card 2: Total Selisih Minus (Defisit) */}
+            <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <BiTrendingDown className="size-4 text-rose-500" />
+                  <span className="text-sm font-medium text-foreground">
+                    Total Selisih Minus (Defisit)
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatNumber(totalMinus)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Unit (Defisit)
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Total kekurangan stok fisik
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Card 3: Total Selisih Plus (Surplus) */}
+            <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <BiTrendingUp className="size-4 text-emerald-500" />
+                  <span className="text-sm font-medium text-foreground">
+                    Total Selisih Plus (Surplus)
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {`+${formatNumber(totalPlus)}`}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Unit (Surplus)
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Total kelebihan stok fisik
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Card 4: Tingkat Akurasi Stok */}
+            <Card className="min-h-[114px] w-full transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <BiTargetLock className="size-4 text-blue-500" />
+                  <span className="text-sm font-medium text-foreground">
+                    Tingkat Akurasi Stok
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {`${akurasi.toFixed(1)}%`}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Sesuai Fisik
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatNumber(akuratCount)} SKU Klop Sesuai Sistem
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Filter Section */}
       <div className="wrapper mt-8">
@@ -431,7 +438,7 @@ export default function LaporanSelisihOpnamePage() {
         <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[1756px] table-fixed caption-bottom text-sm">
-              <TableHeader className="border-b border-border/60 bg-white">
+              <TableHeader className="border-b border-border/60 bg-card">
                 <TableRow className="h-14 hover:bg-transparent">
                   <TableHead className="w-[120px] pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     Tanggal Audit
@@ -478,16 +485,7 @@ export default function LaporanSelisihOpnamePage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="min-h-[300px]">
-                {query.isLoading && (
-                  <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                    <TableCell
-                      colSpan={14}
-                      className="text-center text-sm text-muted-foreground"
-                    >
-                      Memuat data...
-                    </TableCell>
-                  </TableRow>
-                )}
+                {query.isLoading && <TableSkeletonRows columns={14} rows={10} />}
                 {!query.isLoading && paginatedRows.length === 0 && (
                   <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                     <TableCell
@@ -545,7 +543,7 @@ export default function LaporanSelisihOpnamePage() {
                             +{formatNumber(selisih)}
                           </span>
                         ) : selisih < 0 ? (
-                          <span className="text-rose-600">
+                          <span className="text-rose-600 dark:text-rose-400">
                             {formatNumber(selisih)}
                           </span>
                         ) : (
@@ -582,7 +580,7 @@ export default function LaporanSelisihOpnamePage() {
               </TableBody>
             </table>
           </div>
-          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground">
+          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-card px-6 font-sans text-xs text-muted-foreground">
             <span>
               Menampilkan{" "}
               {rows.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-

@@ -53,7 +53,7 @@ export default function RegisterPage() {
     }
   }
   return (
-    <div className="flex min-h-screen w-full bg-white font-sans text-[#111111] max-[900px]:flex-col">
+    <div className="flex min-h-screen w-full bg-card font-sans text-[#111111] max-[900px]:flex-col">
       {/* LEFT: REGISTER FORM */}
       <div className="mx-auto flex max-w-[560px] flex-1 flex-col justify-center px-16 py-12 max-[900px]:max-w-full max-[900px]:px-6 max-[900px]:py-10">
         <div className="mb-12 text-xl font-bold tracking-[-0.02em]">adon</div>
@@ -71,7 +71,7 @@ export default function RegisterPage() {
 
         <div className="mb-6 flex gap-3">
           <button
-            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-3 text-sm font-medium text-[#111111] transition hover:border-[#d8d8d8] hover:bg-[#fafafa]"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-3 text-sm font-medium text-[#111111] transition hover:border-[#d8d8d8] hover:bg-[#fafafa]"
             type="button"
           >
             <svg className="size-4 shrink-0" viewBox="0 0 24 24">
@@ -95,7 +95,7 @@ export default function RegisterPage() {
             Daftar dengan Google
           </button>
           <button
-            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-3 text-sm font-medium text-[#111111] transition hover:border-[#d8d8d8] hover:bg-[#fafafa]"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-3 text-sm font-medium text-[#111111] transition hover:border-[#d8d8d8] hover:bg-[#fafafa]"
             type="button"
           >
             <svg className="size-4 shrink-0" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ export default function RegisterPage() {
               name="name"
               placeholder="Masukkan nama lengkap"
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
@@ -148,7 +148,7 @@ export default function RegisterPage() {
               name="email"
               placeholder="Masukkan email"
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function RegisterPage() {
               placeholder="Buat password"
               minLength={8}
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
             <small className="mt-1.5 block text-xs text-[#8a8a8a]">
               Minimal 8 karakter
@@ -187,7 +187,7 @@ export default function RegisterPage() {
               placeholder="Ulangi password"
               minLength={8}
               required
-              className="w-full rounded-[10px] border border-[#e6e6e6] bg-white px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
+              className="w-full rounded-[10px] border border-[#e6e6e6] bg-card px-3.5 py-[13px] text-sm text-[#111111] transition outline-none placeholder:text-[#b9b9b9] focus:border-[#ff7a30] focus:shadow-[0_0_0_3px_rgba(255,122,48,0.12)]"
             />
           </div>
 
@@ -239,12 +239,12 @@ export default function RegisterPage() {
       {/* RIGHT: PROMO PANEL */}
       <div className="relative flex flex-[1.15] items-center justify-center overflow-hidden bg-[radial-gradient(120%_100%_at_15%_0%,#ffb066_0%,transparent_55%),radial-gradient(120%_100%_at_85%_100%,#ff8a3d_0%,transparent_55%),linear-gradient(160deg,#ffcfa0_0%,#ff9a4d_55%,#ff7a30_100%)] px-10 py-14 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.25),transparent_60%)] before:content-[''] max-[900px]:order-first max-[900px]:min-h-[340px] max-[900px]:px-6 max-[900px]:py-10">
         <div className="relative flex w-full max-w-[440px] flex-col gap-6">
-          <div className="rounded-[24px] border border-white/35 bg-white/[0.16] px-6 py-5 backdrop-blur-[6px]">
+          <div className="rounded-[24px] border border-white/35 bg-card/[0.16] px-6 py-5 backdrop-blur-[6px]">
             <p className="mb-4 text-base leading-[1.5] font-semibold text-white">
               &quot;...missing key to our success.&quot;
             </p>
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-card text-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   className="size-full object-cover"
@@ -263,7 +263,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="rounded-[24px] bg-white p-6 shadow-[0_24px_48px_-16px_rgba(120,50,0,0.3)]">
+          <div className="rounded-[24px] bg-card p-6 shadow-[0_24px_48px_-16px_rgba(120,50,0,0.3)]">
             <div className="mb-5 flex items-center justify-between">
               <div className="flex size-10 items-center justify-center rounded-[10px] bg-[#f5f5f5]">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -339,7 +339,7 @@ export default function RegisterPage() {
                 strokeLinecap="round"
               />
             </svg>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/35 bg-white/15 px-3.5 py-1.5 text-[13px] text-white">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/35 bg-card/15 px-3.5 py-1.5 text-[13px] text-white">
               Last month
             </div>
           </div>

@@ -364,7 +364,7 @@ export function ExportModal({
                     Dokumen PDF
                   </p>
                   {isPdfUnsupported && (
-                    <span className="py-0.2 rounded bg-rose-500/10 px-1 text-[9px] font-semibold whitespace-nowrap text-rose-600">
+                    <span className="py-0.2 rounded bg-rose-500/10 px-1 text-[9px] font-semibold whitespace-nowrap text-rose-600 dark:text-rose-400">
                       Excel Only
                     </span>
                   )}

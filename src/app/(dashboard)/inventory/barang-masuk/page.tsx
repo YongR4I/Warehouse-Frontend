@@ -9,6 +9,7 @@ import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangMasukForm } from "@/components/barang-masuk/barang-masuk-form"
+import { TableSkeletonRows } from "@/components/skeletons"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage, downloadFile } from "@/lib/api"
@@ -212,7 +213,7 @@ export default function BarangMasukPage() {
 
       <div className="wrapper mt-[25px] min-w-0">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 No. Referensi
@@ -245,14 +246,7 @@ export default function BarangMasukPage() {
           </TableHeader>
           <TableBody className="min-h-[300px]">
             {isLoading ? (
-              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                <TableCell
-                  colSpan={9}
-                  className="py-10 text-center font-sans text-sm text-muted-foreground"
-                >
-                  Memuat data...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={9} rows={15} />
             ) : items.length === 0 ? (
               <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                 <TableCell
@@ -356,10 +350,10 @@ export default function BarangMasukPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={9} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Menampilkan {rangeStart}-{rangeEnd} dari {total} data
                   </span>

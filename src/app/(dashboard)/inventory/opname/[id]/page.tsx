@@ -37,6 +37,7 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { DetailPageSkeleton } from "@/components/skeletons"
 import type { StokOpname, StokOpnamePayload } from "@/types"
 
 interface EditableRow {
@@ -239,11 +240,7 @@ export default function AuditOpnamePage() {
   }, [filteredData, currentPage])
 
   if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
-        Memuat data...
-      </div>
-    )
+    return <DetailPageSkeleton metaCount={4} columns={7} rows={10} />
   }
 
   if (!session) {
@@ -291,7 +288,7 @@ export default function AuditOpnamePage() {
             {isEditable && (
               <Button
                 variant="outline"
-                className="h-[42px] rounded-[12px] text-rose-600"
+                className="h-[42px] rounded-[12px] text-rose-600 dark:text-rose-400"
                 onClick={handleCancel}
               >
                 <BiX className="size-5" />
@@ -311,7 +308,7 @@ export default function AuditOpnamePage() {
               <Button
                 variant="default"
                 onClick={handleComplete}
-                className="flex h-[42px] items-center gap-2 rounded-[12px] bg-black px-5 font-semibold text-white shadow-md hover:bg-black/90 active:scale-[0.98]"
+                className="flex h-[42px] items-center gap-2 rounded-[12px] bg-foreground px-5 font-semibold text-background shadow-md hover:bg-foreground/90 active:scale-[0.98]"
               >
                 <BiCheck className="size-5" />
                 <span>Finalisasi & Adjust Stok</span>
@@ -366,28 +363,28 @@ export default function AuditOpnamePage() {
       </div>
 
       <div className="wrapper mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-r from-zinc-50 to-zinc-100/50 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <BiClipboard className="size-4.5 text-slate-500" />
+        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            <BiClipboard className="size-4.5 text-muted-foreground" />
             <span>Total Item (SKU)</span>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-bold tracking-tight text-slate-900">
+            <span className="text-2xl font-bold tracking-tight text-foreground">
               {stats.totalSku} SKU
             </span>
           </div>
-          <div className="mt-2 text-[11px] font-semibold text-slate-400">
+          <div className="mt-2 text-[11px] font-semibold text-muted-foreground/70">
             Seluruh barang terdaftar audit
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50/50 to-emerald-100/30 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600">
-            <BiCheckCircle className="size-4.5 text-emerald-600" />
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <BiCheckCircle className="size-4.5 text-emerald-600 dark:text-emerald-400" />
             <span>Stok Sesuai (Match)</span>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-bold tracking-tight text-emerald-700">
+            <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 dark:text-emerald-400">
               {stats.matchSku} SKU
             </span>
           </div>
@@ -396,13 +393,13 @@ export default function AuditOpnamePage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50/50 to-rose-100/30 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-rose-600">
-            <BiErrorCircle className="size-4.5 text-rose-600" />
+        <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
+            <BiErrorCircle className="size-4.5 text-rose-600 dark:text-rose-400" />
             <span>Terdapat Selisih</span>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-bold tracking-tight text-rose-700">
+            <span className="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 dark:text-rose-400">
               {stats.diffSku} SKU
             </span>
           </div>
@@ -411,13 +408,13 @@ export default function AuditOpnamePage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50/50 to-rose-100/30 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-rose-600">
-            <BiTrendingDown className="size-4.5 text-rose-600" />
+        <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 dark:border-rose-900/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
+            <BiTrendingDown className="size-4.5 text-rose-600 dark:text-rose-400" />
             <span>Est. Valuation Selisih</span>
           </div>
           <div className="mt-4">
-            <span className="text-2xl font-bold tracking-tight text-rose-700">
+            <span className="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 dark:text-rose-400">
               {formatValuation(stats.valuationVariance)}
             </span>
           </div>
@@ -459,7 +456,7 @@ export default function AuditOpnamePage() {
         <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card">
           <div className="w-full overflow-x-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="border-b border-border/60 bg-white">
+              <TableHeader className="border-b border-border/60 bg-card">
                 <TableRow className="h-14 hover:bg-transparent">
                   <TableHead className="pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     SKU & Informasi Barang
@@ -547,15 +544,15 @@ export default function AuditOpnamePage() {
 
                       <TableCell className="text-center whitespace-nowrap">
                         {selisihVal < 0 ? (
-                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-rose-100 bg-rose-50 px-2.5 text-xs font-semibold text-rose-600">
+                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-rose-200/60 dark:border-rose-900/40 bg-rose-50 px-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                             {selisihVal}
                           </span>
                         ) : selisihVal > 0 ? (
-                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-600">
+                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                             +{selisihVal}
                           </span>
                         ) : (
-                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-600">
+                          <span className="inline-flex h-6 items-center justify-center rounded-full border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                             0
                           </span>
                         )}
@@ -608,10 +605,10 @@ export default function AuditOpnamePage() {
                     </TableRow>
                   )}
               </TableBody>
-              <TableFooter className="border-t border-border/50 bg-white">
+              <TableFooter className="border-t border-border/50 bg-card">
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={7} className="p-0 align-middle">
-                    <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+                    <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground select-none">
                       <span>
                         Menampilkan{" "}
                         {filteredData.length > 0

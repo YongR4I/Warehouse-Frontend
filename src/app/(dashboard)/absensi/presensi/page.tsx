@@ -35,6 +35,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { TableSkeletonRows } from "@/components/skeletons"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
 import { useApiList, useApiCreate } from "@/hooks/use-api"
@@ -338,7 +339,7 @@ export default function PresensiPage() {
 
             <div className="mt-4">
               <Table>
-                <TableHeader className="border-b border-border/60 bg-white">
+                <TableHeader className="border-b border-border/60 bg-card">
                   <TableRow className="h-14 hover:bg-transparent">
                     <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                       Kode Pegawai
@@ -370,16 +371,7 @@ export default function PresensiPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {absensiQuery.isLoading && (
-                    <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                      <TableCell
-                        colSpan={9}
-                        className="text-center text-sm text-muted-foreground"
-                      >
-                        Memuat data...
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {absensiQuery.isLoading && <TableSkeletonRows columns={9} rows={10} />}
                   {!absensiQuery.isLoading && rows.length === 0 && (
                     <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                       <TableCell
@@ -573,7 +565,7 @@ export default function PresensiPage() {
           <Button
             type="submit"
             form="absensi-form"
-            className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
+            className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90"
             disabled={submitting}
           >
             {submitting ? "Menyimpan..." : "Simpan Absensi"}

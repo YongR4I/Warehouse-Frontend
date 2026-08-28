@@ -41,6 +41,7 @@ import {
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangForm } from "@/components/barang/barang-form"
 import { ExportModal } from "@/components/export-modal"
+import { TableSkeletonRows } from "@/components/skeletons"
 
 const PER_PAGE = 15
 
@@ -208,7 +209,7 @@ export default function BarangPage() {
 
       <div className="wrapper mt-[25px] min-w-0">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Barang
@@ -238,14 +239,7 @@ export default function BarangPage() {
           </TableHeader>
           <TableBody className="min-h-[300px]">
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={8} rows={PER_PAGE} />
             ) : filteredBarangs.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -343,10 +337,10 @@ export default function BarangPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={8} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>Total Barang: {meta?.total ?? 0} SKU Barang</span>
                   {renderPagination()}
                   <span>{PER_PAGE} per halaman</span>

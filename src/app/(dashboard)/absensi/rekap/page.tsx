@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { TableSkeletonRows, StatGridSkeleton } from "@/components/skeletons"
 import { useApiList } from "@/hooks/use-api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
 import type { Absensi } from "@/types"
@@ -426,83 +427,89 @@ export default function RekapPage() {
       </div>
 
       {/* ─── STATS CARDS ─── */}
-      <div className="wrapper mt-[35px] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Card 1: Total Presensi Dicatat */}
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <BiClipboard className="size-4 text-muted-foreground" />
-            <span>Total Presensi Dicatat</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-foreground">
-              {absensiQuery.isLoading ? "-" : totalSesi}
-            </span>
-            <span className="text-xs font-semibold text-muted-foreground/70">
-              Sesi / Periode Ini
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
-            {formatDate(fromDate)} – {formatDate(toDate)}
-          </div>
+      {absensiQuery.isLoading ? (
+        <div className="wrapper mt-[35px]">
+          <StatGridSkeleton count={4} />
         </div>
+      ) : (
+        <div className="wrapper mt-[35px] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Card 1: Total Presensi Dicatat */}
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiClipboard className="size-4 text-muted-foreground" />
+              <span>Total Presensi Dicatat</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {totalSesi}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground/70">
+                Sesi / Periode Ini
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
+              {formatDate(fromDate)} – {formatDate(toDate)}
+            </div>
+          </div>
 
-        {/* Card 2: Kehadiran Tepat Waktu */}
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <BiCheckCircle className="size-4 text-muted-foreground" />
-            <span>Kehadiran Tepat Waktu</span>
+          {/* Card 2: Kehadiran Tepat Waktu */}
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiCheckCircle className="size-4 text-muted-foreground" />
+              <span>Kehadiran Tepat Waktu</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {`${hadirPct.toFixed(1)}%`}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground/70">
+                {hadirCount} Sesi
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
+              Sesuai dengan Jadwal Shift
+            </div>
           </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-foreground">
-              {absensiQuery.isLoading ? "-" : `${hadirPct.toFixed(1)}%`}
-            </span>
-            <span className="text-xs font-semibold text-muted-foreground/70">
-              {hadirCount} Sesi
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
-            Sesuai dengan Jadwal Shift
-          </div>
-        </div>
 
-        {/* Card 3: Total Terlambat */}
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <BiTimeFive className="size-4 text-muted-foreground" />
-            <span>Total Terlambat</span>
+          {/* Card 3: Total Terlambat */}
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiTimeFive className="size-4 text-muted-foreground" />
+              <span>Total Terlambat</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {terlambatCount}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground/70">
+                Sesi ({terlambatPct.toFixed(1)}%)
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
+              Status Terlambat pada Periode
+            </div>
           </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-foreground">
-              {absensiQuery.isLoading ? "-" : terlambatCount}
-            </span>
-            <span className="text-xs font-semibold text-muted-foreground/70">
-              Sesi ({terlambatPct.toFixed(1)}%)
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
-            Status Terlambat pada Periode
-          </div>
-        </div>
 
-        {/* Card 4: Mangkir / Alfa */}
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <BiUserX className="size-4 text-muted-foreground" />
-            <span>Mangkir / Alfa</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-foreground">
-              {absensiQuery.isLoading ? "-" : alphaCount}
-            </span>
-            <span className="text-xs font-semibold text-muted-foreground/70">
-              Sesi ({alphaPct.toFixed(1)}%)
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
-            Tanpa Catatan Cuti atau Izin
+          {/* Card 4: Mangkir / Alfa */}
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiUserX className="size-4 text-muted-foreground" />
+              <span>Mangkir / Alfa</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {alphaCount}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground/70">
+                Sesi ({alphaPct.toFixed(1)}%)
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/60">
+              Tanpa Catatan Cuti atau Izin
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ─── FILTER ─── */}
       <div className="wrapper mt-[50px]">
@@ -558,7 +565,7 @@ export default function RekapPage() {
           <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card">
             <div className="w-full overflow-x-auto">
               <table className="w-full caption-bottom text-sm">
-                <TableHeader className="border-b border-border/60 bg-white">
+                <TableHeader className="border-b border-border/60 bg-card">
                   <TableRow className="h-14 hover:bg-transparent">
                     <TableHead className="pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                       Tanggal
@@ -608,16 +615,7 @@ export default function RekapPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="min-h-[300px]">
-                  {absensiQuery.isLoading && (
-                    <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                      <TableCell
-                        colSpan={15}
-                        className="text-center text-sm text-muted-foreground"
-                      >
-                        Memuat data...
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {absensiQuery.isLoading && <TableSkeletonRows columns={15} rows={6} />}
                   {!absensiQuery.isLoading && paginatedData.length === 0 && (
                     <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                       <TableCell
@@ -724,7 +722,7 @@ export default function RekapPage() {
               </table>
             </div>
 
-            <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+            <div className="flex h-14 items-center justify-between border-t border-border/50 bg-card px-6 font-sans text-xs text-muted-foreground select-none">
               <span>
                 Menampilkan{" "}
                 {filteredData.length > 0
@@ -766,7 +764,7 @@ export default function RekapPage() {
           <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card">
             <div className="w-full overflow-x-auto">
               <table className="w-full caption-bottom text-sm">
-                <TableHeader className="border-b border-border/60 bg-white">
+                <TableHeader className="border-b border-border/60 bg-card">
                   <TableRow className="h-14 hover:bg-transparent">
                     {groupBy === "petugas" ? (
                       <>
@@ -815,14 +813,10 @@ export default function RekapPage() {
                 </TableHeader>
                 <TableBody className="min-h-[300px]">
                   {absensiQuery.isLoading && (
-                    <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                      <TableCell
-                        colSpan={groupBy === "petugas" ? 10 : 9}
-                        className="text-center text-sm text-muted-foreground"
-                      >
-                        Memuat data...
-                      </TableCell>
-                    </TableRow>
+                    <TableSkeletonRows
+                      columns={groupBy === "petugas" ? 10 : 9}
+                      rows={6}
+                    />
                   )}
                   {!absensiQuery.isLoading && paginatedRekap.length === 0 && (
                     <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
@@ -926,7 +920,7 @@ export default function RekapPage() {
               </table>
             </div>
 
-            <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+            <div className="flex h-14 items-center justify-between border-t border-border/50 bg-card px-6 font-sans text-xs text-muted-foreground select-none">
               <span>
                 Menampilkan{" "}
                 {rekapData.length > 0

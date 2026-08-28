@@ -180,10 +180,10 @@ export default function PortalIzinPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-100 px-4 py-8">
+    <main className="min-h-screen bg-muted px-4 py-8">
       <div className="mx-auto w-full max-w-3xl">
         {/* Header */}
-        <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-6 py-4 shadow-xs">
+        <div className="flex items-center justify-between rounded-2xl border border-border bg-card px-6 py-4 shadow-xs">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-foreground">
               <BiCalendarAlt className="size-5 text-background" />
@@ -220,7 +220,7 @@ export default function PortalIzinPage() {
 
         {/* Layar scan */}
         {!sesi && (
-          <div className="mt-5 flex flex-col items-center rounded-2xl border border-zinc-200 bg-white px-6 py-12 shadow-xs">
+          <div className="mt-5 flex flex-col items-center rounded-2xl border border-border bg-card px-6 py-12 shadow-xs">
             <div className="rounded-[1.75rem] border border-border/40 bg-muted/30 p-8">
               <BiQr className="size-16 text-foreground/70" />
             </div>
@@ -247,12 +247,12 @@ export default function PortalIzinPage() {
           <>
             {/* Identitas */}
             <div className="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-              <BiCheckCircle className="size-6 shrink-0 text-emerald-600" />
+              <BiCheckCircle className="size-6 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-emerald-900">
                   {sesi.petugas.nama}
                 </p>
-                <p className="text-xs text-emerald-700/80">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 dark:text-emerald-400/80">
                   {[sesi.petugas.kode, sesi.petugas.jabatan]
                     .filter(Boolean)
                     .join(" · ") || "Terverifikasi via kartu QR"}
@@ -263,7 +263,7 @@ export default function PortalIzinPage() {
             {/* Form pengajuan */}
             <form
               onSubmit={(e) => void handleSubmit(e)}
-              className="mt-5 space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs"
+              className="mt-5 space-y-4 rounded-2xl border border-border bg-card p-6 shadow-xs"
             >
               <p className="text-sm font-semibold text-foreground">
                 Ajukan Baru
@@ -311,7 +311,7 @@ export default function PortalIzinPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-black px-6 py-2.5 text-white hover:bg-black/90"
+                  className="rounded-xl bg-foreground px-6 py-2.5 text-background hover:bg-foreground/90"
                 >
                   <BiSend className="mr-2 size-4" />
                   {submitting ? "Mengirim..." : "Kirim Pengajuan"}
@@ -320,7 +320,7 @@ export default function PortalIzinPage() {
             </form>
 
             {/* Riwayat */}
-            <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <div className="mt-5 rounded-2xl border border-border bg-card p-6 shadow-xs">
               <p className="mb-4 text-sm font-semibold text-foreground">
                 Riwayat Pengajuan Anda
               </p>

@@ -420,8 +420,8 @@ export default function ScanAbsensiPage() {
   // ---------- Setup ----------
   if (setupReady && !config) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-100 p-6">
-        <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-lg">
+      <main className="flex min-h-screen items-center justify-center bg-muted p-6">
+        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
           <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-foreground">
             <BiMap className="size-6 text-background" />
           </div>
@@ -443,7 +443,7 @@ export default function ScanAbsensiPage() {
             />
           </div>
           <Button
-            className="mt-6 w-full rounded-xl bg-black py-6 text-white hover:bg-black/90"
+            className="mt-6 w-full rounded-xl bg-foreground py-6 text-background hover:bg-foreground/90"
             onClick={pinGudang}
             disabled={gudangOptions.isLoading || !selectedGudang}
           >
@@ -459,7 +459,7 @@ export default function ScanAbsensiPage() {
 
   // ---------- Scan screen ----------
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-black">
+    <main className="relative h-screen w-screen overflow-hidden bg-foreground">
       <style dangerouslySetInnerHTML={{ __html: scanKeyframes }} />
 
       {/* ── Camera: full-screen background ── */}
@@ -492,12 +492,12 @@ export default function ScanAbsensiPage() {
 
       {/* Dim overlay saat processing/result/error/queued */}
       {!showScanGuide && (
-        <div className="absolute inset-0 z-10 bg-black/60 transition-opacity duration-300" />
+        <div className="absolute inset-0 z-10 bg-foreground/60 transition-opacity duration-300" />
       )}
 
       {/* ── Top bar ── */}
       <div className="absolute top-0 right-0 left-0 z-30 flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2 rounded-full bg-black/40 px-4 py-1.5 text-sm font-medium backdrop-blur-md">
+        <div className="flex items-center gap-2 rounded-full bg-foreground/40 px-4 py-1.5 text-sm font-medium backdrop-blur-md">
           <BiMap className="size-4" />
           {config?.gudangNama ?? "—"}
         </div>
@@ -518,7 +518,7 @@ export default function ScanAbsensiPage() {
           )}
           <button
             onClick={unpinGudang}
-            className="flex cursor-pointer items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md transition-colors hover:bg-black/60"
+            className="flex cursor-pointer items-center gap-1.5 rounded-full bg-foreground/40 px-3 py-1.5 text-xs font-medium text-background/70 backdrop-blur-md transition-colors hover:bg-foreground/60"
           >
             <BiRefresh className="size-3.5" />
             Ganti
@@ -532,7 +532,7 @@ export default function ScanAbsensiPage() {
           className="absolute right-0 left-0 z-30 flex flex-col items-center gap-3"
           style={{ top: frame.top + frame.size + 16 }}
         >
-          <div className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 backdrop-blur-md">
+          <div className="flex items-center gap-2 rounded-full bg-foreground/50 px-4 py-2 backdrop-blur-md">
             <BiQr className="size-4 text-white/60" />
             <span className="text-sm font-medium text-white/60">
               Arahkan QR Code ke dalam frame
@@ -555,8 +555,8 @@ export default function ScanAbsensiPage() {
           onClick={() => void handleCameraToggle()}
           className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium backdrop-blur-md transition-colors ${
             cameraOn
-              ? "bg-black/40 text-white hover:bg-black/60"
-              : "bg-black/30 text-white/60 hover:bg-black/50"
+              ? "bg-foreground/40 text-background hover:bg-foreground/60"
+              : "bg-foreground/30 text-background/60 hover:bg-foreground/50"
           }`}
         >
           {cameraOn ? (

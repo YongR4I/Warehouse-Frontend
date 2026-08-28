@@ -42,7 +42,7 @@ export function ItemTable({
     <div className="space-y-2">
       <div
         className={cn(
-          "overflow-hidden rounded-xl border border-border bg-white",
+          "overflow-hidden rounded-xl border border-border bg-card",
           className
         )}
       >

@@ -323,18 +323,18 @@ export function UploadInput({
         onDrop={handleDrop}
         className={cn(
           "relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-7 text-center transition-all duration-200 select-none",
-          "border-border bg-slate-50/50 hover:border-slate-400 hover:bg-muted/40 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
+          "border-border bg-muted/50 hover:border-slate-400 hover:bg-muted/40 dark:bg-zinc-900/30 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/60",
           isDragging && "border-primary bg-primary/5 ring-4 ring-primary/10",
           disabled && "pointer-events-none cursor-not-allowed opacity-50",
           hasFiles && !multiple && "py-5"
         )}
       >
-        <div className="flex size-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600 shadow-xs dark:bg-zinc-800 dark:text-zinc-300">
+        <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-muted-foreground shadow-xs dark:bg-zinc-800 dark:text-zinc-300">
           <BiUpload className="size-5 transition-transform duration-200 group-hover:-translate-y-0.5" />
         </div>
 
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+          <span className="text-sm font-semibold text-foreground dark:text-zinc-200">
             {children || "Klik untuk upload atau seret file ke sini"}
           </span>
           <span className="text-xs text-muted-foreground">
@@ -399,7 +399,7 @@ export function UploadInput({
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <span>{formatFileSize(file.size)}</span>
                       <span>•</span>
-                      <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
+                      <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 dark:text-emerald-400">
                         <BiCheckCircle className="size-3" /> Siap diupload
                       </span>
                     </div>

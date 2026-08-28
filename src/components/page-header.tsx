@@ -20,13 +20,13 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-2">
-      <nav className="flex items-center gap-1.5 text-sm text-[#857F78]">
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
         {items.map((item, index) => (
           <span
             key={index}
             className="flex items-center gap-1.5 font-semibold uppercase"
           >
-            {index > 0 && <span className="text-[#857F78]"> &gt; </span>}
+            {index > 0 && <span className="text-muted-foreground"> &gt; </span>}
             {item.href ? (
               <a
                 href={item.href}
@@ -48,7 +48,7 @@ export function PageHeader({
           {title}
         </h1>
       </div>
-      {description && <p className="text-sm text-[#857F78]">{description}</p>}
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
   )
 }

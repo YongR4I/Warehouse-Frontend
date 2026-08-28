@@ -42,7 +42,7 @@ function getShiftColor(value: ShiftValue | undefined) {
     case "Shift 3":
       return "bg-purple-50 text-purple-700 border-purple-200"
     case "OFF":
-      return "bg-zinc-100 text-zinc-500 border-zinc-200"
+      return "bg-muted text-zinc-500 border-border"
     default:
       return "bg-background text-foreground border-border"
   }

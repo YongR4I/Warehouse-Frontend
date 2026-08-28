@@ -41,6 +41,7 @@ import {
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { GudangForm } from "@/components/gudang/gudang-form"
 import { RakForm } from "@/components/gudang/rak-form"
+import { TableSkeletonRows } from "@/components/skeletons"
 
 const PER_PAGE = 15
 
@@ -244,7 +245,7 @@ export default function GudangPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode
@@ -268,14 +269,7 @@ export default function GudangPage() {
           </TableHeader>
           <TableBody>
             {gudangLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={6} rows={PER_PAGE} />
             ) : gudangs.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -337,10 +331,10 @@ export default function GudangPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Gudang: {gudangMeta?.total ?? 0} Gudang ({aktifGudang}{" "}
                     Aktif, {nonAktifGudang} Non-Aktif)
@@ -374,7 +368,7 @@ export default function GudangPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode Rak / Bin
@@ -398,14 +392,7 @@ export default function GudangPage() {
           </TableHeader>
           <TableBody>
             {rakLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={6} rows={PER_PAGE} />
             ) : filteredRaks.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -465,10 +452,10 @@ export default function GudangPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={6} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Lokasi Rak: {rakMeta?.total ?? 0} Lokasi Rak / Bin
                   </span>

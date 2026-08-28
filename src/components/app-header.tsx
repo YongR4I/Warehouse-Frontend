@@ -21,7 +21,7 @@ export function AppHeader() {
     : "AU"
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-end border-b border-border/40 bg-white px-6">
+    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-end border-b border-border/40 bg-card px-6">
       <div className="flex w-fit items-center gap-3 rounded-xl px-4 py-1.5">
         <NotificationBell />
         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tl from-[#93cce8] from-[#ffffff] via-[#0063b5] to-[#cbf9ff] text-[12px] font-semibold tracking-tight text-white shadow-xs">

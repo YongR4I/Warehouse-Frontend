@@ -15,6 +15,7 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { DetailPageSkeleton } from "@/components/skeletons"
 import { useApiDetail, useApiAction } from "@/hooks/use-api"
 import { useAuthStore } from "@/store/use-auth-store"
 import { toast } from "sonner"
@@ -92,11 +93,7 @@ export default function MutasiDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
-        Memuat data...
-      </div>
-    )
+    return <DetailPageSkeleton metaCount={4} columns={5} rows={6} />
   }
 
   if (!info) {
@@ -141,7 +138,7 @@ export default function MutasiDetailPage() {
                 <>
                   <Button
                     variant="outline"
-                    className="h-[42px] rounded-[12px] text-rose-600"
+                    className="h-[42px] rounded-[12px] text-rose-600 dark:text-rose-400"
                     onClick={() =>
                       runAction(rejectMutation, "reject", "Mutasi ditolak")
                     }
@@ -151,7 +148,7 @@ export default function MutasiDetailPage() {
                   </Button>
                   <Button
                     variant="default"
-                    className="h-[42px] rounded-[12px] bg-black font-semibold text-white hover:bg-black/90"
+                    className="h-[42px] rounded-[12px] bg-foreground font-semibold text-background hover:bg-foreground/90"
                     onClick={() =>
                       runAction(approveMutation, "approve", "Mutasi disetujui")
                     }
@@ -193,14 +190,14 @@ export default function MutasiDetailPage() {
 
       <div className="wrapper mt-10 flex flex-wrap items-start justify-between gap-x-8 gap-y-6">
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Gudang Asal</div>
+          <div className="text-xs font-normal text-muted-foreground">Gudang Asal</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {info.gudang_asal?.nama ?? "-"}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
+          <div className="text-xs font-normal text-muted-foreground">
             Gudang Tujuan
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
@@ -209,14 +206,14 @@ export default function MutasiDetailPage() {
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Keterangan</div>
+          <div className="text-xs font-normal text-muted-foreground">Keterangan</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {info.keterangan || "-"}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Status</div>
+          <div className="text-xs font-normal text-muted-foreground">Status</div>
           <div className="mt-1">
             <ColoredBadge color={statusColor(info.status)}>
               {statusLabel(info.status)}
@@ -240,10 +237,10 @@ export default function MutasiDetailPage() {
       </div>
 
       <div className="wrapper mt-[25px]">
-        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-white shadow-xs">
+        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card shadow-xs">
           <div className="w-full overflow-x-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="border-b border-border/40 bg-white">
+              <TableHeader className="border-b border-border/40 bg-card">
                 <TableRow className="h-14 hover:bg-transparent">
                   <TableHead className="pl-6 text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
                     SKU
@@ -280,7 +277,7 @@ export default function MutasiDetailPage() {
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
                       {row.barang?.satuan?.nama ?? "-"}
                     </TableCell>
-                    <TableCell className="pr-6 font-sans text-sm whitespace-nowrap text-[#857F78]">
+                    <TableCell className="pr-6 font-sans text-sm whitespace-nowrap text-muted-foreground">
                       {info.keterangan || "-"}
                     </TableCell>
                   </TableRow>
@@ -296,10 +293,10 @@ export default function MutasiDetailPage() {
                   </TableRow>
                 )}
               </TableBody>
-              <TableFooter className="border-t border-border/40 bg-white">
+              <TableFooter className="border-t border-border/40 bg-card">
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={5} className="p-0 align-middle">
-                    <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+                    <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground select-none">
                       <span>
                         Menampilkan{" "}
                         {filteredData.length > 0

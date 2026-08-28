@@ -188,7 +188,7 @@ export function AppSidebar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "sticky top-0 flex h-svh w-[260px] flex-col overflow-hidden border-r border-border/40 bg-white transition-shadow duration-200 select-none",
+        "sticky top-0 flex h-svh w-[260px] flex-col overflow-hidden border-r border-border/40 bg-sidebar transition-shadow duration-200 select-none",
         isHovered && "z-20 shadow-md"
       )}
     >

@@ -37,7 +37,7 @@ export function ItemTableRow({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-rose-50 hover:text-rose-600 dark:text-rose-400"
           >
             <BiTrash className="size-4" />
           </button>

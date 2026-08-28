@@ -273,7 +273,7 @@ export function MutasiForm({
                             value={selectField.value}
                             onValueChange={selectField.onChange}
                           >
-                            <SelectTrigger className="h-8 w-full rounded-lg border-border bg-white px-3 text-sm">
+                            <SelectTrigger className="h-8 w-full rounded-lg border-border bg-card px-3 text-sm">
                               <SelectValue placeholder="Pilih barang..." />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-border bg-popover">
@@ -297,7 +297,7 @@ export function MutasiForm({
                         {...register(`items.${index}.jumlah`, {
                           valueAsNumber: true,
                         })}
-                        className="h-8 w-full rounded-lg border border-border bg-white px-2 text-right text-sm text-foreground tabular-nums transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                        className="h-8 w-full rounded-lg border border-border bg-card px-2 text-right text-sm text-foreground tabular-nums transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
                       />
                     </TableCell>
                     <TableCell className="text-sm text-[#4c4546]">
@@ -334,7 +334,7 @@ export function MutasiForm({
         <Button
           type="submit"
           form="mutasi-form"
-          className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
+          className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}

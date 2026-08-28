@@ -170,7 +170,7 @@ export function SupplierForm({
         <Button
           type="submit"
           form="supplier-form"
-          className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
+          className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90"
           disabled={isSubmitting}
         >
           {initialData ? "Simpan Perubahan" : "Simpan Supplier"}

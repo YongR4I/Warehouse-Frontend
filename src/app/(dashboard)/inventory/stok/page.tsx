@@ -35,6 +35,7 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { KpiGridSkeleton, TableSkeletonRows } from "@/components/skeletons"
 import { cn } from "@/lib/utils"
 
 const TIPE_CONFIG: Record<
@@ -218,83 +219,87 @@ export default function StokPage() {
 
       {/* KPI Cards Overview */}
       <div className="wrapper mt-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                  Total SKU Aktif
-                </span>
-                <BiPackage className="size-5 text-foreground" />
+        {isLoadingBarang || isLoadingLog ? (
+          <KpiGridSkeleton count={4} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="min-h-[105px] w-full border-border/70 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                    Total SKU Aktif
+                  </span>
+                  <BiPackage className="size-5 text-foreground" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-foreground">
+                    {formatNumber(totalSkuCount)}
+                  </span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Barang terdaftar di sistem
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-2xl font-bold tracking-tight text-foreground">
-                  {isLoadingBarang ? "-" : formatNumber(totalSkuCount)}
-                </span>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Barang terdaftar di sistem
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-emerald-600 uppercase">
-                  Total Unit Fisik
-                </span>
-                <BiTrendingDown className="size-5 text-emerald-500" />
+            <Card className="min-h-[105px] w-full border-border/70 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase">
+                    Total Unit Fisik
+                  </span>
+                  <BiTrendingDown className="size-5 text-emerald-500" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                    {formatNumber(totalStokFisik)}
+                  </span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Akumulasi saldo fisik terkini
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-2xl font-bold tracking-tight text-emerald-600">
-                  {isLoadingBarang ? "-" : formatNumber(totalStokFisik)}
-                </span>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Akumulasi saldo fisik terkini
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
-                  Perlu Restock
-                </span>
-                <BiErrorCircle className="size-5 text-amber-500" />
+            <Card className="min-h-[105px] w-full border-border/70 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-wider text-amber-600 dark:text-amber-400 uppercase">
+                    Perlu Restock
+                  </span>
+                  <BiErrorCircle className="size-5 text-amber-500" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                    {formatNumber(lowStockCount)}
+                  </span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    SKU berada di bawah batas minimum
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-2xl font-bold tracking-tight text-amber-600">
-                  {isLoadingBarang ? "-" : formatNumber(lowStockCount)}
-                </span>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  SKU berada di bawah batas minimum
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="min-h-[105px] w-full border-border/70 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
-                  Log Transaksi
-                </span>
-                <BiTimeFive className="size-5 text-blue-500" />
+            <Card className="min-h-[105px] w-full border-border/70 bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-wider text-blue-600 uppercase">
+                    Log Transaksi
+                  </span>
+                  <BiTimeFive className="size-5 text-blue-500" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold tracking-tight text-blue-600">
+                    {formatNumber(totalLogCount)}
+                  </span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Riwayat mutasi & running balance
+                  </p>
+                </div>
               </div>
-              <div>
-                <span className="text-2xl font-bold tracking-tight text-blue-600">
-                  {isLoadingLog ? "-" : formatNumber(totalLogCount)}
-                </span>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Riwayat mutasi & running balance
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
+        )}
       </div>
 
       {/* Main Tabs Navigation */}
@@ -362,7 +367,7 @@ export default function StokPage() {
             {/* Table Posisi Stok */}
             <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
               <Table>
-                <TableHeader className="border-b border-border/60 bg-white">
+                <TableHeader className="border-b border-border/60 bg-card">
                   <TableRow className="h-14 hover:bg-transparent">
                     <TableHead className="w-[120px] pl-6 text-xs font-semibold text-foreground">
                       Kode SKU
@@ -388,16 +393,7 @@ export default function StokPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="min-h-[300px]">
-                  {isLoadingBarang && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="h-48 text-center text-sm text-muted-foreground"
-                      >
-                        Memuat data inventori barang...
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {isLoadingBarang && <TableSkeletonRows columns={7} rows={15} />}
                   {!isLoadingBarang && filteredBarangs.length === 0 && (
                     <TableRow>
                       <TableCell
@@ -470,10 +466,10 @@ export default function StokPage() {
                           <span
                             className={cn(
                               stok <= 0
-                                ? "text-rose-600"
+                                ? "text-rose-600 dark:text-rose-400"
                                 : min > 0 && stok <= min
-                                  ? "text-amber-600"
-                                  : "text-emerald-600"
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-emerald-600 dark:text-emerald-400"
                             )}
                           >
                             {formatNumber(stok)}
@@ -503,10 +499,10 @@ export default function StokPage() {
                     )
                   })}
                 </TableBody>
-                <TableFooter className="border-t border-border/50 bg-white">
+                <TableFooter className="border-t border-border/50 bg-card">
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={7} className="p-0 align-middle">
-                      <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                      <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground">
                         <span>
                           Menampilkan{" "}
                           {metaBarang?.total
@@ -618,7 +614,7 @@ export default function StokPage() {
             {/* Table Log Mutasi */}
             <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
               <Table>
-                <TableHeader className="border-b border-border/60 bg-white">
+                <TableHeader className="border-b border-border/60 bg-card">
                   <TableRow className="h-14 hover:bg-transparent">
                     <TableHead className="pl-6 text-xs font-semibold text-foreground">
                       Tanggal & Waktu
@@ -647,16 +643,7 @@ export default function StokPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="min-h-[300px]">
-                  {isLoadingLog && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="h-48 text-center text-sm text-muted-foreground"
-                      >
-                        Memuat data riwayat mutasi...
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {isLoadingLog && <TableSkeletonRows columns={8} rows={15} />}
                   {!isLoadingLog && logRows.length === 0 && (
                     <TableRow>
                       <TableCell
@@ -712,9 +699,9 @@ export default function StokPage() {
                         </TableCell>
                         <TableCell className="text-center text-sm font-semibold">
                           {row.qty > 0 ? (
-                            <span className="text-emerald-600">{`+${formatNumber(row.qty)}`}</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">{`+${formatNumber(row.qty)}`}</span>
                           ) : row.qty < 0 ? (
-                            <span className="text-rose-600">
+                            <span className="text-rose-600 dark:text-rose-400">
                               {formatNumber(row.qty)}
                             </span>
                           ) : (
@@ -742,10 +729,10 @@ export default function StokPage() {
                     )
                   })}
                 </TableBody>
-                <TableFooter className="border-t border-border/50 bg-white">
+                <TableFooter className="border-t border-border/50 bg-card">
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={8} className="p-0 align-middle">
-                      <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                      <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground">
                         <span>
                           Menampilkan{" "}
                           {metaLog?.total

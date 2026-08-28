@@ -131,7 +131,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
   return (
     <div className="flex flex-col items-center gap-6 py-4">
       {/* Scanner Viewport */}
-      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-border/60 bg-black">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-border/60 bg-foreground">
         <video
           ref={videoRef}
           className="h-72 w-full object-cover"
@@ -139,7 +139,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
           playsInline
         />
         {!scanning && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-foreground/80">
             <BiCamera className="size-12 text-white/50" />
             <p className="text-sm font-medium text-white/70">
               Kamera belum aktif
@@ -165,7 +165,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
           </>
         )}
         {processing && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+          <div className="absolute inset-0 flex items-center justify-center bg-foreground/60">
             <p className="text-sm font-semibold text-white">Memproses...</p>
           </div>
         )}

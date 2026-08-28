@@ -37,6 +37,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { TableSkeletonRows } from "@/components/skeletons"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { formatDate } from "@/lib/status"
@@ -241,9 +242,9 @@ export default function DaftarPetugasPage() {
       </div>
 
       <div className="wrapper mt-[25px]">
-        <div className="overflow-hidden rounded-[15px] border border-zinc-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-[15px] border border-border bg-card shadow-xs">
           <Table>
-            <TableHeader className="border-b border-border/60 bg-white">
+            <TableHeader className="border-b border-border/60 bg-card">
               <TableRow className="h-14 hover:bg-transparent">
                 <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                   Kode Pegawai
@@ -272,16 +273,7 @@ export default function DaftarPetugasPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {petugasQuery.isLoading && (
-                <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                  <TableCell
-                    colSpan={8}
-                    className="text-center text-sm text-muted-foreground"
-                  >
-                    Memuat data...
-                  </TableCell>
-                </TableRow>
-              )}
+              {petugasQuery.isLoading && <TableSkeletonRows columns={8} rows={10} />}
               {!petugasQuery.isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell
@@ -374,7 +366,7 @@ export default function DaftarPetugasPage() {
           </Table>
 
           {/* Pagination Footer */}
-          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-card px-6 font-sans text-xs text-muted-foreground select-none">
             <span>
               Menampilkan {total > 0 ? (currentPage - 1) * 15 + 1 : 0}-
               {Math.min(currentPage * 15, total)} dari {total} data

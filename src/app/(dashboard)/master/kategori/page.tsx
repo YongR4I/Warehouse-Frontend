@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/table"
 import { KategoriForm } from "@/components/kategori/kategori-form"
 import { SatuanForm } from "@/components/kategori/satuan-form"
+import { TableSkeletonRows } from "@/components/skeletons"
 
 const PER_PAGE = 15
 
@@ -223,7 +224,7 @@ export default function KategoriPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Nama Kategori
@@ -241,14 +242,7 @@ export default function KategoriPage() {
           </TableHeader>
           <TableBody>
             {kategoriLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={4} rows={PER_PAGE} />
             ) : kategoris.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -307,10 +301,10 @@ export default function KategoriPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={4} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Kategori: {kategoriMeta?.total ?? 0} Kategori
                   </span>
@@ -335,7 +329,7 @@ export default function KategoriPage() {
 
       <div className="wrapper mt-[15px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode
@@ -350,14 +344,7 @@ export default function KategoriPage() {
           </TableHeader>
           <TableBody>
             {satuanLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Memuat...
-                </TableCell>
-              </TableRow>
+              <TableSkeletonRows columns={3} rows={PER_PAGE} />
             ) : satuans.length === 0 ? (
               <TableRow>
                 <TableCell
@@ -413,10 +400,10 @@ export default function KategoriPage() {
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={3} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between gap-4 bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Satuan / UOM: {satuanMeta?.total ?? 0} Kode Satuan
                   </span>

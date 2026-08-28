@@ -36,6 +36,7 @@ import {
   TableFooter,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { DetailPageSkeleton } from "@/components/skeletons"
 
 export default function BarangMasukDetailPage() {
   const router = useRouter()
@@ -130,11 +131,7 @@ export default function BarangMasukDetailPage() {
     useAuthStore.getState().hasPermission("barang-masuk-approve")
 
   if (isLoading) {
-    return (
-      <div className="flex h-96 flex-col items-center justify-center gap-4">
-        <p className="text-sm text-muted-foreground">Memuat data...</p>
-      </div>
-    )
+    return <DetailPageSkeleton metaCount={8} columns={6} rows={6} />
   }
 
   if (!doc) {
@@ -224,7 +221,7 @@ export default function BarangMasukDetailPage() {
       {/* ─── METADATA SECTION ─── */}
       <div className="wrapper mt-10 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
+          <div className="text-xs font-normal text-muted-foreground">
             Gudang Tujuan
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
@@ -233,28 +230,28 @@ export default function BarangMasukDetailPage() {
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Supplier</div>
+          <div className="text-xs font-normal text-muted-foreground">Supplier</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {doc.supplier?.nama ?? "-"}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Tanggal</div>
+          <div className="text-xs font-normal text-muted-foreground">Tanggal</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {formatDate(doc.tanggal)}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Dibuat oleh</div>
+          <div className="text-xs font-normal text-muted-foreground">Dibuat oleh</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {doc.createdBy?.name ?? "-"}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">
+          <div className="text-xs font-normal text-muted-foreground">
             Disetujui oleh
           </div>
           <div className="mt-1 text-sm font-bold text-foreground">
@@ -263,14 +260,14 @@ export default function BarangMasukDetailPage() {
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Keterangan</div>
+          <div className="text-xs font-normal text-muted-foreground">Keterangan</div>
           <div className="mt-1 text-sm font-bold text-foreground">
             {doc.keterangan ?? "-"}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Dokumen</div>
+          <div className="text-xs font-normal text-muted-foreground">Dokumen</div>
           <div className="mt-1">
             {doc.dokumen ? (
               <a
@@ -291,7 +288,7 @@ export default function BarangMasukDetailPage() {
         </div>
 
         <div>
-          <div className="text-xs font-normal text-[#857F78]">Status</div>
+          <div className="text-xs font-normal text-muted-foreground">Status</div>
           <div className="mt-1">
             <ColoredBadge color={statusColor(doc.status)}>
               {statusLabel(doc.status)}
@@ -302,10 +299,10 @@ export default function BarangMasukDetailPage() {
 
       {/* ─── TABLE ─── */}
       <div className="wrapper mt-[45px]">
-        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-white shadow-xs">
+        <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card shadow-xs">
           <div className="w-full overflow-x-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="border-b border-border/40 bg-white">
+              <TableHeader className="border-b border-border/40 bg-card">
                 <TableRow className="h-14 hover:bg-transparent">
                   <TableHead className="pl-6 text-xs font-bold tracking-normal whitespace-nowrap text-foreground normal-case">
                     SKU
@@ -339,7 +336,7 @@ export default function BarangMasukDetailPage() {
                     <TableCell className="font-sans text-sm font-semibold whitespace-nowrap text-foreground">
                       {row.barang?.nama ?? "-"}
                     </TableCell>
-                    <TableCell className="font-sans text-sm leading-tight whitespace-pre-line text-[#857F78]">
+                    <TableCell className="font-sans text-sm leading-tight whitespace-pre-line text-muted-foreground">
                       {row.lokasi_rak?.kode_rak ?? "-"}
                     </TableCell>
                     <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
@@ -375,10 +372,10 @@ export default function BarangMasukDetailPage() {
                     </TableRow>
                   )}
               </TableBody>
-              <TableFooter className="border-t border-border/40 bg-white">
+              <TableFooter className="border-t border-border/40 bg-card">
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="p-0 align-middle">
-                    <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+                    <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground select-none">
                       <span>
                         Menampilkan{" "}
                         {items.length > 0

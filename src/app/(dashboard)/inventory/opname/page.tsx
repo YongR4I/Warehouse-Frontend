@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { StatGridSkeleton, TableSkeletonRows } from "@/components/skeletons"
 import type { Gudang, StokOpname, StokOpnamePayload } from "@/types"
 
 const STATUS_OPTIONS = [
@@ -245,76 +246,82 @@ export default function OpnamePage() {
         </div>
       </div>
 
-      <div className="wrapper mt-[35px] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <BiClipboard className="size-4 text-slate-500" />
-            <span>Total Sesi Bulan Ini</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-slate-900">
-              {meta?.total ?? 0}
-            </span>
-            <span className="text-xs font-semibold text-slate-400">Sesi</span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-slate-400">
-            Audit rutin & insidental
-          </div>
+      {isLoading ? (
+        <div className="wrapper mt-[35px]">
+          <StatGridSkeleton count={4} />
         </div>
+      ) : (
+        <div className="wrapper mt-[35px] grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiClipboard className="size-4 text-muted-foreground" />
+              <span>Total Sesi Bulan Ini</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {meta?.total ?? 0}
+              </span>
+              <span className="text-xs font-semibold text-muted-foreground/70">Sesi</span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/70">
+              Audit rutin & insidental
+            </div>
+          </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <BiTimeFive className="size-4 text-amber-600" />
-            <span>Dalam Proses Audit</span>
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiTimeFive className="size-4 text-amber-600 dark:text-amber-400" />
+              <span>Dalam Proses Audit</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-[#D97706]">
+                {inProgressData?.meta?.total ?? 0}
+              </span>
+              <span className="text-xs font-semibold text-[#D97706]/85">
+                Sesi
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/70">
+              Sedang dihitung auditor
+            </div>
           </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-[#D97706]">
-              {inProgressData?.meta?.total ?? 0}
-            </span>
-            <span className="text-xs font-semibold text-[#D97706]/85">
-              Sesi
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-slate-400">
-            Sedang dihitung auditor
-          </div>
-        </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <BiCheckCircle className="size-4 text-emerald-600" />
-            <span>Selesai (Completed)</span>
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiCheckCircle className="size-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Selesai (Completed)</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-[#1E824C]">
+                {completedData?.meta?.total ?? 0}
+              </span>
+              <span className="text-xs font-semibold text-[#1E824C]/85">
+                Sesi
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/70">
+              Sudah diapprove & diadjust
+            </div>
           </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-[#1E824C]">
-              {completedData?.meta?.total ?? 0}
-            </span>
-            <span className="text-xs font-semibold text-[#1E824C]/85">
-              Sesi
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-slate-400">
-            Sudah diapprove & diadjust
-          </div>
-        </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <BiClipboard className="size-4 text-blue-600" />
-            <span>Akurasi Stok Rata-rata</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-bold tracking-tight text-slate-900">
-              {completedData?.meta?.total && meta?.total
-                ? `${Math.round((completedData.meta.total / Math.max(meta.total, 1)) * 100)}%`
-                : "-"}
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-semibold text-slate-400">
-            Rasio sesi selesai terhadap total
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <BiClipboard className="size-4 text-blue-600" />
+              <span>Akurasi Stok Rata-rata</span>
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tracking-tight text-foreground">
+                {completedData?.meta?.total && meta?.total
+                  ? `${Math.round((completedData.meta.total / Math.max(meta.total, 1)) * 100)}%`
+                  : "-"}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] font-semibold text-muted-foreground/70">
+              Rasio sesi selesai terhadap total
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="wrapper mt-[50px]">
         <div className="flex items-center gap-3">
@@ -354,7 +361,7 @@ export default function OpnamePage() {
         <div className="relative w-full overflow-hidden rounded-xl border border-border/60 bg-card">
           <div className="w-full overflow-x-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="border-b border-border/60 bg-white">
+              <TableHeader className="border-b border-border/60 bg-card">
                 <TableRow className="h-14 hover:bg-transparent">
                   <TableHead className="pl-6 text-xs font-semibold tracking-normal whitespace-nowrap text-foreground normal-case">
                     No. Dokumen Audit
@@ -383,16 +390,7 @@ export default function OpnamePage() {
                 </TableRow>
               </TableHeader>
               <TableBody className="min-h-[300px]">
-                {isLoading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-48 text-center text-sm text-muted-foreground"
-                    >
-                      Memuat data...
-                    </TableCell>
-                  </TableRow>
-                )}
+                {isLoading && <TableSkeletonRows columns={8} rows={6} />}
                 {!isLoading && rows.length === 0 && (
                   <TableRow>
                     <TableCell
@@ -444,7 +442,7 @@ export default function OpnamePage() {
                                   `/inventory/opname/${row.id}?mode=edit`
                                 )
                               }
-                              className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] bg-[#18181B] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-black/90"
+                              className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] bg-foreground px-3.5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
                             >
                               <span>Lanjutkan</span>
                               <span className="text-sm font-light">→</span>
@@ -490,7 +488,7 @@ export default function OpnamePage() {
             </table>
           </div>
 
-          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-white px-6 font-sans text-xs text-muted-foreground select-none">
+          <div className="flex h-14 items-center justify-between border-t border-border/50 bg-card px-6 font-sans text-xs text-muted-foreground select-none">
             <span>
               Menampilkan{" "}
               {meta?.total ? (currentPage - 1) * itemsPerPage + 1 : 0}-

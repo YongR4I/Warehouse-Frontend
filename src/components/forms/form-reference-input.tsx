@@ -59,7 +59,7 @@ export const FormReferenceInput = React.forwardRef<
             className={cn(
               "absolute right-2 inline-flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95",
               error &&
-                "animate-pulse bg-rose-100 text-rose-700 hover:animate-none hover:bg-rose-200"
+                "animate-pulse bg-rose-100 text-rose-600 dark:text-rose-400 dark:text-rose-400 hover:animate-none hover:bg-rose-200"
             )}
           >
             <BiRefresh className="size-4.5" />

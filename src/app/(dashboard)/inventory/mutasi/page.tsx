@@ -1,7 +1,7 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useDeferredValue, useState, useCallback } from "react"
+import { useDeferredValue, useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { InputSearch } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { MutasiForm } from "@/components/mutasi/mutasi-form"
+import { TableSkeletonRows } from "@/components/skeletons"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { useConfirmDialog } from "@/components/confirm-dialog"
@@ -59,7 +60,8 @@ export default function MutasiPage() {
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const [status, setStatus] = useState<string | null>(null)
-  const [gudang, setGudang] = useState<string | null>(null)
+  const [gudangAsal, setGudangAsal] = useState<string | null>(null)
+  const [gudangTujuan, setGudangTujuan] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const router = useRouter()
 
@@ -71,7 +73,8 @@ export default function MutasiPage() {
       per_page: 15,
       search: deferredSearch || undefined,
       status: status && status !== "all" ? status : undefined,
-      gudang_id: gudang && gudang !== "all" ? Number(gudang) : undefined,
+      gudang_asal_id: gudangAsal && gudangAsal !== "all" ? Number(gudangAsal) : undefined,
+      gudang_tujuan_id: gudangTujuan && gudangTujuan !== "all" ? Number(gudangTujuan) : undefined,
     },
   })
 
@@ -82,7 +85,26 @@ export default function MutasiPage() {
     ...toOptions(gudangList),
   ]
 
-  const rows = data?.data ?? []
+  const rawRows = data?.data ?? []
+  // Fallback client-side: FE split asal/tujuan, BE sudah support kedua param sebagai AND
+  const rows = useMemo(() => {
+    let filtered = rawRows
+    if (gudangAsal && gudangAsal !== "all") {
+      const gid = String(gudangAsal)
+      filtered = filtered.filter((row) => {
+        const asalId = (row as MutasiStok).gudang_asal_id ?? (row as MutasiStok).gudang_asal?.id
+        return String(asalId ?? "") === gid
+      })
+    }
+    if (gudangTujuan && gudangTujuan !== "all") {
+      const gid = String(gudangTujuan)
+      filtered = filtered.filter((row) => {
+        const tujuanId = (row as MutasiStok).gudang_tujuan_id ?? (row as MutasiStok).gudang_tujuan?.id
+        return String(tujuanId ?? "") === gid
+      })
+    }
+    return filtered
+  }, [rawRows, gudangAsal, gudangTujuan])
   const meta = data?.meta
   const totalPages = meta?.last_page ?? 1
 
@@ -94,7 +116,8 @@ export default function MutasiPage() {
           search:
             coverage === "filtered" ? deferredSearch || undefined : undefined,
           status: status && status !== "all" ? status : undefined,
-          gudang_id: gudang && gudang !== "all" ? Number(gudang) : undefined,
+          gudang_asal_id: gudangAsal && gudangAsal !== "all" ? Number(gudangAsal) : undefined,
+          gudang_tujuan_id: gudangTujuan && gudangTujuan !== "all" ? Number(gudangTujuan) : undefined,
         },
       })
       const items = (res.data?.data ?? []) as Array<Record<string, unknown>>
@@ -110,7 +133,7 @@ export default function MutasiPage() {
         status: statusLabel(row.status as string),
       }))
     },
-    [deferredSearch, status, gudang]
+    [deferredSearch, status, gudangAsal, gudangTujuan]
   )
 
   const { confirm, ConfirmDialog } = useConfirmDialog()
@@ -170,10 +193,10 @@ export default function MutasiPage() {
       <MutasiForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <InputSearch
             placeholder="Cari no. referensi, barang, atau rute mutasi..."
-            className="flex-1"
+            className="min-w-[260px] flex-1"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -181,10 +204,19 @@ export default function MutasiPage() {
             }}
           />
           <Opsion
-            placeholder="Semua Gudang"
-            value={gudang || ""}
+            placeholder="Gudang Asal"
+            value={gudangAsal || ""}
             onValueChange={(val) => {
-              setGudang(val)
+              setGudangAsal(val)
+              setPage(1)
+            }}
+            options={gudangOptions}
+          />
+          <Opsion
+            placeholder="Gudang Tujuan"
+            value={gudangTujuan || ""}
+            onValueChange={(val) => {
+              setGudangTujuan(val)
               setPage(1)
             }}
             options={gudangOptions}
@@ -203,7 +235,7 @@ export default function MutasiPage() {
 
       <div className="wrapper mt-[25px] min-w-0">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 No. referensi
@@ -232,16 +264,7 @@ export default function MutasiPage() {
             </TableRow>
           </TableHeader>
           <TableBody className="min-h-[300px]">
-            {isLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="h-48 text-center text-sm text-muted-foreground"
-                >
-                  Memuat data...
-                </TableCell>
-              </TableRow>
-            )}
+            {isLoading && <TableSkeletonRows columns={8} rows={15} />}
             {!isLoading && rows.length === 0 && (
               <TableRow>
                 <TableCell
@@ -330,10 +353,10 @@ export default function MutasiPage() {
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter className="border-t border-border/50 bg-white">
+          <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={8} className="p-0 align-middle">
-                <div className="flex h-14 items-center justify-between bg-white px-6 font-sans text-xs text-muted-foreground">
+                <div className="flex h-14 items-center justify-between bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Menampilkan{" "}
                     {meta?.total ? (page - 1) * (meta.per_page || 15) + 1 : 0}-

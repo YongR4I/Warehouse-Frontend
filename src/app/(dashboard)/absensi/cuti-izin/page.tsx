@@ -35,6 +35,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
+import { TableSkeletonRows } from "@/components/skeletons"
 import {
   FormDrawer,
   FormSelect,
@@ -336,7 +337,7 @@ export default function CutiIzinPage() {
       {/* Table */}
       <div className="wrapper mt-[25px]">
         <Table>
-          <TableHeader className="border-b border-border/60 bg-white">
+          <TableHeader className="border-b border-border/60 bg-card">
             <TableRow className="h-14 hover:bg-transparent">
               <TableHead className="pl-6 text-xs font-semibold tracking-normal text-foreground normal-case">
                 Kode Pegawai
@@ -362,16 +363,7 @@ export default function CutiIzinPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {izinQuery.isLoading && (
-              <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
-                <TableCell
-                  colSpan={7}
-                  className="text-center text-sm text-muted-foreground"
-                >
-                  Memuat data...
-                </TableCell>
-              </TableRow>
-            )}
+            {izinQuery.isLoading && <TableSkeletonRows columns={7} rows={10} />}
             {!izinQuery.isLoading && rows.length === 0 && (
               <TableRow className="h-16 border-b border-border/40 hover:bg-transparent">
                 <TableCell
@@ -599,7 +591,7 @@ export default function CutiIzinPage() {
           <Button
             type="submit"
             form="cuti-form"
-            className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
+            className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90"
             disabled={submitting}
           >
             {submitting ? "Mengirim..." : "Ajukan"}

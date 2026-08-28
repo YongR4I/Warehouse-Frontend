@@ -96,7 +96,7 @@ function FormDrawerFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-t border-border/50 bg-white px-6 py-5",
+        "flex items-center justify-between border-t border-border/50 bg-card px-6 py-5",
         className
       )}
     >

@@ -1,6 +1,36 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
 import type { User } from "@/types"
+
+// WMS best-practice: session by default (hilang saat tutup browser) → aman device shared
+// Remember me = true → pakai localStorage, false → sessionStorage (tetap survive refresh)
+const rememberAwareStorage = {
+  getItem: (name: string): string | null => {
+    if (typeof window === "undefined") return null
+    // migrasi: cek keduanya biar data lama di localStorage tetap ketemu walau sekarang session
+    const fromSession = sessionStorage.getItem(name)
+    if (fromSession) return fromSession
+    return localStorage.getItem(name)
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window === "undefined") return
+    const remember = localStorage.getItem("remember-me") === "true"
+    if (remember) {
+      localStorage.setItem(name, value)
+      sessionStorage.removeItem(name)
+    } else {
+      sessionStorage.setItem(name, value)
+      // jangan hapus localStorage jika ini adalah setItem untuk remember-me sendiri? aman hapus duplikat
+      // tapi jangan hapus flag remember-me
+      if (name !== "remember-me") localStorage.removeItem(name)
+    }
+  },
+  removeItem: (name: string): void => {
+    if (typeof window === "undefined") return
+    localStorage.removeItem(name)
+    sessionStorage.removeItem(name)
+  },
+}
 
 interface AuthState {
   user: User | null
@@ -62,6 +92,13 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      storage: createJSONStorage(() => rememberAwareStorage),
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+        permissions: state.permissions,
+      }),
     }
   )
 )

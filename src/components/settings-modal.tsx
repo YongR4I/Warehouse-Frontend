@@ -239,7 +239,7 @@ export function SettingsModal() {
     <DialogContent className="fixed top-1/2 left-1/2 z-50 flex h-[580px] w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 flex-row overflow-hidden rounded-2xl border border-border/80 bg-background p-0 shadow-2xl outline-none">
       {ConfirmDialog}
       {/* PANEL KIRI: Navigasi Kategori Pengaturan */}
-      <div className="flex w-[260px] shrink-0 flex-col border-r border-border/40 bg-slate-50/50 p-4">
+      <div className="flex w-[260px] shrink-0 flex-col border-r border-border/40 bg-muted/50 p-4">
         <span className="mb-3 px-2 text-[10px] font-bold tracking-wider text-muted-foreground/60 uppercase">
           Pengaturan Sistem
         </span>
@@ -250,8 +250,8 @@ export function SettingsModal() {
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
               activeTab === "users"
-                ? "bg-[#F3F4F6] font-bold text-foreground shadow-2xs"
-                : "text-muted-foreground hover:bg-slate-100/60 hover:text-foreground"
+                ? "bg-muted font-bold text-foreground shadow-2xs"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
           >
             <BiShieldQuarter className="size-5 shrink-0" />
@@ -265,8 +265,8 @@ export function SettingsModal() {
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
               activeTab === "roles"
-                ? "bg-[#F3F4F6] font-bold text-foreground shadow-2xs"
-                : "text-muted-foreground hover:bg-slate-100/60 hover:text-foreground"
+                ? "bg-muted font-bold text-foreground shadow-2xs"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
           >
             <BiCog className="size-5 shrink-0" />
@@ -280,8 +280,8 @@ export function SettingsModal() {
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
               activeTab === "warehouses"
-                ? "bg-[#F3F4F6] font-bold text-foreground shadow-2xs"
-                : "text-muted-foreground hover:bg-slate-100/60 hover:text-foreground"
+                ? "bg-muted font-bold text-foreground shadow-2xs"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
           >
             <BiBuildings className="size-5 shrink-0" />
@@ -293,7 +293,7 @@ export function SettingsModal() {
       </div>
 
       {/* PANEL KANAN: Area Konten Pengaturan */}
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-white p-8">
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-card p-8">
         {/* KONTEN TAB: Pengguna & Hak Akses */}
         {activeTab === "users" && (
           <div className="flex flex-1 flex-col overflow-hidden">
@@ -316,7 +316,7 @@ export function SettingsModal() {
             <div className="-mr-3 flex flex-1 scrollbar-thin flex-col gap-6 overflow-y-auto pr-1">
               {/* Form Undang Pengguna / Card Tambah Akun */}
               {!showInviteForm ? (
-                <div className="flex items-center justify-between rounded-xl border border-border/60 bg-slate-50/20 p-4 transition-all duration-200">
+                <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 p-4 transition-all duration-200">
                   <div className="flex flex-col">
                     <span className="text-[13px] font-bold text-foreground">
                       Tambah Akun Baru
@@ -335,7 +335,7 @@ export function SettingsModal() {
               ) : (
                 <form
                   onSubmit={handleInviteUser}
-                  className="animate-in space-y-3.5 rounded-xl border border-border/60 bg-slate-50/20 p-4 duration-200 fade-in"
+                  className="animate-in space-y-3.5 rounded-xl border border-border/60 bg-muted/20 p-4 duration-200 fade-in"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] font-bold text-foreground">
@@ -468,11 +468,11 @@ export function SettingsModal() {
                   {users.map((user) => (
                     <div
                       key={user.id}
-                      className="group -mx-1 flex items-center justify-between rounded-lg px-1 py-3 transition-colors hover:bg-slate-50/20"
+                      className="group -mx-1 flex items-center justify-between rounded-lg px-1 py-3 transition-colors hover:bg-muted/20"
                     >
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-slate-200/50 bg-slate-100 text-xs font-bold text-slate-700">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/50 bg-muted text-xs font-bold text-muted-foreground">
                           {getInitials(user.name)}
                         </div>
                         {/* Detail Info */}
@@ -510,8 +510,8 @@ export function SettingsModal() {
                           className={cn(
                             "rounded-lg p-1.5 text-[10px] font-bold transition-all outline-none",
                             user.is_active
-                              ? "text-muted-foreground hover:bg-amber-50 hover:text-amber-600"
-                              : "text-emerald-600 hover:bg-emerald-50"
+                              ? "text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:text-amber-400"
+                              : "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50"
                           )}
                           title={user.is_active ? "Nonaktifkan" : "Aktifkan"}
                         >
@@ -557,7 +557,7 @@ export function SettingsModal() {
               {/* Form Tambah / Ubah Peran */}
               <form
                 onSubmit={handleSaveRole}
-                className="space-y-3.5 rounded-xl border border-border/60 bg-slate-50/20 p-4"
+                className="space-y-3.5 rounded-xl border border-border/60 bg-muted/20 p-4"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] font-bold text-foreground">
@@ -651,7 +651,7 @@ export function SettingsModal() {
                 {roles.map((role) => (
                   <div
                     key={role.id}
-                    className="flex items-start justify-between rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300/80"
+                    className="flex items-start justify-between rounded-2xl border border-border bg-card p-4 transition-all hover:border-border"
                   >
                     <div className="flex min-w-0 flex-col gap-2">
                       <div className="flex items-center gap-2">
@@ -726,10 +726,10 @@ export function SettingsModal() {
                 {warehouses.map((wh) => (
                   <div
                     key={wh.id}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 transition-all hover:border-slate-300/80"
+                    className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition-all hover:border-border"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/50 bg-slate-100 text-slate-600">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/50 bg-muted text-muted-foreground">
                         <BiBuildings className="size-5" />
                       </div>
                       <div className="flex flex-col leading-tight">

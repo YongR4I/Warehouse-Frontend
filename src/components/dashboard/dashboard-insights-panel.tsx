@@ -49,7 +49,7 @@ export function DashboardInsightsPanel({
           {stokKritisCount > 0 && (
             <div className="flex items-start justify-between gap-2 border-b border-border/40 pb-2.5">
               <div className="flex items-start gap-2">
-                <BiErrorCircle className="mt-0.5 size-4 shrink-0 text-rose-600" />
+                <BiErrorCircle className="mt-0.5 size-4 shrink-0 text-rose-600 dark:text-rose-400" />
                 <div>
                   <span className="font-semibold text-foreground">
                     {stokKritisCount} SKU Barang
@@ -65,7 +65,7 @@ export function DashboardInsightsPanel({
           {pendingMasukCount > 0 && (
             <div className="flex items-start justify-between gap-2 border-b border-border/40 pb-2.5">
               <div className="flex items-start gap-2">
-                <BiTimeFive className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                <BiTimeFive className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
                 <div>
                   <span className="font-semibold text-foreground">
                     {pendingMasukCount} Transaksi Inbound
@@ -81,7 +81,7 @@ export function DashboardInsightsPanel({
           {pendingOpnameCount > 0 && (
             <div className="flex items-start justify-between gap-2 pb-1">
               <div className="flex items-start gap-2">
-                <BiCheckShield className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                <BiCheckShield className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
                 <div>
                   <span className="font-semibold text-foreground">
                     {pendingOpnameCount} Laporan Opname
