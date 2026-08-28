@@ -30,6 +30,11 @@ export default function RootLayout({
       )}
     >
       <body suppressHydrationWarning>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("warehouse-theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.classList.toggle("dark",t==="dark")}catch(e){}})()`,
+          }}
+        />
         <ThemeProvider>
           <QueryProvider>
             {children}

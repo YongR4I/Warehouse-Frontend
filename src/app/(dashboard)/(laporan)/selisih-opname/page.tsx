@@ -35,27 +35,46 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-interface OpnameRow {
+interface OpnameDetail {
   id?: number
-  no_referensi?: string
-  tanggal?: string
-  gudang?: string
-  status?: string
-  kode_rak?: string
-  sku?: string
-  nama?: string
-  kategori?: string
-  satuan?: string
   stok_sistem?: number
   stok_fisik?: number
   selisih?: number
-  petugas?: string
+  keterangan?: string
   barang?: {
     sku?: string
     nama?: string
     kategori?: { nama?: string } | null
     satuan?: { nama?: string } | null
   } | null
+  lokasi_rak?: { kode_rak?: string } | null
+}
+
+interface OpnameRow {
+  id?: number
+  no_referensi?: string
+  tanggal?: string
+  status?: string
+  gudang?: { nama?: string; kode?: string } | string | null
+  createdBy?: { name?: string } | null
+  details?: OpnameDetail[] | null
+}
+
+interface DisplayRow {
+  key: string
+  noReferensi: string
+  tanggal?: string
+  gudangNama: string
+  kodeRak: string
+  sku: string
+  nama: string
+  kategori: string
+  satuan: string
+  stokSistem?: number
+  stokFisik?: number
+  selisih?: number
+  status?: string
+  petugas: string
 }
 
 function unwrapRows<T>(data: unknown): T[] {
@@ -65,6 +84,39 @@ function unwrapRows<T>(data: unknown): T[] {
     return body.data as T[]
   }
   return []
+}
+
+function flattenOpname(row: OpnameRow): DisplayRow[] {
+  const gudangNama =
+    typeof row.gudang === "string"
+      ? row.gudang
+      : (row.gudang?.nama ?? "-")
+  const base = {
+    noReferensi: row.no_referensi ?? "-",
+    tanggal: row.tanggal,
+    gudangNama,
+    status: row.status,
+    petugas: row.createdBy?.name ?? "-",
+  }
+  const details =
+    row.details && row.details.length > 0 ? row.details : [{}]
+  return details.map((detail, index) => ({
+    key: `${row.id ?? row.no_referensi}-${detail.id ?? index}`,
+    ...base,
+    kodeRak: detail.lokasi_rak?.kode_rak ?? "-",
+    sku: detail.barang?.sku ?? "-",
+    nama: detail.barang?.nama ?? "-",
+    kategori: detail.barang?.kategori?.nama ?? "-",
+    satuan: detail.barang?.satuan?.nama ?? "-",
+    stokSistem: detail.stok_sistem,
+    stokFisik: detail.stok_fisik,
+    selisih:
+      detail.selisih ??
+      (detail.stok_fisik !== undefined &&
+      detail.stok_sistem !== undefined
+        ? detail.stok_fisik - detail.stok_sistem
+        : undefined),
+  }))
 }
 
 function addDays(date: Date, days: number): Date {
@@ -80,17 +132,13 @@ function toDateParam(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-function getSelisih(row: OpnameRow): number | undefined {
-  if (row.selisih !== undefined) return row.selisih
-  if (row.stok_fisik !== undefined && row.stok_sistem !== undefined) {
-    return row.stok_fisik - row.stok_sistem
-  }
-  return undefined
+function getSelisih(row: DisplayRow): number | undefined {
+  return row.selisih
 }
 
 type RekonsStatus = "defisit" | "surplus" | "akurat" | "unknown"
 
-function getRekonsStatus(row: OpnameRow): RekonsStatus {
+function getRekonsStatus(row: DisplayRow): RekonsStatus {
   const selisih = getSelisih(row)
   if (selisih === undefined) return "unknown"
   if (selisih < 0) return "defisit"
@@ -98,7 +146,7 @@ function getRekonsStatus(row: OpnameRow): RekonsStatus {
   return "akurat"
 }
 
-function renderRekonsBadge(status: RekonsStatus, row: OpnameRow) {
+function renderRekonsBadge(status: RekonsStatus, row: DisplayRow) {
   if (status === "defisit") {
     return <ColoredBadge color="red">Defisit (Kurang)</ColoredBadge>
   }
@@ -164,19 +212,16 @@ export default function LaporanSelisihOpnamePage() {
   const rawRows = unwrapRows<OpnameRow>(query.data)
 
   const rows = useMemo(() => {
+    const flat = rawRows.flatMap(flattenOpname)
     const q = deferredSearch.toLowerCase().trim()
-    if (!q) return rawRows
-    return rawRows.filter((row) => {
-      const nama = row.nama ?? row.barang?.nama ?? ""
-      const sku = row.sku ?? row.barang?.sku ?? ""
-      const rak = row.kode_rak ?? ""
-      return (
-        (row.no_referensi ?? "").toLowerCase().includes(q) ||
-        nama.toLowerCase().includes(q) ||
-        sku.toLowerCase().includes(q) ||
-        rak.toLowerCase().includes(q)
-      )
-    })
+    if (!q) return flat
+    return flat.filter(
+      (row) =>
+        row.noReferensi.toLowerCase().includes(q) ||
+        row.nama.toLowerCase().includes(q) ||
+        row.sku.toLowerCase().includes(q) ||
+        row.kodeRak.toLowerCase().includes(q)
+    )
   }, [rawRows, deferredSearch])
 
   const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
@@ -456,47 +501,40 @@ export default function LaporanSelisihOpnamePage() {
                 {paginatedRows.map((row) => {
                   const selisih = getSelisih(row)
                   const rekons = getRekonsStatus(row)
-                  const nama = row.nama ?? row.barang?.nama ?? "-"
-                  const sku = row.sku ?? row.barang?.sku ?? "-"
-                  const kategori =
-                    row.kategori ?? row.barang?.kategori?.nama ?? "-"
-                  const satuan = row.satuan ?? row.barang?.satuan?.nama ?? "-"
                   return (
                     <TableRow
-                      key={
-                        row.id ?? row.no_referensi ?? `${row.tanggal}-${sku}`
-                      }
+                      key={row.key}
                       className="h-16 border-b border-border/40 hover:bg-muted/30"
                     >
                       <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">
                         {formatDate(row.tanggal)}
                       </TableCell>
                       <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                        {row.no_referensi ?? "-"}
+                        {row.noReferensi}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.gudang ?? "-"}
+                        {row.gudangNama}
                       </TableCell>
                       <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-muted-foreground">
-                        {row.kode_rak ?? "-"}
+                        {row.kodeRak}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                        {sku}
+                        {row.sku}
                       </TableCell>
                       <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                        {nama}
+                        {row.nama}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                        {kategori}
+                        {row.kategori}
                       </TableCell>
                       <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.stok_sistem !== undefined
-                          ? formatNumber(row.stok_sistem)
+                        {row.stokSistem !== undefined
+                          ? formatNumber(row.stokSistem)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.stok_fisik !== undefined
-                          ? formatNumber(row.stok_fisik)
+                        {row.stokFisik !== undefined
+                          ? formatNumber(row.stokFisik)
                           : "-"}
                       </TableCell>
                       <TableCell className="text-center font-sans text-sm font-semibold whitespace-nowrap">
@@ -517,13 +555,13 @@ export default function LaporanSelisihOpnamePage() {
                         )}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                        {satuan}
+                        {row.satuan}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap">
                         {renderRekonsBadge(rekons, row)}
                       </TableCell>
                       <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                        {row.petugas ?? "-"}
+                        {row.petugas}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
                         <button className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">

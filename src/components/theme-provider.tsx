@@ -1,24 +1,107 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+type Theme = "light" | "dark" | "system"
+
+const STORAGE_KEY = "warehouse-theme"
+
+type ThemeContextValue = {
+  theme: Theme
+  setTheme: (theme: Theme) => void
+}
+
+const DEFAULT_VALUE: ThemeContextValue = {
+  theme: "system",
+  setTheme: () => {},
+}
+
+const ThemeContext = React.createContext(DEFAULT_VALUE)
+
+function getEffectiveTheme(theme: Theme): "light" | "dark" {
+  if (theme !== "system") return theme
+  return typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+}
+
+function readStoredTheme(): Theme {
+  if (typeof window === "undefined") return "system"
+  try {
+    const value = localStorage.getItem(STORAGE_KEY)
+    if (value === "light" || value === "dark" || value === "system") {
+      return value
+    }
+  } catch {
+    // localStorage tidak tersedia — pakai system
+  }
+  return "system"
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = React.useState<Theme>(readStoredTheme)
+
+  React.useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)")
+
+    function syncClass() {
+      const effective =
+        theme === "system"
+          ? media.matches
+            ? "dark"
+            : "light"
+          : theme
+      document.documentElement.classList.toggle("dark", effective === "dark")
+    }
+
+    syncClass()
+
+    const onSystemChange = () => syncClass()
+    media.addEventListener("change", onSystemChange)
+
+    function onStorage(event: StorageEvent) {
+      if (
+        event.key === STORAGE_KEY &&
+        (event.newValue === "light" ||
+          event.newValue === "dark" ||
+          event.newValue === "system")
+      ) {
+        setThemeState(event.newValue)
+      }
+    }
+    window.addEventListener("storage", onStorage)
+
+    return () => {
+      media.removeEventListener("change", onSystemChange)
+      window.removeEventListener("storage", onStorage)
+    }
+  }, [theme])
+
+  const setTheme = React.useCallback((next: Theme) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, next)
+    } catch {
+      // abaikan bila storage gagal
+    }
+    setThemeState(next)
+  }, [])
+
+  const value = React.useMemo(
+    () => ({ theme, setTheme }),
+    [theme, setTheme]
+  )
+
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <ThemeContext value={value}>
       <ThemeHotkey />
       {children}
-    </NextThemesProvider>
+    </ThemeContext>
   )
+}
+
+export function useTheme() {
+  return React.useContext(ThemeContext)
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -35,7 +118,7 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 function ThemeHotkey() {
-  const { resolvedTheme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -55,7 +138,8 @@ function ThemeHotkey() {
         return
       }
 
-      setTheme(resolvedTheme === "dark" ? "light" : "dark")
+      const effective = getEffectiveTheme(theme)
+      setTheme(effective === "dark" ? "light" : "dark")
     }
 
     window.addEventListener("keydown", onKeyDown)
@@ -63,9 +147,7 @@ function ThemeHotkey() {
     return () => {
       window.removeEventListener("keydown", onKeyDown)
     }
-  }, [resolvedTheme, setTheme])
+  }, [theme, setTheme])
 
   return null
 }
-
-export { ThemeProvider }
