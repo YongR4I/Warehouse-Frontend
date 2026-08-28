@@ -339,8 +339,9 @@ const FIELD_KEY_MAP: Record<string, string> = {
   tanggal_bergabung: "tanggalBergabung",
   area_kerja: "areaKerja",
   alamat_pengiriman: "alamatPengiriman",
-  periode_minggu: "periodeMingggu",
-  periode_mingggu: "periodeMingggu",
+  periode_minggu: "periodeMinggu",
+  periode_mingggu: "periodeMinggu",
+  periodeMinggu: "periodeMinggu",
 }
 
 import type { FieldValues, UseFormSetError, Path } from "react-hook-form"

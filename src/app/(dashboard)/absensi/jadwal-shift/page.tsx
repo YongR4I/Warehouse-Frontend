@@ -33,11 +33,11 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { ColoredBadge } from "@/components/ui/colored-badge"
-import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
-import { useApiList, useApiCreate, useApiDelete } from "@/hooks/use-api"
+import { JadwalShiftForm } from "@/components/jadwal-shift/jadwal-shift-form"
+import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import type { JadwalPetugas, JadwalPetugasPayload, Shift, User } from "@/types"
+import type { JadwalPetugas, Shift, User } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
   const body = data as { data?: unknown } | T[] | null | undefined
@@ -137,10 +137,6 @@ const SHIFT_COLORS = ["sky", "yellow", "purple", "blue", "green"] as const
 export default function JadwalShiftPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [formUserId, setFormUserId] = useState("")
-  const [formShiftId, setFormShiftId] = useState("")
-  const [formTanggal, setFormTanggal] = useState("")
-  const [submitting, setSubmitting] = useState(false)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -270,16 +266,9 @@ export default function JadwalShiftPage() {
   }
 
   const openCreate = () => {
-    setFormUserId("")
-    setFormShiftId("")
-    setFormTanggal(toDateParam(today))
     setDrawerOpen(true)
   }
 
-  const createMutation = useApiCreate<JadwalPetugas, JadwalPetugasPayload>(
-    "jadwal-petugas",
-    "/jadwal-petugas"
-  )
   const deleteMutation = useApiDelete("jadwal-petugas", "/jadwal-petugas")
 
   const fetchExportData = useCallback(async () => {
@@ -346,28 +335,6 @@ export default function JadwalShiftPage() {
     })
   }, [currentWeekStart])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formUserId || !formShiftId || !formTanggal) {
-      toast.error("Petugas, shift, dan tanggal wajib diisi")
-      return
-    }
-    setSubmitting(true)
-    try {
-      await createMutation.mutateAsync({
-        user_id: Number(formUserId),
-        shift_id: Number(formShiftId),
-        tanggal: formTanggal,
-      })
-      toast.success("Jadwal shift berhasil disimpan")
-      setDrawerOpen(false)
-    } catch (error) {
-      toast.error(getErrorMessage(error))
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   const { confirm, ConfirmDialog } = useConfirmDialog()
 
   const handleDeleteUserWeek = (userId: number, userName: string) => {
@@ -391,16 +358,6 @@ export default function JadwalShiftPage() {
       },
     })
   }
-
-  const userOptions = useMemo(
-    () => users.map((user) => ({ value: String(user.id), label: user.name })),
-    [users]
-  )
-  const shiftOptions = useMemo(
-    () =>
-      shifts.map((shift) => ({ value: String(shift.id), label: shift.nama })),
-    [shifts]
-  )
 
   return (
     <>
@@ -614,64 +571,7 @@ export default function JadwalShiftPage() {
         </Table>
       </div>
 
-      <FormDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        title="Atur Shift Kerja Petugas"
-        description="Pilih petugas, shift, dan tanggal penugasan."
-        icon={BiCalendar}
-      >
-        <FormDrawer.Body>
-          <form
-            id="jadwal-shift-form"
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-              <FormSelect
-                label="Nama Petugas Gudang *"
-                placeholder="Pilih petugas..."
-                value={formUserId}
-                onValueChange={(val) => setFormUserId(val ?? "")}
-                options={userOptions}
-              />
-              <FormSelect
-                label="Shift Kerja *"
-                placeholder="Pilih shift..."
-                value={formShiftId}
-                onValueChange={(val) => setFormShiftId(val ?? "")}
-                options={shiftOptions}
-              />
-            </div>
-            <FormInput
-              label="Tanggal Penugasan *"
-              type="date"
-              value={formTanggal}
-              onChange={(e) => setFormTanggal(e.target.value)}
-              required
-            />
-          </form>
-        </FormDrawer.Body>
-
-        <FormDrawer.Footer>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setDrawerOpen(false)}
-            className="rounded-xl"
-          >
-            Batal
-          </Button>
-          <Button
-            type="submit"
-            form="jadwal-shift-form"
-            className="rounded-xl bg-black px-6 text-white hover:bg-black/90"
-            disabled={submitting}
-          >
-            {submitting ? "Menyimpan..." : "Simpan Shift"}
-          </Button>
-        </FormDrawer.Footer>
-      </FormDrawer>
+      <JadwalShiftForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <ExportModal
         isOpen={exportOpen}
