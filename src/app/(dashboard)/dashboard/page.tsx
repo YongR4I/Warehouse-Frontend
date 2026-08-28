@@ -1,7 +1,7 @@
 "use client"
 
 import { ExportModal } from "@/components/export-modal"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Opsion } from "@/components/opsion"
@@ -9,127 +9,37 @@ import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
 import { DashboardChart } from "@/components/dashboard/dashboard-chart"
 import { DashboardLogTable } from "@/components/dashboard/dashboard-log-table"
 import { DashboardInsightsPanel } from "@/components/dashboard/dashboard-insights-panel"
-import { useApiList } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
-import { useQueryClient } from "@tanstack/react-query"
-import type { Gudang, LaporanRow, LaporanStokRow } from "@/types"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
+import type { Gudang } from "@/types"
 import { BiBuilding, BiDownload, BiRefresh } from "react-icons/bi"
-
-function unwrapRows<T>(data: unknown): T[] {
-  const body = data as { data?: unknown } | T[] | null | undefined
-  if (Array.isArray(body)) return body as T[]
-  if (body && typeof body === "object" && Array.isArray(body.data)) {
-    return body.data as T[]
-  }
-  return []
-}
 
 export default function DashboardPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [selectedGudang, setSelectedGudang] = useState("all")
-  const queryClient = useQueryClient()
+  const [chartRange, setChartRange] = useState<"24h" | "7d" | "30d">("24h")
 
   const gudangOptions = useOptions<Gudang>("gudang", "/gudang")
 
   const gudangId = selectedGudang !== "all" ? selectedGudang : undefined
 
-  const params = useMemo(() => ({ gudang_id: gudangId }), [gudangId])
-
-  const stokQuery = useApiList<LaporanStokRow>({
-    key: "laporan-stok",
-    url: "/laporan/stok",
-    params,
-  })
-  const masukQuery = useApiList<LaporanRow>({
-    key: "laporan-masuk",
-    url: "/laporan/barang-masuk",
-    params,
-  })
-  const keluarQuery = useApiList<LaporanRow>({
-    key: "laporan-keluar",
-    url: "/laporan/barang-keluar",
-    params,
-  })
-  const opnamePendingQuery = useApiList<LaporanRow>({
-    key: "laporan-opname-pending",
-    url: "/laporan/stok-opname",
-    params: { ...params, status: "pending" },
-  })
-  const masukPendingQuery = useApiList<LaporanRow>({
-    key: "laporan-masuk-pending",
-    url: "/laporan/barang-masuk",
-    params: { ...params, status: "pending" },
+  const { data, isLoading, refetch } = useDashboardData({
+    gudangId,
+    chartRange,
   })
 
-  const stokRows = unwrapRows<LaporanStokRow>(stokQuery.data)
-  const masukRows = unwrapRows<LaporanRow>(masukQuery.data)
-  const keluarRows = unwrapRows<LaporanRow>(keluarQuery.data)
-  const opnamePendingRows = unwrapRows<LaporanRow>(opnamePendingQuery.data)
-  const masukPendingRows = unwrapRows<LaporanRow>(masukPendingQuery.data)
-
-  const hasData =
-    stokQuery.isSuccess || masukQuery.isSuccess || keluarQuery.isSuccess
-
-  const metricsData = useMemo(() => {
-    if (!hasData) return undefined
-    const totalBarang = stokRows.reduce(
-      (acc, row) => acc + (row.total_stok ?? 0),
-      0
-    )
-    const nilaiStok = stokRows.reduce(
-      (acc, row) => acc + (row.nilai_stok ?? 0),
-      0
-    )
-    const barangMasukQty = masukRows.reduce(
-      (acc, row) => acc + (row.total_qty ?? 0),
-      0
-    )
-    const barangMasukCount = masukRows.length
-    const barangKeluarQty = keluarRows.reduce(
-      (acc, row) => acc + (row.total_qty ?? 0),
-      0
-    )
-    const barangKeluarCount = keluarRows.length
-    const opnameQty = opnamePendingRows.reduce(
-      (acc, row) => acc + (row.total_qty ?? 0),
-      0
-    )
-    const masukQty = masukPendingRows.reduce(
-      (acc, row) => acc + (row.total_qty ?? 0),
-      0
-    )
-    const pendingApprovals =
-      opnameQty + masukQty > 0
-        ? opnameQty + masukQty
-        : opnamePendingRows.length + masukPendingRows.length
-    return {
-      totalBarang,
-      nilaiStok,
-      barangMasukQty,
-      barangMasukCount,
-      barangKeluarQty,
-      barangKeluarCount,
-      pendingApprovals,
-      gudangCount: gudangOptions.items.length,
-    }
-  }, [
-    hasData,
-    stokRows,
-    masukRows,
-    keluarRows,
-    opnamePendingRows,
-    masukPendingRows,
-    gudangOptions.items.length,
-  ])
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["laporan-stok"] })
-    queryClient.invalidateQueries({ queryKey: ["laporan-masuk"] })
-    queryClient.invalidateQueries({ queryKey: ["laporan-keluar"] })
-    queryClient.invalidateQueries({ queryKey: ["laporan-opname-pending"] })
-    queryClient.invalidateQueries({ queryKey: ["laporan-masuk-pending"] })
-    queryClient.invalidateQueries({ queryKey: ["gudang"] })
-  }
+  const metricsData = data
+    ? {
+        totalBarang: data.metrics.total_barang,
+        nilaiStok: data.metrics.total_nilai_stok,
+        barangMasukQty: data.metrics.barang_masuk_bulan_ini.qty,
+        barangMasukCount: data.metrics.barang_masuk_bulan_ini.count,
+        barangKeluarQty: data.metrics.barang_keluar_bulan_ini.qty,
+        barangKeluarCount: data.metrics.barang_keluar_bulan_ini.count,
+        pendingApprovals: data.metrics.pending_approvals,
+        gudangCount: data.metrics.total_gudang,
+      }
+    : undefined
 
   return (
     <>
@@ -157,10 +67,14 @@ export default function DashboardPage() {
 
             <Button
               variant="outline-black"
-              onClick={handleRefresh}
+              onClick={() => refetch()}
               className="gap-1 text-xs"
+              disabled={isLoading}
             >
-              <BiRefresh className="size-4" /> Refresh
+              <BiRefresh
+                className={`size-4 ${isLoading ? "animate-spin" : ""}`}
+              />{" "}
+              Refresh
             </Button>
 
             <Button variant="default" className="gap-1 text-xs">
@@ -180,13 +94,21 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column (Chart + Sampled Logs) — takes 2 cols on lg */}
           <div className="space-y-8 lg:col-span-2">
-            <DashboardChart />
-            <DashboardLogTable />
+            <DashboardChart
+              data={data?.chart}
+              range={chartRange}
+              onRangeChange={setChartRange}
+            />
+            <DashboardLogTable logs={data?.recent_activity} />
           </div>
 
           {/* Right Column (Cloudflare Insights & Detection Tests style) */}
           <div className="border-l border-border/40 lg:col-span-1 lg:pl-6">
-            <DashboardInsightsPanel />
+            <DashboardInsightsPanel
+              alerts={data?.alerts}
+              warehouseCapacity={data?.warehouse_capacity}
+              attendanceToday={data?.attendance_today}
+            />
           </div>
         </div>
       </div>

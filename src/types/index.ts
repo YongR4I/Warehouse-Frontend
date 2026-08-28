@@ -560,6 +560,7 @@ export interface AbsensiScanUser {
   id: number
   name: string
   kode_petugas?: string | null
+  no_pegawai?: string | null
   jabatan?: string | null
 }
 
@@ -764,4 +765,83 @@ export interface JadwalShift {
   shift: "pagi" | "siang" | "malam"
   jamMulai: string
   jamSelesai: string
+}
+
+export interface DashboardMetrics {
+  total_barang: number
+  total_stok: number
+  total_nilai_stok: number
+  total_gudang: number
+  barang_masuk_bulan_ini: { qty: number; count: number }
+  barang_keluar_bulan_ini: { qty: number; count: number }
+  pending_approvals: number
+}
+
+export interface DashboardChartData {
+  range: "24h" | "7d" | "30d"
+  labels: string[]
+  masuk: number[]
+  keluar: number[]
+}
+
+export interface DashboardActivityLog {
+  id: number
+  waktu: string
+  kategori: string
+  petugas: string
+  role: string
+  gudang: string
+  detail: string
+  referensi: string
+  status: string
+}
+
+export interface DashboardStokKritis {
+  id: number
+  sku: string
+  nama: string
+  stok_saat_ini: number
+  min_stok: number
+}
+
+export interface DashboardPendingItem {
+  id: number
+  no_referensi: string
+  tanggal: string
+  gudang: string
+  petugas: string
+  total_qty?: number
+  status?: string
+  ada_selisih?: boolean
+}
+
+export interface DashboardAlerts {
+  stok_kritis: DashboardStokKritis[]
+  pending_masuk: DashboardPendingItem[]
+  pending_opname: DashboardPendingItem[]
+}
+
+export interface DashboardWarehouseCapacity {
+  id: number
+  nama: string
+  terisi: number
+  kapasitas: number
+  persen: number
+}
+
+export interface DashboardAttendanceShift {
+  nama: string
+  jam_masuk: string
+  jam_pulang: string
+  hadir: number
+  total: number
+}
+
+export interface DashboardData {
+  metrics: DashboardMetrics
+  chart: DashboardChartData
+  recent_activity: DashboardActivityLog[]
+  alerts: DashboardAlerts
+  warehouse_capacity: DashboardWarehouseCapacity[]
+  attendance_today: DashboardAttendanceShift[]
 }
