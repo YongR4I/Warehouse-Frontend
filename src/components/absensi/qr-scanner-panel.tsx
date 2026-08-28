@@ -239,8 +239,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
                       ? [result.identitas.kode, result.identitas.jabatan]
                           .filter(Boolean)
                           .join(" · ") || `PID-${result.identitas.id}`
-                      : (result.user?.kode_petugas ??
-                        `#${result.identitas.id}`)}
+                      : (result.user?.no_pegawai ?? `#${result.identitas.id}`)}
                     {result.gudang ? ` · ${result.gudang.nama}` : ""}
                   </p>
                 </div>

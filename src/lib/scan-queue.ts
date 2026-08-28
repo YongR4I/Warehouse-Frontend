@@ -53,13 +53,12 @@ function makeClientRef(): string {
 
 export function enqueueScan(
   qrPayload: string,
-  waktuScan = nowForQueue(),
-  gudangId?: number | null
+  waktuScan = nowForQueue()
 ): number {
   const items = loadQueue()
   items.push({
     qr_payload: qrPayload,
-    gudang_id: gudangId ?? null,
+    gudang_id: null,
     waktu_scan: waktuScan,
     client_ref: makeClientRef(),
   })

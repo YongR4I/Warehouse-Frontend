@@ -27,14 +27,13 @@ export function BasicLayout({ children }: { children: React.ReactNode }) {
   })
 
   useEffect(() => {
-    if (!useAuthStore.persist) return
-    // Fallback utk storage asinkron: cek ulang setelah tick
+    const persist = useAuthStore.persist
+    if (!persist) return
+
+    const unsub = persist.onFinishHydration(() => setHydrated(true))
     const t = setTimeout(() => {
-      if (useAuthStore.persist?.hasHydrated()) setHydrated(true)
+      if (persist.hasHydrated()) setHydrated(true)
     }, 0)
-    const unsub = useAuthStore.persist.onFinishHydration(() =>
-      setHydrated(true)
-    )
     return () => {
       clearTimeout(t)
       unsub()

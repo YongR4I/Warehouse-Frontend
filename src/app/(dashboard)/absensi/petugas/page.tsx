@@ -40,6 +40,7 @@ import { ColoredBadge } from "@/components/ui/colored-badge"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { formatDate } from "@/lib/status"
+import { useAuthStore } from "@/store/use-auth-store"
 import type { Petugas, PetugasStatusOperasional } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
@@ -61,6 +62,11 @@ const STATUS_BADGE: Record<
 }
 
 export default function DaftarPetugasPage() {
+  const hasPermission = useAuthStore((state) => state.hasPermission)
+  const canCreate = hasPermission("petugas-create")
+  const canEdit = hasPermission("petugas-edit")
+  const canDelete = hasPermission("petugas-delete")
+
   const [exportOpen, setExportOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -210,10 +216,12 @@ export default function DaftarPetugasPage() {
               <BiDownload className="mr-2" />
               Export (.excel/.pdf)
             </Button>
-            <Button variant="default" onClick={openCreate}>
-              <BiUserPlus className="mr-2" />
-              Tambah Petugas
-            </Button>
+            {canCreate && (
+              <Button variant="default" onClick={openCreate}>
+                <BiUserPlus className="mr-2" />
+                Tambah Petugas
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -318,12 +326,14 @@ export default function DaftarPetugasPage() {
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <button
-                        onClick={() => openEdit(petugas)}
-                        className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
-                      >
-                        <BiChevronRight className="size-4 text-foreground/75" />
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={() => openEdit(petugas)}
+                          className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                        >
+                          <BiChevronRight className="size-4 text-foreground/75" />
+                        </button>
+                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
                           <BiDotsVerticalRounded className="size-4 text-foreground/75" />
@@ -331,10 +341,12 @@ export default function DaftarPetugasPage() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuLabel>Aksi Petugas</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => openEdit(petugas)}>
-                            <BiEditAlt />
-                            <span>Ubah Profil</span>
-                          </DropdownMenuItem>
+                          {canEdit && (
+                            <DropdownMenuItem onClick={() => openEdit(petugas)}>
+                              <BiEditAlt />
+                              <span>Ubah Profil</span>
+                            </DropdownMenuItem>
+                          )}
                           {/* Kontrak v3: semua karyawan punya QR native petugas */}
                           <DropdownMenuItem
                             onClick={() => setQrTarget(petugas)}
@@ -342,14 +354,16 @@ export default function DaftarPetugasPage() {
                             <BiQr />
                             <span>Lihat QR Card</span>
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => handleDelete(petugas)}
-                          >
-                            <BiTrash />
-                            <span>Hapus</span>
-                          </DropdownMenuItem>
+                          {canEdit && <DropdownMenuSeparator />}
+                          {canDelete && (
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => handleDelete(petugas)}
+                            >
+                              <BiTrash />
+                              <span>Hapus</span>
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
