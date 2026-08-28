@@ -1,20 +1,23 @@
 ﻿"use client"
 
-import { useMemo, useState } from "react"
+import { useDeferredValue, useMemo, useState } from "react"
 import { ExportModal } from "@/components/export-modal"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { InputSearch, DateInput } from "@/components/input"
+import { Opsion } from "@/components/opsion"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import {
   BiUserCheck,
   BiChevronRight,
+  BiChevronLeft,
   BiDotsVerticalRounded,
   BiSolidReport,
   BiShow,
   BiEditAlt,
   BiQr,
+  BiCalendar,
 } from "react-icons/bi"
 import {
   DropdownMenu,
@@ -37,8 +40,9 @@ import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
 import { useApiList, useApiCreate } from "@/hooks/use-api"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage } from "@/lib/api"
-import { statusColor, statusLabel } from "@/lib/status"
+import { formatDate, statusColor, statusLabel } from "@/lib/status"
 import { QrScannerPanel } from "@/components/absensi/qr-scanner-panel"
+import { cn } from "@/lib/utils"
 import type { Absensi, AbsensiPayload, Gudang, Shift, User } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
@@ -57,6 +61,12 @@ function toDateParam(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
+function addDaysParam(param: string, days: number): string {
+  const d = new Date(param + "T00:00:00")
+  d.setDate(d.getDate() + days)
+  return toDateParam(d)
+}
+
 const ABSENSI_STATUS_OPTIONS = [
   { value: "hadir", label: "Hadir" },
   { value: "terlambat", label: "Terlambat" },
@@ -66,6 +76,11 @@ const ABSENSI_STATUS_OPTIONS = [
   { value: "alpha", label: "Alpha" },
 ]
 
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "Semua Status" },
+  ...ABSENSI_STATUS_OPTIONS,
+]
+
 export default function PresensiPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("hari-ini")
@@ -73,6 +88,8 @@ export default function PresensiPage() {
     toDateParam(new Date())
   )
   const [searchQuery, setSearchQuery] = useState("")
+  const deferredSearch = useDeferredValue(searchQuery)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [formUserId, setFormUserId] = useState("")
   const [formGudangId, setFormGudangId] = useState("")
@@ -100,18 +117,35 @@ export default function PresensiPage() {
 
   const rawRows = unwrapRows<Absensi>(absensiQuery.data)
 
+  const todayParam = toDateParam(new Date())
+  const isToday = selectedDate === todayParam
+
+  const shiftDate = (days: number) => {
+    setSelectedDate((prev) => addDaysParam(prev, days))
+  }
+
+  const handleStatusChange = (val: string | null) => {
+    if (!val || val === "all") setStatusFilter(null)
+    else setStatusFilter(val)
+  }
+
   const rows = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim()
-    if (!query) return rawRows
+    const query = deferredSearch.toLowerCase().trim()
     return rawRows.filter((row) => {
       // Kontrak v3: baris bisa milik karyawan native (petugas) atau akun
       const nama = row.nama ?? row.user?.name ?? ""
       const kode = row.petugas?.kode ?? row.user?.no_pegawai ?? ""
-      return (
-        nama.toLowerCase().includes(query) || kode.toLowerCase().includes(query)
-      )
+      const matchesSearch =
+        !query ||
+        nama.toLowerCase().includes(query) ||
+        kode.toLowerCase().includes(query)
+
+      const matchesStatus =
+        !statusFilter || statusFilter === "all" || row.status === statusFilter
+
+      return matchesSearch && matchesStatus
     })
-  }, [rawRows, searchQuery])
+  }, [rawRows, deferredSearch, statusFilter])
 
   const userOptions = usersOptions.items.map((user) => ({
     value: String(user.id),
@@ -215,20 +249,91 @@ export default function PresensiPage() {
 
           {/* Tab: Presensi Hari Ini */}
           <TabsContent value="hari-ini">
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <InputSearch
                 placeholder="Cari NIK, nama, atau nomor HP..."
-                className="flex-1"
+                className="min-w-[220px] flex-1"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <DateInput
-                value={selectedDate}
-                onChange={(e) =>
-                  setSelectedDate(e.target.value || toDateParam(new Date()))
-                }
-                className="h-[42px] w-[170px] rounded-2xl"
+              {/* Date navigator — optimal untuk harian: 1 klik prev/next + Hari Ini */}
+              <div className="flex h-[42px] items-center overflow-hidden rounded-2xl border border-border bg-card">
+                <button
+                  type="button"
+                  aria-label="Hari sebelumnya"
+                  onClick={() => shiftDate(-1)}
+                  className="flex size-[42px] cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <BiChevronLeft className="size-4" />
+                </button>
+                <DateInput
+                  value={selectedDate}
+                  max={todayParam}
+                  onChange={(e) =>
+                    setSelectedDate(e.target.value || todayParam)
+                  }
+                  className="h-[42px] w-[148px] rounded-none border-0 border-x border-border bg-transparent px-2 text-center text-sm"
+                  title="Pilih tanggal presensi"
+                />
+                <button
+                  type="button"
+                  aria-label="Hari berikutnya"
+                  onClick={() => shiftDate(1)}
+                  disabled={isToday}
+                  className={cn(
+                    "flex size-[42px] cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                    isToday && "pointer-events-none opacity-30"
+                  )}
+                >
+                  <BiChevronRight className="size-4" />
+                </button>
+                {!isToday && (
+                  <>
+                    <div className="h-6 w-px bg-border" />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDate(todayParam)}
+                      className="cursor-pointer px-3.5 text-xs font-semibold whitespace-nowrap text-foreground transition-colors hover:bg-muted h-full"
+                    >
+                      Hari Ini
+                    </button>
+                  </>
+                )}
+              </div>
+              <Opsion
+                placeholder="Semua Status"
+                value={statusFilter ?? ""}
+                onValueChange={handleStatusChange}
+                options={STATUS_FILTER_OPTIONS}
+                className="h-[42px] w-[160px]"
               />
+            </div>
+            {/* Feedback bar — bikin filter terasa bekerja */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/70 px-2.5 py-1 font-medium text-muted-foreground">
+                <BiCalendar className="size-3.5" />
+                {formatDate(selectedDate)}
+                {isToday && " · Hari Ini"}
+              </span>
+              <span className="text-muted-foreground/70">
+                {absensiQuery.isFetching
+                  ? "Memperbarui…"
+                  : absensiQuery.isLoading
+                    ? "Memuat…"
+                    : `${rows.length} data${statusFilter ? ` · ${statusLabel(statusFilter)}` : ""}${deferredSearch.trim() ? ` · cari “${deferredSearch.trim()}”` : ""}`}
+              </span>
+              {(statusFilter || deferredSearch.trim()) && !absensiQuery.isLoading && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setStatusFilter(null)
+                  }}
+                  className="cursor-pointer font-medium text-foreground underline-offset-2 hover:underline"
+                >
+                  Reset filter
+                </button>
+              )}
             </div>
 
             <div className="mt-4">
@@ -281,7 +386,9 @@ export default function PresensiPage() {
                         colSpan={9}
                         className="text-center text-sm text-muted-foreground"
                       >
-                        Tidak ada data presensi pada tanggal terpilih.
+                        {rawRows.length === 0
+                          ? `Tidak ada data presensi pada ${formatDate(selectedDate)}.`
+                          : `Tidak ada hasil untuk filter saat ini pada ${formatDate(selectedDate)}.`}
                       </TableCell>
                     </TableRow>
                   )}
@@ -394,7 +501,7 @@ export default function PresensiPage() {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title="Input Manual Absensi"
-        description={`Rekam kehadiran petugas untuk tanggal ${selectedDate}.`}
+        description={`Rekam kehadiran petugas untuk ${formatDate(selectedDate)} (${selectedDate}).`}
         icon={BiUserCheck}
       >
         <FormDrawer.Body>
