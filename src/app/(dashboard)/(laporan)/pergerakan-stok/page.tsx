@@ -47,8 +47,10 @@ interface MutasiStokRow {
     nama?: string
     satuan?: { nama?: string } | null
   } | null
-  gudang_asal?: { nama?: string } | null
-  gudang_tujuan?: { nama?: string } | null
+  gudang_asal_id?: number | null
+  gudang_tujuan_id?: number | null
+  gudang_asal?: { id?: number; nama?: string } | null
+  gudang_tujuan?: { id?: number; nama?: string } | null
   user?: { name?: string } | null
 }
 
@@ -143,10 +145,20 @@ export default function LaporanPage() {
   const rawKeluar = unwrapRows<LaporanRow>(keluarQuery.data)
   const rawOpname = unwrapRows<Record<string, unknown>>(opnameQuery.data)
 
+  const gudangFilteredMutasi = useMemo(() => {
+    if (!gudangId) return rawMutasi
+    const gid = String(gudangId)
+    return rawMutasi.filter((row) => {
+      const asalId = row.gudang_asal_id ?? row.gudang_asal?.id
+      const tujuanId = row.gudang_tujuan_id ?? row.gudang_tujuan?.id
+      return String(asalId ?? "") === gid || String(tujuanId ?? "") === gid
+    })
+  }, [rawMutasi, gudangId])
+
   const rows = useMemo(() => {
     const query = deferredSearch.toLowerCase().trim()
-    if (!query) return rawMutasi
-    return rawMutasi.filter((row) => {
+    if (!query) return gudangFilteredMutasi
+    return gudangFilteredMutasi.filter((row) => {
       const nama = row.nama_barang ?? row.barang?.nama ?? ""
       const sku = row.sku ?? row.barang?.sku ?? ""
       return (
@@ -155,7 +167,7 @@ export default function LaporanPage() {
         sku.toLowerCase().includes(query)
       )
     })
-  }, [rawMutasi, deferredSearch])
+  }, [gudangFilteredMutasi, deferredSearch])
 
   const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
   const paginatedRows = useMemo(() => {
@@ -172,8 +184,8 @@ export default function LaporanPage() {
     [rawKeluar]
   )
   const totalMutasi = useMemo(
-    () => rawMutasi.filter((row) => detectArus(row) === "mutasi").length,
-    [rawMutasi]
+    () => gudangFilteredMutasi.filter((row) => detectArus(row) === "mutasi").length,
+    [gudangFilteredMutasi]
   )
   const totalSelisih = useMemo(
     () =>
