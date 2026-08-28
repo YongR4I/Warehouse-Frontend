@@ -29,7 +29,7 @@ export function FormField({
       {label && (
         <Label
           className={cn(
-            "text-xs font-semibold text-[#4c4546]",
+            "text-xs font-semibold text-[#4c4546] dark:text-muted-foreground",
             required && "after:ml-0.5 after:text-rose-500 after:content-['*']",
             labelClassName
           )}

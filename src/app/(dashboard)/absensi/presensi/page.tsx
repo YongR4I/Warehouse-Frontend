@@ -43,6 +43,7 @@ import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage } from "@/lib/api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
 import { QrScannerPanel } from "@/components/absensi/qr-scanner-panel"
+import { PresensiDetailDrawer } from "@/components/absensi/presensi-detail-drawer"
 import { cn } from "@/lib/utils"
 import type { Absensi, AbsensiPayload, Gudang, Shift, User } from "@/types"
 
@@ -100,6 +101,8 @@ export default function PresensiPage() {
   const [formJamPulang, setFormJamPulang] = useState("")
   const [formKeterangan, setFormKeterangan] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [detailRow, setDetailRow] = useState<Absensi | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const absensiQuery = useApiList<Absensi>({
     key: "absensi",
@@ -425,7 +428,8 @@ export default function PresensiPage() {
                           >
                             {row.sumber === "manual" ? "Manual" : "Scan QR"}
                           </ColoredBadge>
-                          {row.di_luar_jadwal && (
+                          {(!!row.di_luar_jadwal &&
+                            String(row.di_luar_jadwal) !== "0") && (
                             <ColoredBadge color="yellow">
                               Di Luar Jadwal
                             </ColoredBadge>
@@ -434,7 +438,14 @@ export default function PresensiPage() {
                       </TableCell>
                       <TableCell className="pr-6 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                          <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                          <button
+                            onClick={() => {
+                              setDetailRow(row)
+                              setDetailOpen(true)
+                            }}
+                            className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                            title="Lihat Detail"
+                          >
                             <BiChevronRight className="size-4 text-foreground/75" />
                           </button>
                           <DropdownMenu>
@@ -446,11 +457,18 @@ export default function PresensiPage() {
                                 Aksi Presensi
                               </DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setDetailRow(row)
+                                  setDetailOpen(true)
+                                }}
+                              >
                                 <BiShow />
                                 <span>Lihat Detail</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => toast.info("Koreksi Absen segera hadir")}
+                              >
                                 <BiEditAlt />
                                 <span>Koreksi Absen</span>
                               </DropdownMenuItem>
@@ -587,6 +605,15 @@ export default function PresensiPage() {
           { id: "jamMasuk", label: "Jam Masuk & Keluar", defaultChecked: true },
           { id: "status", label: "Status Kehadiran", defaultChecked: true },
         ]}
+      />
+
+      <PresensiDetailDrawer
+        open={detailOpen}
+        onOpenChange={(open) => {
+          setDetailOpen(open)
+          if (!open) setDetailRow(null)
+        }}
+        data={detailRow}
       />
     </>
   )

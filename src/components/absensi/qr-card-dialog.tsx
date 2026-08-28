@@ -7,11 +7,11 @@ import { toPng } from "html-to-image"
 import { toast } from "sonner"
 import {
   BiDownload,
-  BiPrinter,
   BiUser,
   BiQr,
   BiRefresh,
   BiErrorCircle,
+  BiBuildings,
 } from "react-icons/bi"
 import {
   Dialog,
@@ -24,10 +24,6 @@ import { Button } from "@/components/ui/button"
 import api, { getErrorMessage } from "@/lib/api"
 import type { QrIssueData, User } from "@/types"
 
-// Dual-mode QR Card (kontrak v3, lihat Obsidian TODO-QR-PETUGAS):
-// - petugas mode : POST /petugas/{id}/qr/issue — karyawan TANPA akun pun bisa
-// - user mode    : POST /qr/issue — kartu lama atas akun login (backward-compat)
-
 export interface QrCardPetugasSubject {
   id: number
   nama: string
@@ -38,9 +34,7 @@ export interface QrCardPetugasSubject {
 interface QrCardDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Mode karyawan native — prioritas jika diisi. */
   petugas?: QrCardPetugasSubject | null
-  /** Mode akun login (alur lama). */
   user?: User | null
 }
 
@@ -79,7 +73,6 @@ export function QrCardDialog({
     if (!subjectId) return
     setRegenerating(true)
     try {
-      // Satu panggilan: invalidate versi lama + terbitkan payload baru
       if (isPetugasMode) {
         await api.post(`/petugas/${petugas!.id}/qr/regenerate`)
       } else {
@@ -88,9 +81,7 @@ export function QrCardDialog({
       await queryClient.invalidateQueries({
         queryKey: ["qr-issue", isPetugasMode ? "petugas" : "user", subjectId],
       })
-      toast.success(
-        "Token QR diterbitkan ulang — kartu cetak lama tidak berlaku"
-      )
+      toast.success("Token QR diterbitkan ulang — kartu cetak lama tidak berlaku")
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
@@ -103,13 +94,12 @@ export function QrCardDialog({
   const displayJabatan = isPetugasMode
     ? (petugas?.jabatan ?? "Karyawan Gudang")
     : null
-  const chipKode = displayKode ?? `#${subjectId}`
   const footerKode = isPetugasMode
     ? (displayKode ?? `PID-${String(subjectId).padStart(4, "0")}`)
     : (displayKode ?? `UID-${String(subjectId).padStart(4, "0")}`)
 
   const handleDownload = useCallback(async () => {
-    if (!cardRef.current || !cardRef.current.innerHTML) return
+    if (!cardRef.current) return
     try {
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
@@ -126,174 +116,137 @@ export function QrCardDialog({
     }
   }, [footerKode])
 
-  const handlePrint = useCallback(() => {
-    if (!cardRef.current || !cardRef.current.innerHTML) return
-    const win = window.open("", "_blank")
-    if (!win) return
-    const html = cardRef.current.outerHTML
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>QR Card - ${displayName}</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; font-family: sans-serif; }
-            @media print { body { margin: 0; } }
-          </style>
-        </head>
-        <body>${html}<script>window.onload=()=>{window.print();window.close()}<\/script></body>
-      </html>
-    `)
-    win.document.close()
-  }, [displayName])
-
   if (!subjectId) return null
 
   const qrData = qrQuery.data
   const loading = qrQuery.isFetching || regenerating
   const error = qrQuery.error ? getErrorMessage(qrQuery.error) : null
-  const gudangNama = user?.gudang?.nama ?? "—"
-  const roleName = user?.roles?.map((r) => r.name).join(", ") || "Petugas"
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="mb-2 flex items-center gap-2">
-            <BiQr className="size-6" />
+      <DialogContent className="max-w-[380px] gap-0 overflow-hidden rounded-[24px] border border-border/60 bg-background p-0 shadow-2xl sm:max-w-[380px]">
+        <DialogHeader className="px-6 pt-6 pb-0">
+          <DialogTitle className="flex items-center gap-2 text-base font-bold">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BiQr className="size-4" />
+            </span>
             QR Card Petugas
           </DialogTitle>
-          <DialogDescription className="max-w-xs">
-            Kartu identitas digital dengan QR code bertanda tangan server untuk
-            presensi.
+          <DialogDescription className="text-xs leading-relaxed">
+            Kartu identitas digital dengan QR bertanda tangan server untuk presensi masuk / pulang.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Card yang bisa di-download / print */}
-        <div className="flex justify-center py-2">
+        {/* Card preview — fixed white, print-friendly */}
+        <div className="flex justify-center bg-muted/20 px-6 py-6 dark:bg-muted/10">
           <div
             ref={cardRef}
-            style={{ fontFamily: "sans-serif" }}
-            className="relative w-72 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg"
+            style={{ fontFamily: "var(--font-sans), system-ui, sans-serif" }}
+            className="relative w-[296px] overflow-hidden rounded-[20px] bg-white shadow-xl"
           >
-            {/* Header strip */}
-            <div className="bg-foreground px-5 py-4">
-              <p className="text-[10px] font-bold tracking-widest text-background/60 uppercase">
-                Sabiru Warehouse
+            {/* Top white section with brand */}
+            <div className="relative flex h-[92px] flex-col items-center justify-center bg-white px-6">
+              <div className="flex items-center gap-1.5 text-[#0F2340]">
+                <BiBuildings className="size-3.5 text-[#0F2340]" />
+                <span className="text-[11px] font-bold tracking-[0.18em] text-[#0F2340]">
+                  SABIRU WAREHOUSE
+                </span>
+              </div>
+              <p className="mt-0.5 text-[10px] font-medium tracking-widest text-[#7A7B83]/60">
+                ID CARD • PETUGAS GUDANG
               </p>
-              <p className="mt-0.5 text-sm font-bold tracking-tight text-background">
-                ID Card Petugas
-              </p>
+              {/* curved transition */}
+              <div className="absolute -bottom-6 left-0 right-0 flex justify-center">
+                <div className="h-12 w-[120%] rounded-[50%] bg-[#0F2340]" />
+              </div>
             </div>
 
-            {/* Body */}
-            <div className="flex flex-col items-center gap-4 px-5 py-5">
-              {/* Avatar */}
-              <div className="flex size-16 items-center justify-center rounded-full border-2 border-border/40 bg-muted">
+            {/* Avatar — overlaps curve */}
+            <div className="absolute left-1/2 top-[52px] z-10 -translate-x-1/2">
+              <div className="flex size-[84px] items-center justify-center overflow-hidden rounded-full border-[4px] border-white bg-slate-100 shadow-lg">
                 {!isPetugasMode && user?.foto ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={user.foto}
                     alt={user.name}
-                    className="size-full rounded-full object-cover"
+                    className="size-full object-cover"
                   />
                 ) : (
-                  <BiUser className="size-8 text-muted-foreground" />
+                  <BiUser className="size-9 text-slate-400" />
                 )}
               </div>
-
-              {/* Info */}
-              <div className="w-full text-center">
-                <p className="text-base font-bold tracking-tight text-foreground">
-                  {displayName}
-                </p>
-                <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                  {isPetugasMode ? displayJabatan : roleName}
-                </p>
-                <div className="mt-2 flex items-center justify-center gap-1.5">
-                  <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
-                    {chipKode}
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  {gudangNama}
-                </p>
-              </div>
-
-              {/* QR Code */}
-              <div className="flex h-[164px] w-[164px] items-center justify-center rounded-xl border border-border/40 bg-card p-3 shadow-xs">
-                {loading && (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="size-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
-                    <p className="text-[10px] text-muted-foreground">
-                      Menerbitkan token...
-                    </p>
-                  </div>
-                )}
-                {!loading && error && (
-                  <div className="flex flex-col items-center gap-1.5 px-2 text-center">
-                    <BiErrorCircle className="size-6 text-red-500" />
-                    <p className="text-[10px] leading-tight text-muted-foreground">
-                      {error}
-                    </p>
-                  </div>
-                )}
-                {!loading && !error && qrData && (
-                  <QRCodeSVG
-                    value={qrData.payload}
-                    size={140}
-                    level="M"
-                    includeMargin={false}
-                  />
-                )}
-                {!loading && !error && !qrData && (
-                  <div className="size-[140px]" />
-                )}
-              </div>
-
-              <p className="text-center text-[10px] text-muted-foreground">
-                Scan QR untuk presensi masuk / pulang
-                {qrData ? ` · Versi kartu #${qrData.version}` : ""}
-              </p>
             </div>
 
-            {/* Footer strip */}
-            <div className="border-t border-border/30 bg-muted/40 px-5 py-2 text-center">
-              <p className="font-mono text-[10px] text-muted-foreground">
-                {footerKode}
-              </p>
+            {/* Bottom navy section */}
+            <div className="bg-[#0F2340] px-6 pb-6 pt-12">
+              <div className="flex flex-col items-center text-center">
+                <h3 className="text-[15px] font-bold uppercase tracking-wide text-white">
+                  {displayName}
+                </h3>
+                <p className="mt-1 text-[11px] font-semibold tracking-widest text-white/60 uppercase">
+                  {displayJabatan}
+                </p>
+
+                {/* QR white box */}
+                <div className="mt-5 flex h-[152px] w-[152px] items-center justify-center rounded-2xl bg-white p-3 shadow-lg">
+                  {loading && (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="size-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#0F2340]" />
+                      <p className="text-[10px] font-medium text-slate-500">
+                        Menerbitkan token...
+                      </p>
+                    </div>
+                  )}
+                  {!loading && error && (
+                    <div className="flex flex-col items-center gap-1.5 px-2 text-center">
+                      <BiErrorCircle className="size-6 text-red-500" />
+                      <p className="text-[10px] leading-tight text-slate-500">
+                        {error}
+                      </p>
+                    </div>
+                  )}
+                  {!loading && !error && qrData && (
+                    <QRCodeSVG
+                      value={qrData.payload}
+                      size={128}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  )}
+                  {!loading && !error && !qrData && (
+                    <div className="size-[128px] rounded-lg bg-slate-50" />
+                  )}
+                </div>
+
+                <p className="mt-3 font-mono text-[10px] tracking-widest text-white/50">
+                  {footerKode}
+                  {qrData ? ` • v${qrData.version}` : ""}
+                </p>
+                <p className="mt-1 text-center text-[10px] leading-tight text-white/40">
+                  Scan QR untuk presensi masuk / pulang
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-1">
+        {/* Actions — remove Print, keep 2 buttons */}
+        <div className="flex gap-2 border-t border-border/60 bg-card px-6 py-4">
           <Button
             variant="outline"
-            className="rounded-xl"
+            className="h-10 flex-1 rounded-xl border-border bg-card text-sm"
             onClick={() => void handleRegenerate()}
             disabled={loading}
-            title="Cabut token lama dan terbitkan token baru — kartu cetak lama tidak akan berlaku"
           >
-            <BiRefresh className="mr-2 size-4" />
+            <BiRefresh className="mr-1.5 size-4" />
             Terbitkan Ulang
           </Button>
           <Button
-            variant="outline"
-            className="flex-1 rounded-xl"
-            onClick={handlePrint}
-            disabled={!qrData}
-          >
-            <BiPrinter className="mr-2 size-4" />
-            Print
-          </Button>
-          <Button
-            className="flex-1 rounded-xl bg-foreground text-background hover:bg-foreground/90"
+            className="h-10 flex-1 rounded-xl bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-[#0F2340] dark:hover:bg-white/90"
             onClick={() => void handleDownload()}
-            disabled={!qrData}
+            disabled={!qrData || loading}
           >
-            <BiDownload className="mr-2 size-4" />
+            <BiDownload className="mr-1.5 size-4" />
             Download PNG
           </Button>
         </div>

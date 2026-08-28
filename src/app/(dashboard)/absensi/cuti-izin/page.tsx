@@ -55,6 +55,7 @@ import { useConfirmDialog } from "@/components/confirm-dialog"
 import api, { getErrorMessage, uploadFile } from "@/lib/api"
 import { formatDate } from "@/lib/status"
 import { useAuthStore } from "@/store/use-auth-store"
+import { CutiDetailDrawer } from "@/components/absensi/cuti-detail-drawer"
 import type { IzinJenis, IzinPayload, IzinRequest, User } from "@/types"
 
 // Cuti & Izin — modul /api/izin dengan alur pengajuan → persetujuan
@@ -111,6 +112,8 @@ export default function CutiIzinPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [selectedRow, setSelectedRow] = useState<IzinRequest | null>(null)
   const [rejectNote, setRejectNote] = useState("")
+  const [detailRow, setDetailRow] = useState<IzinRequest | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const deferredSearch = useDeferredValue(searchQuery)
   const [filterFrom, setFilterFrom] = useState("")
@@ -441,55 +444,65 @@ export default function CutiIzinPage() {
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <button className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted">
+                      <button
+                        onClick={() => {
+                          setDetailRow(row)
+                          setDetailOpen(true)
+                        }}
+                        className="cursor-pointer rounded-md p-1 transition-colors hover:bg-muted"
+                        title="Lihat Detail"
+                      >
                         <BiChevronRight className="size-4 text-foreground/75" />
                       </button>
-                      {hasRowMenu && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
-                            <BiDotsVerticalRounded className="size-4 text-foreground/75" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel>
-                              {canApprove && row.status === "menunggu"
-                                ? "Aksi Persetujuan"
-                                : "Aksi Pengajuan"}
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <BiShow />
-                              <span>Lihat Detail</span>
-                            </DropdownMenuItem>
-                            {canApprove && row.status === "menunggu" && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() => void handleApprove(row)}
-                                  className="text-green-600 focus:text-green-700"
-                                >
-                                  <BiCheckCircle />
-                                  <span>Setujui</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleRejectOpen(row)}
-                                  className="text-red-600 focus:text-red-700"
-                                >
-                                  <BiXCircle />
-                                  <span>Tolak</span>
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            {canBatalkan && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="cursor-pointer rounded-md p-1 transition-colors outline-none hover:bg-muted">
+                          <BiDotsVerticalRounded className="size-4 text-foreground/75" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel>
+                            {canApprove && row.status === "menunggu"
+                              ? "Aksi Persetujuan"
+                              : "Aksi Pengajuan"}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setDetailRow(row)
+                              setDetailOpen(true)
+                            }}
+                          >
+                            <BiShow />
+                            <span>Lihat Detail</span>
+                          </DropdownMenuItem>
+                          {canApprove && row.status === "menunggu" && (
+                            <>
                               <DropdownMenuItem
-                                onClick={() => handleCancel(row)}
+                                onClick={() => void handleApprove(row)}
+                                className="text-green-600 focus:text-green-700"
+                              >
+                                <BiCheckCircle />
+                                <span>Setujui</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleRejectOpen(row)}
                                 className="text-red-600 focus:text-red-700"
                               >
-                                <BiBlock />
-                                <span>Batalkan</span>
+                                <BiXCircle />
+                                <span>Tolak</span>
                               </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                            </>
+                          )}
+                          {canBatalkan && (
+                            <DropdownMenuItem
+                              onClick={() => handleCancel(row)}
+                              className="text-red-600 focus:text-red-700"
+                            >
+                              <BiBlock />
+                              <span>Batalkan</span>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -675,6 +688,15 @@ export default function CutiIzinPage() {
           { id: "tanggal", label: "Periode", defaultChecked: true },
           { id: "status", label: "Status", defaultChecked: true },
         ]}
+      />
+
+      <CutiDetailDrawer
+        open={detailOpen}
+        onOpenChange={(open) => {
+          setDetailOpen(open)
+          if (!open) setDetailRow(null)
+        }}
+        data={detailRow}
       />
     </>
   )

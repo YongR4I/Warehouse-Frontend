@@ -337,8 +337,9 @@ export interface Absensi {
   jam_pulang?: string | null
   status: string
   // Kontrak v4 ([[TODO-ABSENSI-SCAN]]): audit sumber absen + flag lembur/dadakan
-  sumber?: "qr" | "manual"
-  di_luar_jadwal?: boolean
+  // BE bisa kirim 0/1 (int) untuk boolean, jadi longgarkan type agar tidak mismatch
+  sumber?: "qr" | "manual" | string | number | null
+  di_luar_jadwal?: boolean | number | string | null
   lokasi_checkin?: string | null
   lokasi_checkout?: string | null
   radius_validasi?: number | null
@@ -599,8 +600,8 @@ export interface AbsensiScanResult {
     jam_masuk: string | null
     jam_pulang: string | null
     status: string
-    sumber?: string | null
-    di_luar_jadwal?: boolean | null
+    sumber?: string | number | null
+    di_luar_jadwal?: boolean | number | string | null
   } | null
   shift: {
     id: number

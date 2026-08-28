@@ -50,7 +50,7 @@ export function ItemTable({
           <TableHeader>
             <TableRow className="border-b border-border/60 hover:bg-transparent">
               {showIndexHeader && (
-                <TableHead className="w-12 text-center text-xs font-semibold text-[#7e7576] normal-case">
+                <TableHead className="w-12 text-center text-xs font-semibold text-muted-foreground normal-case">
                   #
                 </TableHead>
               )}
@@ -63,7 +63,7 @@ export function ItemTable({
                   <TableHead
                     key={idx}
                     className={cn(
-                      "text-xs font-semibold text-[#7e7576] normal-case",
+                      "text-xs font-semibold text-muted-foreground normal-case",
                       headerClass
                     )}
                   >
@@ -78,11 +78,11 @@ export function ItemTable({
         </Table>
 
         {onAdd && (
-          <div className="border-t border-dashed border-border/60 bg-[#f3f3f380]">
+          <div className="border-t border-dashed border-border/60 bg-muted/20 dark:bg-muted/10">
             <button
               type="button"
               onClick={onAdd}
-              className="flex w-full items-center gap-2 px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground"
+              className="flex w-full items-center gap-2 px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground dark:hover:bg-muted/20"
             >
               <BiPlus className="size-4" />
               <span>{addLabel}</span>

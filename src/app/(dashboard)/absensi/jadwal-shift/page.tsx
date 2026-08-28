@@ -38,7 +38,7 @@ import { JadwalShiftForm } from "@/components/jadwal-shift/jadwal-shift-form"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
 import { getErrorMessage } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import type { JadwalPetugas, Shift, User } from "@/types"
+import type { JadwalPetugas, Petugas, Shift, User } from "@/types"
 
 function unwrapRows<T>(data: unknown): T[] {
   const body = data as { data?: unknown } | T[] | null | undefined
@@ -174,10 +174,16 @@ export default function JadwalShiftPage() {
     url: "/user",
     params: { per_page: 100 },
   })
+  const petugasQuery = useApiList<Petugas>({
+    key: "petugas-jadwal",
+    url: "/petugas",
+    params: { per_page: 100 },
+  })
 
   const shifts = unwrapRows<Shift>(shiftsQuery.data)
   const allJadwal = unwrapRows<JadwalPetugas>(jadwalQuery.data)
   const users = unwrapRows<User>(usersQuery.data)
+  const petugasList = unwrapRows<Petugas>(petugasQuery.data)
 
   const userMap = useMemo(() => {
     const map = new Map<number, User>()
@@ -187,6 +193,14 @@ export default function JadwalShiftPage() {
     }
     return map
   }, [users, allJadwal])
+
+  const petugasByUserId = useMemo(() => {
+    const map = new Map<number, Petugas>()
+    for (const p of petugasList) {
+      if (p.user_id) map.set(p.user_id, p)
+    }
+    return map
+  }, [petugasList])
 
   const weekStartParam = toDateParam(currentWeekStart)
   const weekEndParam = toDateParam(addDays(currentWeekStart, 6))
@@ -276,10 +290,11 @@ export default function JadwalShiftPage() {
     const weekStartStr = toDateParam(currentWeekStart)
     const weekEndStr = toDateParam(addDays(currentWeekStart, 6))
 
-    const [jadwalRes, shiftsRes, usersRes] = await Promise.all([
+    const [jadwalRes, shiftsRes, usersRes, petugasRes] = await Promise.all([
       api.get("/jadwal-petugas", { params: { per_page: 9999 } }),
       api.get("/shift", { params: { per_page: 100 } }),
       api.get("/user", { params: { per_page: 9999 } }),
+      api.get("/petugas", { params: { per_page: 9999 } }),
     ])
 
     const unwrap = <T,>(d: unknown): T[] => {
@@ -293,6 +308,7 @@ export default function JadwalShiftPage() {
     const allJadwal = unwrap<JadwalPetugas>(jadwalRes.data)
     const allShifts = unwrap<Shift>(shiftsRes.data)
     const allUsers = unwrap<User>(usersRes.data)
+    const allPetugas = unwrap<Petugas>(petugasRes.data)
 
     const shiftMap = new Map<number, Shift>()
     for (const s of allShifts) shiftMap.set(s.id, s)
@@ -301,6 +317,10 @@ export default function JadwalShiftPage() {
     for (const u of allUsers) userMap.set(u.id, u)
     for (const j of allJadwal) {
       if (j.user) userMap.set(j.user.id, j.user)
+    }
+    const petugasByUserId = new Map<number, Petugas>()
+    for (const p of allPetugas) {
+      if (p.user_id) petugasByUserId.set(p.user_id, p)
     }
 
     const weekJadwal = allJadwal.filter((j) => {
@@ -312,8 +332,12 @@ export default function JadwalShiftPage() {
 
     return weekUserIds.map((userId) => {
       const user = userMap.get(userId)
-      const userName = user?.name ?? `Petugas #${userId}`
-      const peran = user?.roles?.map((r) => r.name).join(", ") || "-"
+      const petugas = petugasByUserId.get(userId)
+      const userName = user?.name ?? petugas?.nama ?? `Petugas #${userId}`
+      const peran =
+        petugas?.jabatan ||
+        (user?.roles?.map((r) => r.name).join(", ") || "") ||
+        "-"
       const row: Record<string, unknown> = {
         nama: userName,
         peran,
@@ -487,9 +511,13 @@ export default function JadwalShiftPage() {
             )}
             {weekUserIds.map((userId) => {
               const user = userMap.get(userId)
-              const userName = user?.name ?? `Petugas #${userId}`
+              const petugas = petugasByUserId.get(userId)
+              const userName =
+                user?.name ?? petugas?.nama ?? `Petugas #${userId}`
               const peran =
-                user?.roles?.map((role) => role.name).join(", ") || "-"
+                petugas?.jabatan ||
+                (user?.roles?.map((role) => role.name).join(", ") || "") ||
+                "-"
               const userEntries = weekJadwal.filter(
                 (entry) => entry.user_id === userId
               )

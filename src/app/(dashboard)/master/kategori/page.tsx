@@ -232,9 +232,6 @@ export default function KategoriPage() {
               <TableHead className="text-xs font-semibold tracking-normal text-foreground normal-case">
                 Deskripsi / Keterangan
               </TableHead>
-              <TableHead className="text-center text-xs font-semibold tracking-normal text-foreground normal-case">
-                Jumlah Item
-              </TableHead>
               <TableHead className="pr-6 text-right text-xs font-semibold tracking-normal text-foreground normal-case">
                 Aksi
               </TableHead>
@@ -242,11 +239,11 @@ export default function KategoriPage() {
           </TableHeader>
           <TableBody>
             {kategoriLoading ? (
-              <TableSkeletonRows columns={4} rows={PER_PAGE} />
+              <TableSkeletonRows columns={3} rows={PER_PAGE} />
             ) : kategoris.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={3}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
                   Tidak ada data
@@ -263,9 +260,6 @@ export default function KategoriPage() {
                   </TableCell>
                   <TableCell className="font-sans text-sm text-foreground/80">
                     {row.deskripsi ?? "-"}
-                  </TableCell>
-                  <TableCell className="text-center font-sans text-sm text-foreground">
-                    -
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
@@ -303,7 +297,7 @@ export default function KategoriPage() {
           </TableBody>
           <TableFooter className="border-t border-border/50 bg-card">
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={4} className="p-0 align-middle">
+              <TableCell colSpan={3} className="p-0 align-middle">
                 <div className="flex h-14 items-center justify-between gap-4 bg-card px-6 font-sans text-xs text-muted-foreground">
                   <span>
                     Total Kategori: {kategoriMeta?.total ?? 0} Kategori

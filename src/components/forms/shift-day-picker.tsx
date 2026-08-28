@@ -36,13 +36,13 @@ const DAYS: DayConfig[] = [
 function getShiftColor(value: ShiftValue | undefined) {
   switch (value) {
     case "Shift 1":
-      return "bg-sky-50 text-sky-700 border-sky-200"
+      return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800"
     case "Shift 2":
-      return "bg-yellow-50 text-yellow-700 border-yellow-200"
+      return "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
     case "Shift 3":
-      return "bg-purple-50 text-purple-700 border-purple-200"
+      return "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800"
     case "OFF":
-      return "bg-muted text-zinc-500 border-border"
+      return "bg-muted text-muted-foreground border-border dark:bg-muted/30 dark:text-muted-foreground"
     default:
       return "bg-background text-foreground border-border"
   }

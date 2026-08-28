@@ -12,23 +12,18 @@ export default function AuthLayout({
 }) {
   const router = useRouter()
   const hasToken = !!useAuthStore((s) => s.token)
-  const [hydrated, setHydrated] = useState(false)
+  const [hydrated, setHydrated] = useState(() => {
+    return useAuthStore.persist ? useAuthStore.persist.hasHydrated() : true
+  })
 
   useEffect(() => {
     const persist = useAuthStore.persist
-    if (!persist) {
-      setHydrated(true)
-      return
-    }
-    if (persist.hasHydrated()) setHydrated(true)
+    if (!persist) return
+
     const unsub = persist.onFinishHydration(() => setHydrated(true))
-    const t1 = setTimeout(() => {
-      if (persist.hasHydrated()) setHydrated(true)
-    }, 0)
-    const t2 = setTimeout(() => setHydrated(true), 150)
+    const t = setTimeout(() => setHydrated(true), 100)
     return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
+      clearTimeout(t)
       unsub()
     }
   }, [])

@@ -76,7 +76,9 @@ export interface FormDrawerBodyProps {
 
 function FormDrawerBody({ children, className }: FormDrawerBodyProps) {
   return (
-    <div className={cn("flex-1 overflow-y-auto bg-[#f9f9f9] p-6", className)}>
+    <div
+      className={cn("flex-1 overflow-y-auto bg-muted/30 p-6 dark:bg-muted/15", className)}
+    >
       {children}
     </div>
   )

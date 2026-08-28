@@ -690,7 +690,8 @@ export default function RekapPage() {
                             >
                               {row.sumber === "manual" ? "Manual" : "Scan QR"}
                             </ColoredBadge>
-                            {row.di_luar_jadwal && (
+                            {(!!row.di_luar_jadwal &&
+                              String(row.di_luar_jadwal) !== "0") && (
                               <ColoredBadge color="yellow">
                                 Di Luar Jadwal
                               </ColoredBadge>
