@@ -83,7 +83,11 @@ export default function DashboardPage() {
               Refresh
             </Button>
 
-            <Button variant="default" className="gap-1 text-xs">
+            <Button
+              variant="default"
+              className="gap-1 text-xs"
+              onClick={() => setExportOpen(true)}
+            >
               <BiDownload className="size-4" /> Export Laporan
             </Button>
           </div>
@@ -140,9 +144,13 @@ export default function DashboardPage() {
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Ekspor Ringkasan Dashboard"
-        totalItemsCount={"Semua"}
+        totalItemsCount={data ? `${data.metrics.total_gudang} Gudang` : "Semua"}
         totalItemsLabel="Total Gudang"
-        filterLabel="Semua Gudang"
+        filterLabel={
+          selectedGudang !== "all"
+            ? gudangOptions.items.find((g) => String(g.id) === selectedGudang)?.nama ?? "Gudang"
+            : "Semua Gudang"
+        }
         checkboxes={[
           {
             id: "kpi",
@@ -159,6 +167,57 @@ export default function DashboardPage() {
             label: "Log Aktivitas Terbaru",
             defaultChecked: true,
           },
+        ]}
+        fetchExportData={async () => {
+          const rows: Record<string, unknown>[] = []
+
+          if (!data) return rows
+
+          rows.push({ section: "KPI", label: "Total Barang", value: data.metrics.total_barang })
+          rows.push({ section: "KPI", label: "Total Stok", value: data.metrics.total_stok })
+          rows.push({ section: "KPI", label: "Nilai Stok (Rp)", value: data.metrics.total_nilai_stok })
+          rows.push({ section: "KPI", label: "Barang Masuk (Qty)", value: data.metrics.barang_masuk_bulan_ini.qty })
+          rows.push({ section: "KPI", label: "Barang Masuk (Transaksi)", value: data.metrics.barang_masuk_bulan_ini.count })
+          rows.push({ section: "KPI", label: "Barang Keluar (Qty)", value: data.metrics.barang_keluar_bulan_ini.qty })
+          rows.push({ section: "KPI", label: "Barang Keluar (Transaksi)", value: data.metrics.barang_keluar_bulan_ini.count })
+          rows.push({ section: "KPI", label: "Pending Approvals", value: data.metrics.pending_approvals })
+
+          if (data.chart?.labels) {
+            data.chart.labels.forEach((label, i) => {
+              rows.push({
+                section: "Grafik",
+                label,
+                masuk: data.chart.masuk[i] ?? 0,
+                keluar: data.chart.keluar[i] ?? 0,
+              })
+            })
+          }
+
+          data.recent_activity.forEach((log) => {
+            rows.push({
+              section: "Log",
+              waktu: log.waktu,
+              kategori: log.kategori,
+              petugas: log.petugas,
+              detail: log.detail,
+              referensi: log.referensi,
+              status: log.status,
+            })
+          })
+
+          return rows
+        }}
+        exportColumns={[
+          { header: "Section", accessor: "section" },
+          { header: "Label / Waktu", accessor: "label" },
+          { header: "Masuk", accessor: "masuk" },
+          { header: "Keluar", accessor: "keluar" },
+          { header: "Nilai", accessor: "value" },
+          { header: "Kategori", accessor: "kategori" },
+          { header: "Petugas", accessor: "petugas" },
+          { header: "Detail", accessor: "detail" },
+          { header: "Referensi", accessor: "referensi" },
+          { header: "Status", accessor: "status" },
         ]}
       />
     </>
