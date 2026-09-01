@@ -18,6 +18,7 @@ import { FormSelect } from "@/components/forms"
 import api, { getErrorMessage } from "@/lib/api"
 import { useOptions } from "@/hooks/use-options"
 import { useCameraScanner, useWedgeScanner } from "@/hooks/use-scan-input"
+import { useGyroCamera } from "@/hooks/use-gyro-camera"
 import {
   enqueueScan,
   flushScanQueue,
@@ -89,7 +90,32 @@ const scanKeyframes = `
   0%, 100% { top: 10px; }
   50% { top: calc(100% - 10px); }
 }
+@keyframes qrPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
 `
+
+/* ── QR Status Badge ── */
+function QrScanBadge({ status }: { status: "scanning" | "detected" }) {
+  const isScanning = status === "scanning"
+  return (
+    <div
+      className={`absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold tracking-wide shadow-lg backdrop-blur-md transition-all ${
+        isScanning
+          ? "border-amber-400/30 bg-amber-500/90 text-white"
+          : "border-emerald-400/30 bg-emerald-500 text-white shadow-emerald-500/20"
+      }`}
+    >
+      {isScanning ? (
+        <span className="size-2 animate-[qrPulse_1.2s_ease-in-out_infinite] rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+      ) : (
+        <BiCheckCircle className="size-3.5" />
+      )}
+      {isScanning ? "QR Scanning..." : "QR Detected"}
+    </div>
+  )
+}
 
 /* ── Result card ── */
 function ResultCard({
@@ -323,6 +349,9 @@ export default function ScanAbsensiPage() {
     (payload) => void handleDetect(payload)
   )
 
+  // Enable gyro tracking when camera is active
+  useGyroCamera({ videoRef, enabled: cameraOn && scannerActive })
+
   useEffect(() => {
     if (config && setupReady && !cameraOn) void startCamera()
   }, [config, setupReady, cameraOn, startCamera])
@@ -401,21 +430,12 @@ export default function ScanAbsensiPage() {
   )
 
   const showScanGuide = display.kind === "idle" && scannerActive
-
-  // ── Responsive frame positioning ──
-  const [frame, setFrame] = useState({ size: 280, left: 0, top: 0 })
-
-  useEffect(() => {
-    const recalc = () => {
-      const size = window.innerWidth >= 640 ? 320 : 280
-      const left = Math.round((window.innerWidth - size) / 2)
-      const top = Math.round((window.innerHeight - size) / 2 - 60)
-      setFrame({ size, left, top })
-    }
-    recalc()
-    window.addEventListener("resize", recalc)
-    return () => window.removeEventListener("resize", recalc)
-  }, [])
+  const qrBadgeStatus: "scanning" | "detected" | null =
+    display.kind === "processing"
+      ? "detected"
+      : showScanGuide && cameraOn
+        ? "scanning"
+        : null
 
   // ---------- Setup ----------
   if (setupReady && !config) {
@@ -459,45 +479,63 @@ export default function ScanAbsensiPage() {
 
   // ---------- Scan screen ----------
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-foreground">
+    <main className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#0a0a0a] px-4">
       <style dangerouslySetInnerHTML={{ __html: scanKeyframes }} />
 
-      {/* ── Camera: full-screen background ── */}
-      <video
-        ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover"
-        muted
-        playsInline
-      />
+      {/* ── Camera wrapper — diperbesar width tapi tidak full, bg hitam masih terlihat ── */}
+      <div className="relative flex h-[70vh] w-[92vw] max-h-[560px] max-w-[520px] shrink-0 items-center justify-center overflow-hidden rounded-[28px] bg-black shadow-[0_24px_64px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
+        {/* Camera video */}
+        <video
+          ref={videoRef}
+          className="absolute inset-0 h-full w-full object-cover"
+          muted
+          playsInline
+          style={{ transform: "scaleX(1)" }}
+        />
 
-      {/* ── Scan frame + dark overlay via box-shadow cutout ── */}
+        {/* Badge QR Scanning / Detected */}
+        {qrBadgeStatus && <QrScanBadge status={qrBadgeStatus} />}
+
+        {/* Scan frame + inner dark overlay */}
+        {showScanGuide && (
+          <div className="absolute z-10 flex h-[280px] w-[280px] items-center justify-center rounded-2xl sm:h-[320px] sm:w-[320px]">
+            {/* dark overlay inside wrapper only */}
+            <div
+              className="absolute inset-0 rounded-2xl"
+              style={{ boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)" }}
+            />
+            <Corner position="tl" />
+            <Corner position="tr" />
+            <Corner position="bl" />
+            <Corner position="br" />
+            <div style={scanLineStyle} />
+          </div>
+        )}
+
+        {/* Dim overlay when not scanning */}
+        {!showScanGuide && (
+          <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-[1px] transition-opacity duration-300" />
+        )}
+      </div>
+
+      {/* Hint + Clock below camera — on black background */}
       {showScanGuide && (
-        <div
-          className="absolute z-10 rounded-2xl"
-          style={{
-            width: frame.size,
-            height: frame.size,
-            left: frame.left,
-            top: frame.top,
-            boxShadow: "0 0 0 9999px rgba(0,0,0,0.7)",
-          }}
-        >
-          <Corner position="tl" />
-          <Corner position="tr" />
-          <Corner position="bl" />
-          <Corner position="br" />
-          <div style={scanLineStyle} />
+        <div className="mt-6 flex flex-col items-center gap-3 animate-in fade-in">
+          <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md ring-1 ring-white/10">
+            <BiQr className="size-4 text-white/70" />
+            <span className="text-sm font-medium text-white/80">
+              Arahkan QR Code ke dalam frame
+            </span>
+          </div>
+          <p className="font-mono text-4xl font-bold tracking-tight text-white tabular-nums drop-shadow-lg sm:text-6xl">
+            {clock}
+          </p>
         </div>
-      )}
-
-      {/* Dim overlay saat processing/result/error/queued */}
-      {!showScanGuide && (
-        <div className="absolute inset-0 z-10 bg-foreground/60 transition-opacity duration-300" />
       )}
 
       {/* ── Top bar ── */}
       <div className="absolute top-0 right-0 left-0 z-30 flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2 rounded-full bg-foreground/40 px-4 py-1.5 text-sm font-medium backdrop-blur-md">
+        <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-md ring-1 ring-white/10">
           <BiMap className="size-4" />
           {config?.gudangNama ?? "—"}
         </div>
@@ -518,31 +556,13 @@ export default function ScanAbsensiPage() {
           )}
           <button
             onClick={unpinGudang}
-            className="flex cursor-pointer items-center gap-1.5 rounded-full bg-foreground/40 px-3 py-1.5 text-xs font-medium text-background/70 backdrop-blur-md transition-colors hover:bg-foreground/60"
+            className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md ring-1 ring-white/10 transition-colors hover:bg-white/20 hover:text-white"
           >
             <BiRefresh className="size-3.5" />
             Ganti
           </button>
         </div>
       </div>
-
-      {/* ── Clock + hint below scan frame ── */}
-      {showScanGuide && (
-        <div
-          className="absolute right-0 left-0 z-30 flex flex-col items-center gap-3"
-          style={{ top: frame.top + frame.size + 16 }}
-        >
-          <div className="flex items-center gap-2 rounded-full bg-foreground/50 px-4 py-2 backdrop-blur-md">
-            <BiQr className="size-4 text-white/60" />
-            <span className="text-sm font-medium text-white/60">
-              Arahkan QR Code ke dalam frame
-            </span>
-          </div>
-          <p className="font-mono text-5xl font-bold tracking-tight text-white tabular-nums drop-shadow-lg sm:text-6xl">
-            {clock}
-          </p>
-        </div>
-      )}
 
       {/* ── Bottom bar ── */}
       <div className="absolute right-0 bottom-0 left-0 z-30 flex items-center justify-between px-5 pt-10 pb-5">
@@ -553,10 +573,10 @@ export default function ScanAbsensiPage() {
         </div>
         <button
           onClick={() => void handleCameraToggle()}
-          className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium backdrop-blur-md transition-colors ${
+          className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium backdrop-blur-md transition-colors ring-1 ring-white/10 ${
             cameraOn
-              ? "bg-foreground/40 text-background hover:bg-foreground/60"
-              : "bg-foreground/30 text-background/60 hover:bg-foreground/50"
+              ? "bg-white/15 text-white hover:bg-white/25"
+              : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
           }`}
         >
           {cameraOn ? (
@@ -573,7 +593,7 @@ export default function ScanAbsensiPage() {
         display.kind === "processing" ||
         display.kind === "queued" ||
         display.kind === "error") && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-6 px-6">
             {display.kind === "result" && <ResultCard display={display} />}
             {display.kind === "processing" && <StatusCard kind="processing" />}

@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { BrowserMultiFormatReader } from "@zxing/browser"
-import { NotFoundException } from "@zxing/library"
+import { BrowserQRCodeReader } from "@zxing/browser"
+import { BarcodeFormat, DecodeHintType } from "@zxing/library"
+import type { IScannerControls } from "@zxing/browser"
 import { toast } from "sonner"
 import { BiCamera, BiRefresh, BiUserCheck, BiX } from "react-icons/bi"
 import { Button } from "@/components/ui/button"
@@ -21,27 +22,53 @@ import type { AbsensiScanResult } from "@/types"
 // POST /absensi/scan { qr_payload } LANGSUNG MENCATAT presensi
 // (masuk -> pulang), dengan guard duplikat di server. Tidak ada fase preview.
 
+declare global {
+  interface Window {
+    BarcodeDetector?: {
+      new (opts: { formats: string[] }): {
+        detect(source: ImageBitmapSource): Promise<{ rawValue: string }[]>
+      }
+      getSupportedFormats?: () => Promise<string[]>
+    }
+  }
+}
+
 export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const controlsRef = useRef<IScannerControls | null>(null)
+  const readerRef = useRef<BrowserQRCodeReader | null>(null)
+  const rafRef = useRef<number | null>(null)
+  const stoppedRef = useRef(true)
   const [scanning, setScanning] = useState(false)
   const [processing, setProcessing] = useState(false)
   const [resultOpen, setResultOpen] = useState(false)
   const [result, setResult] = useState<AbsensiScanResult | null>(null)
 
   const stopScanner = useCallback(() => {
-    // Stop all MediaStream tracks to release camera
+    stoppedRef.current = true
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    if (controlsRef.current) {
+      try {
+        controlsRef.current.stop()
+      } catch {}
+      controlsRef.current = null
+    }
+    readerRef.current = null
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
-    // Pause and clear the video element
     if (videoRef.current) {
-      videoRef.current.pause()
+      try {
+        videoRef.current.pause()
+      } catch {}
       videoRef.current.srcObject = null
+      videoRef.current.removeAttribute("src")
     }
-    readerRef.current = null
     setScanning(false)
   }, [])
 
@@ -58,7 +85,6 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
       setProcessing(true)
 
       try {
-        // Server memverifikasi signature dan langsung mencatat masuk/pulang
         const res = await api.post<{ data: AbsensiScanResult }>(
           "/absensi/scan",
           { qr_payload: qrPayload }
@@ -76,39 +102,137 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
   )
 
   const startScanner = useCallback(async () => {
+    stoppedRef.current = false
     setScanning(true)
+
+    const startZxing = async () => {
+      if (stoppedRef.current || !videoRef.current) return
+      try {
+        const hints = new Map()
+        hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE])
+        hints.set(DecodeHintType.TRY_HARDER, false)
+        const reader = new BrowserQRCodeReader(hints, {
+          delayBetweenScanAttempts: 30,
+          delayBetweenScanSuccess: 200,
+          tryPlayVideoTimeout: 3000,
+        })
+        readerRef.current = reader
+        const controls = await reader.decodeFromVideoElement(
+          videoRef.current!,
+          (result, _err, controls) => {
+            if (stoppedRef.current) {
+              try {
+                controls.stop()
+              } catch {}
+              return
+            }
+            if (result) {
+              const text = result.getText()
+              if (text) {
+                try {
+                  controls.stop()
+                } catch {}
+                controlsRef.current = null
+                void handleScanResult(text)
+              }
+            }
+          }
+        )
+        controlsRef.current = controls
+      } catch (e) {
+        console.warn("[qr-panel] ZXing failed", e)
+        toast.error("Tidak dapat mengakses kamera: " + String(e))
+        setScanning(false)
+      }
+    }
+
+    const tryNative = async (): Promise<boolean> => {
+      const ctor = window.BarcodeDetector
+      if (!ctor) return false
+      try {
+        if (typeof ctor.getSupportedFormats === "function") {
+          const supported = await ctor.getSupportedFormats()
+          if (!supported.includes("qr_code")) return false
+        }
+        const detector = new ctor({ formats: ["qr_code"] })
+        let nativeActive = true
+        const loop = async () => {
+          if (stoppedRef.current || !nativeActive) return
+          const video = videoRef.current
+          if (!video || video.readyState < 2 || video.videoWidth === 0) {
+            rafRef.current = requestAnimationFrame(loop)
+            return
+          }
+          try {
+            const codes = await detector.detect(video as unknown as ImageBitmapSource)
+            if (codes && codes.length > 0) {
+              const raw = (codes[0] as { rawValue: string }).rawValue
+              if (raw) {
+                nativeActive = false
+                if (rafRef.current !== null) {
+                  cancelAnimationFrame(rafRef.current)
+                  rafRef.current = null
+                }
+                void handleScanResult(raw)
+                return
+              }
+            }
+          } catch (err) {
+            console.warn("[qr-panel] BarcodeDetector failed, fallback ZXing", err)
+            nativeActive = false
+            if (rafRef.current !== null) {
+              cancelAnimationFrame(rafRef.current)
+              rafRef.current = null
+            }
+            void startZxing()
+            return
+          }
+          rafRef.current = requestAnimationFrame(loop)
+        }
+        rafRef.current = requestAnimationFrame(loop)
+        return true
+      } catch (e) {
+        console.warn("[qr-panel] BarcodeDetector init failed", e)
+        return false
+      }
+    }
+
     try {
-      // Acquire camera stream first so we can stop it cleanly later
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        audio: false,
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          focusMode: { ideal: "continuous" },
+          frameRate: { ideal: 30 },
+        } as unknown as MediaTrackConstraints,
       })
       streamRef.current = stream
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        await videoRef.current.play()
+        videoRef.current.setAttribute("playsinline", "true")
+        videoRef.current.muted = true
+        try {
+          await videoRef.current.play()
+        } catch {
+          await new Promise<void>((resolve) => {
+            const v = videoRef.current!
+            const onCanPlay = () => {
+              v.removeEventListener("canplay", onCanPlay)
+              v.play()
+                .then(() => resolve())
+                .catch(() => resolve())
+            }
+            v.addEventListener("canplay", onCanPlay, { once: true })
+            setTimeout(() => resolve(), 800)
+          })
+        }
       }
 
-      const reader = new BrowserMultiFormatReader()
-      readerRef.current = reader
-
-      // Decode continuously from the already-playing video element
-      void (async () => {
-        while (readerRef.current && videoRef.current) {
-          try {
-            const result = await reader.decodeOnceFromVideoElement(
-              videoRef.current
-            )
-            if (result) {
-              void handleScanResult(result.getText())
-              break
-            }
-          } catch (err) {
-            if (err instanceof NotFoundException) continue
-            break
-          }
-        }
-      })()
+      const nativeOk = await tryNative()
+      if (!nativeOk) await startZxing()
     } catch (err) {
       toast.error("Tidak dapat mengakses kamera: " + String(err))
       setScanning(false)
@@ -137,7 +261,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
           className="h-72 w-full object-cover"
           muted
           playsInline
-          style={{ transform: 'scaleX(1)' }} // Natural mode - kanan tetap kanan, kiri tetap kiri
+          style={{ transform: "scaleX(1)" }} // Natural mode - kanan tetap kanan, kiri tetap kiri
         />
         {!scanning && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-foreground/80">

@@ -303,6 +303,8 @@ export interface KartuStok {
   saldo_sesudah: number
   referensi_type?: string | null
   referensi_id?: number | null
+  referensi?: string | null
+  referensi_no?: string | null
   keterangan?: string | null
   created_by?: number | null
   barang?: Barang | null

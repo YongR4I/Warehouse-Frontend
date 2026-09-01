@@ -58,8 +58,7 @@ const statusOptions = [
 function totalItemLabel(row: BarangKeluar): string {
   const details = row.details ?? []
   if (!details.length) return "-"
-  const qty = details.reduce((sum, d) => sum + (d.qty || 0), 0)
-  return `${details.length} SKU (${qty.toLocaleString("id-ID")} Pcs)`
+  return `${details.length} SKU`
 }
 
 function dokumenName(dokumen?: string | null): string {

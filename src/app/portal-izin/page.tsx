@@ -17,6 +17,7 @@ import { ColoredBadge } from "@/components/ui/colored-badge"
 import { FormSelect, FormDate, FormTextarea } from "@/components/forms"
 import api, { getErrorMessage, uploadFile } from "@/lib/api"
 import { useCameraScanner, useWedgeScanner } from "@/hooks/use-scan-input"
+import { useGyroCamera } from "@/hooks/use-gyro-camera"
 import { formatDate } from "@/lib/status"
 import type { IzinJenis, IzinRequest } from "@/types"
 
@@ -57,11 +58,33 @@ function toDateParam(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
+/* ── QR Status Badge for portal ── */
+function PortalQrBadge({ status }: { status: "scanning" | "detected" }) {
+  const isScanning = status === "scanning"
+  return (
+    <div
+      className={`absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold tracking-wide shadow-md backdrop-blur-md ${
+        isScanning
+          ? "border-amber-300/40 bg-amber-500/95 text-white"
+          : "border-emerald-300/40 bg-emerald-500 text-white"
+      }`}
+    >
+      {isScanning ? (
+        <span className="size-1.5 animate-pulse rounded-full bg-white" />
+      ) : (
+        <BiCheckCircle className="size-3" />
+      )}
+      {isScanning ? "QR Scanning..." : "QR Detected"}
+    </div>
+  )
+}
+
 export default function PortalIzinPage() {
   const queryClient = useQueryClient()
 
   const [sesi, setSesi] = useState<PortalSesi | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [justDetected, setJustDetected] = useState(false)
 
   const [jenis, setJenis] = useState<IzinJenis>("cuti")
   const [tanggalMulai, setTanggalMulai] = useState(toDateParam(new Date()))
@@ -72,6 +95,8 @@ export default function PortalIzinPage() {
   const handlePayload = async (rawPayload: string) => {
     const qrPayload = rawPayload.trim()
     if (!qrPayload) return
+    setJustDetected(true)
+    setTimeout(() => setJustDetected(false), 1800)
     try {
       const res = await api.post<{
         data: { petugas: PortalSesi["petugas"] }
@@ -94,6 +119,9 @@ export default function PortalIzinPage() {
     stopCamera,
   } = useCameraScanner((p) => void handlePayload(p))
 
+  // Enable gyro tracking when camera is active
+  useGyroCamera({ videoRef, enabled: camActive })
+
   const toggleCamera = async () => {
     try {
       if (camActive) stopCamera()
@@ -107,6 +135,12 @@ export default function PortalIzinPage() {
   useEffect(() => {
     if (sesi && camActive) stopCamera()
   }, [sesi, camActive, stopCamera])
+
+  const qrBadgeStatus: "scanning" | "detected" | null = justDetected
+    ? "detected"
+    : camActive && !sesi
+      ? "scanning"
+      : null
 
   const invalidateRiwayat = () =>
     void queryClient.invalidateQueries({ queryKey: ["portal-izin"] })
@@ -232,12 +266,28 @@ export default function PortalIzinPage() {
               pojok kanan atas.
             </p>
             {camActive && (
-              <video
-                ref={videoRef}
-                className="mt-6 h-48 w-72 rounded-2xl border border-border/40 object-cover"
-                muted
-                playsInline
-              />
+              <div className="relative mt-6">
+                <video
+                  ref={videoRef}
+                  className="h-48 w-72 rounded-2xl border border-border/40 object-cover shadow-sm"
+                  muted
+                  playsInline
+                  style={{ transform: "scaleX(1)" }}
+                />
+                {qrBadgeStatus && <PortalQrBadge status={qrBadgeStatus} />}
+                {/* subtle corner accents when scanning */}
+                {qrBadgeStatus === "scanning" && (
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-amber-400/20" />
+                )}
+                {qrBadgeStatus === "detected" && (
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-emerald-400/40" />
+                )}
+              </div>
+            )}
+            {camActive && qrBadgeStatus === "scanning" && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Arahkan QR ke tengah frame • kamera mengikuti gerakan HP
+              </p>
             )}
           </div>
         )}

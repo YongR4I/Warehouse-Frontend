@@ -83,6 +83,20 @@ function getTipeConfig(tipe: string) {
   )
 }
 
+function formatReferensi(row: KartuStok): string {
+  const anyRow = row as unknown as Record<string, unknown>
+  // Backend baru bisa kirim referensi_no / referensi (no_referensi asli)
+  if (typeof anyRow.referensi_no === "string" && anyRow.referensi_no) return anyRow.referensi_no as string
+  if (typeof anyRow.referensi === "string" && anyRow.referensi) return anyRow.referensi as string
+  if (row.referensi_type && row.referensi_id) {
+    // Hapus namespace App\Models\ → hanya ambil class basename, cth: BarangMasuk
+    const short = String(row.referensi_type).split("\\").pop() || String(row.referensi_type)
+    return `${short}-${row.referensi_id}`
+  }
+  if (row.referensi_id) return `#${row.referensi_id}`
+  return "-"
+}
+
 export default function StokPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("ringkasan")
@@ -686,12 +700,12 @@ export default function StokPage() {
                               }
                               className="cursor-pointer hover:underline"
                             >
-                              {row.referensi_type
-                                ? `${row.referensi_type}-${row.referensi_id}`
-                                : `#${row.referensi_id}`}
+                              {formatReferensi(row)}
                             </button>
                           ) : (
-                            "-"
+                            <span className="text-muted-foreground">
+                              {formatReferensi(row)}
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-foreground">

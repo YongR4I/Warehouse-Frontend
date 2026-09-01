@@ -92,6 +92,18 @@ function getTipeConfig(tipe: string) {
   )
 }
 
+function formatReferensi(row: KartuStok): string {
+  const anyRow = row as unknown as Record<string, unknown>
+  if (typeof anyRow.referensi_no === "string" && anyRow.referensi_no) return anyRow.referensi_no as string
+  if (typeof anyRow.referensi === "string" && anyRow.referensi) return anyRow.referensi as string
+  if (row.referensi_type && row.referensi_id) {
+    const short = String(row.referensi_type).split("\\").pop() || String(row.referensi_type)
+    return `${short}-${row.referensi_id}`
+  }
+  if (row.referensi_id) return `#${row.referensi_id}`
+  return "-"
+}
+
 function addDays(date: Date, days: number): Date {
   const d = new Date(date)
   d.setDate(d.getDate() + days)
@@ -508,21 +520,19 @@ export function StockCardDrawer({
                       </TableCell>
                       <TableCell>
                         {refLink && refLink !== "#" ? (
-                          <button
-                            type="button"
-                            onClick={() => router.push(refLink)}
-                            className="cursor-pointer font-medium text-blue-600 hover:underline"
-                          >
-                            {row.referensi_type
-                              ? `${row.referensi_type}-${row.referensi_id}`
-                              : `REF-#${row.referensi_id}`}
-                          </button>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {row.referensi_type || "-"}
-                          </span>
-                        )}
-                      </TableCell>
+                            <button
+                              type="button"
+                              onClick={() => router.push(refLink)}
+                              className="cursor-pointer font-medium text-blue-600 hover:underline"
+                            >
+                              {formatReferensi(row)}
+                            </button>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {formatReferensi(row)}
+                            </span>
+                          )}
+                        </TableCell>
                       <TableCell className="text-foreground">
                         {row.gudang?.nama ?? "-"}
                       </TableCell>
