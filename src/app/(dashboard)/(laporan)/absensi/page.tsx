@@ -12,7 +12,7 @@ import { TableSkeletonRows, StatGridSkeleton } from "@/components/skeletons"
 import { useApiList } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { formatDate, formatNumber } from "@/lib/status"
-import type { Gudang, User, AbsensiRow } from "@/types"
+import type { Gudang, User } from "@/types"
 import {
   BiSolidReport,
   BiUserCheck,
@@ -27,7 +27,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-interface AbsensiLaporanRow extends AbsensiRow {
+interface AbsensiLaporanRow extends Record<string, unknown> {
   user_name?: string
   gudang_nama?: string
   shift_nama?: string
@@ -100,9 +100,9 @@ export default function LaporanAbsensiPage() {
     if (!queryStr) return rawLaporan
     return rawLaporan.filter((row) => {
       return (
-        (row.user_name ?? "").toLowerCase().includes(queryStr) ||
-        (row.gudang_nama ?? "").toLowerCase().includes(queryStr) ||
-        (row.shift_nama ?? "").toLowerCase().includes(queryStr)
+        ((row.user_name ?? "") as string).toLowerCase().includes(queryStr) ||
+        ((row.gudang_nama ?? "") as string).toLowerCase().includes(queryStr) ||
+        ((row.shift_nama ?? "") as string).toLowerCase().includes(queryStr)
       )
     })
   }, [rawLaporan, deferredSearch])
@@ -114,12 +114,12 @@ export default function LaporanAbsensiPage() {
   }, [filteredData, currentPage])
 
   const summaryStats = useMemo(() => {
-    const hadir = rawLaporan.filter((r) => r.status === "hadir").length
-    const terlambat = rawLaporan.filter((r) => r.status === "terlambat").length
-    const sakit = rawLaporan.filter((r) => r.status === "sakit").length
-    const izin = rawLaporan.filter((r) => r.status === "izin").length
-    const alpha = rawLaporan.filter((r) => r.status === "alpha").length
-    const cuti = rawLaporan.filter((r) => r.status === "cuti").length
+    const hadir = rawLaporan.filter((r) => (r.status as string | undefined) === "hadir").length
+    const terlambat = rawLaporan.filter((r) => (r.status as string | undefined) === "terlambat").length
+    const sakit = rawLaporan.filter((r) => (r.status as string | undefined) === "sakit").length
+    const izin = rawLaporan.filter((r) => (r.status as string | undefined) === "izin").length
+    const alpha = rawLaporan.filter((r) => (r.status as string | undefined) === "alpha").length
+    const cuti = rawLaporan.filter((r) => (r.status as string | undefined) === "cuti").length
 
     return { hadir, terlambat, sakit, izin, alpha, cuti }
   }, [rawLaporan])
@@ -477,37 +477,37 @@ export default function LaporanAbsensiPage() {
                       {formatDate(row.tanggal)}
                     </TableCell>
                     <TableCell className="font-sans text-sm font-medium whitespace-nowrap text-foreground">
-                      {row.user_name ?? "-"}
+                      {(row.user_name ?? "-")}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                      {row.shift_nama ?? "-"}
+                      {(row.shift_nama ?? "-") as string}
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.gudang_nama ?? "-"}
+                      {(row.gudang_nama ?? "-") as string}
                     </TableCell>
                     <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.jam_masuk
+                      {(row.jam_masuk
                         ? `${new Date(row.jam_masuk).toLocaleTimeString("id-ID", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}`
-                        : "-"}
+                        : "-") as string}
                     </TableCell>
                     <TableCell className="text-center font-sans text-sm whitespace-nowrap text-foreground">
-                      {row.jam_pulang
+                      {(row.jam_pulang
                         ? `${new Date(row.jam_pulang).toLocaleTimeString("id-ID", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}`
-                        : "-"}
+                        : "-") as string}
                     </TableCell>
                     <TableCell className="text-center">
-                      <ColoredBadge color={getStatusColor(row.status)}>
-                        {getStatusLabel(row.status)}
+                      <ColoredBadge color={getStatusColor((row.status as string | undefined) || "")}>
+                        {getStatusLabel((row.status as string) || "")}
                       </ColoredBadge>
                     </TableCell>
                     <TableCell className="font-sans text-sm whitespace-nowrap text-muted-foreground">
-                      {row.keterangan ?? "-"}
+                      {(row.keterangan ?? "-")}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       <button className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">

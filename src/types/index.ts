@@ -93,6 +93,7 @@ export interface Barang {
   harga_jual?: number
   deskripsi?: string | null
   status?: string
+  stok_saat_ini?: number
   kategori?: Kategori | null
   satuan?: Satuan | null
   created_at?: string
@@ -845,4 +846,46 @@ export interface DashboardData {
   alerts: DashboardAlerts
   warehouse_capacity: DashboardWarehouseCapacity[]
   attendance_today: DashboardAttendanceShift[]
+}
+
+export interface Absensi {
+  id: number
+  user_id: number
+  gudang_id: number
+  shift_id: number
+  tanggal: string
+  jam_masuk?: string | null
+  jam_pulang?: string | null
+  status: string
+  keterangan?: string | null
+  user?: User | null
+  gudang?: Gudang | null
+  shift?: Shift | null
+}
+
+export interface AbsensiLaporanRow {
+  id?: number
+  user_id?: number
+  gudang_id?: number
+  shift_id?: number
+  tanggal?: string
+  jam_masuk?: string | null
+  jam_pulang?: string | null
+  status?: string
+  keterangan?: string | null
+  user_name?: string
+  gudang_nama?: string
+  shift_nama?: string
+}
+
+export interface LaporanRow {
+  id: number
+  no_referensi: string
+  tanggal: string
+  status: string
+  total_qty: number
+  supplier_nama?: string
+  customer_nama?: string
+  gudang_nama?: string
+  status_label?: string
 }

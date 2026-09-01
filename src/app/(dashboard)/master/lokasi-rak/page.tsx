@@ -75,9 +75,9 @@ export default function LokasiRakPage() {
   const rakMeta = rakData?.meta
 
   const filteredRaks =
-    rakGudangFilter === "all"
+    !rakGudangFilter || rakGudangFilter === "all"
       ? raks
-      : raks.filter((rak) => String(rak.gudang_id) === rakGudangFilter)
+      : raks.filter((rak) => String(rak.gudang_id) === (rakGudangFilter as string))
 
   const fetchExportData = useCallback(
     async (coverage: "all" | "filtered") => {

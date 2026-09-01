@@ -12,7 +12,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import type { Barang } from "@/types"
-import { BiPackage, BiExclamationCircle } from "react-icons/bi"
+import { BiPackage, BiTrendingDown } from "react-icons/bi"
 import Link from "next/link"
 
 interface LowStockAlertProps {
@@ -73,7 +73,7 @@ export function LowStockAlert({ limit = 10 }: LowStockAlertProps) {
                 ? "bg-red-100" 
                 : "bg-yellow-100"
             }`}>
-              <BiExclamationCircle className={`size-5 ${
+              <BiTrendingDown className={`size-5 ${
                 criticalCount > 0
                   ? "text-red-600 dark:text-red-400"
                   : "text-yellow-600 dark:text-yellow-400"
@@ -124,14 +124,14 @@ export function LowStockAlert({ limit = 10 }: LowStockAlertProps) {
                     >
                       <div className="flex items-center gap-2">
                         <div className={`rounded-md p-1 ${
-                          stokSaatIni === 0 
+                          (item.stok_saat_ini || 0) === 0 
                             ? "bg-red-100 dark:bg-red-900" 
                             : percentage <= 50 
                               ? "bg-yellow-100 dark:bg-yellow-900"
                               : "bg-green-100 dark:bg-green-900"
                         }`}>
                           <BiPackage className={`size-3 ${
-                            stokSaatIni === 0
+                            (item.stok_saat_ini || 0) === 0
                               ? "text-red-600 dark:text-red-400"
                               : percentage <= 50
                                 ? "text-yellow-600 dark:text-yellow-400"
@@ -143,7 +143,7 @@ export function LowStockAlert({ limit = 10 }: LowStockAlertProps) {
                             {item.nama}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Stok: {stokSaatIni} / Min: {minStok}
+                            Stok: {item.stok_saat_ini || 0} / Min: {minStok}
                             {percentage < 100 && ` (${percentage}%)`}
                           </p>
                         </div>
@@ -194,8 +194,8 @@ export function LowStockAlert({ limit = 10 }: LowStockAlertProps) {
                       <p className="font-bold text-green-600 dark:text-green-400">
                         {lowStockItems.filter(i => 
                           (i.stok_saat_ini || 0) > (i.min_stok || 0) &&
-                          (i.max_stok > 0) &&
-                          ((i.stok_saat_ini || 0) >= i.max_stok * 0.5)
+                          ((i.max_stok || 0) > 0) &&
+                          ((i.stok_saat_ini || 0) >= (i.max_stok || 0) * 0.5)
                         ).length
                       }
                       </p>
