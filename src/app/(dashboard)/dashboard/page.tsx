@@ -9,6 +9,7 @@ import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
 import { DashboardChart } from "@/components/dashboard/dashboard-chart"
 import { DashboardLogTable } from "@/components/dashboard/dashboard-log-table"
 import { DashboardInsightsPanel } from "@/components/dashboard/dashboard-insights-panel"
+import { LowStockAlert } from "@/components/dashboard/low-stock-alert"
 import {
   DashboardMetricsSkeleton,
   DashboardChartSkeleton,
@@ -130,11 +131,19 @@ export default function DashboardPage() {
             {isLoading ? (
               <DashboardInsightsSkeleton />
             ) : (
-              <DashboardInsightsPanel
-                alerts={data?.alerts}
-                warehouseCapacity={data?.warehouse_capacity}
-                attendanceToday={data?.attendance_today}
-              />
+              <>
+                <div className="space-y-4">
+                  {/* Low Stock Alerts */}
+                  <LowStockAlert limit={10} />
+                  
+                  {/* Other insights */}
+                  <DashboardInsightsPanel
+                    alerts={data?.alerts}
+                    warehouseCapacity={data?.warehouse_capacity}
+                    attendanceToday={data?.attendance_today}
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
