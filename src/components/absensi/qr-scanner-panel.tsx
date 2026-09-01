@@ -137,7 +137,7 @@ export function QrScannerPanel({ onSuccess }: QrScannerPanelProps) {
           className="h-72 w-full object-cover"
           muted
           playsInline
-          style={{ transform: 'scaleX(-1)' }} // Mirror mode (selfie camera style)
+          style={{ transform: 'scaleX(1)' }} // Natural mode - kanan tetap kanan, kiri tetap kiri
         />
         {!scanning && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-foreground/80">
