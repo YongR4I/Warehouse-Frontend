@@ -34,16 +34,19 @@ import {
   BiGridAlt,
 } from "react-icons/bi"
 import type { IconType } from "react-icons"
+import { useAuthStore } from "@/store/use-auth-store"
 
 interface NavItem {
   icon: IconType
   label: string
   path: string
+  permission?: string
 }
 
 interface NavGroup {
   label: string
   icon?: IconType
+  permission?: string
   items: NavItem[]
 }
 
@@ -52,18 +55,20 @@ const navGroups: NavGroup[] = [
     label: "Data Master",
     icon: BiPackage,
     items: [
-      { icon: BiPackage, label: "Daftar Barang & SKU", path: "/master/barang" },
+      { icon: BiPackage, label: "Daftar Barang & SKU", path: "/master/barang", permission: "barang-list" },
       {
         icon: BiTag,
         label: "Kategori & Satuan Unit",
         path: "/master/kategori",
+        permission: "kategori-list",
       },
       {
         icon: BiBuildings,
         label: "Daftar Gudang & Rak",
         path: "/master/gudang",
+        permission: "gudang-list",
       },
-      { icon: BiUser, label: "Supplier & Customer", path: "/master/supplier" },
+      { icon: BiUser, label: "Supplier & Customer", path: "/master/supplier", permission: "supplier-list" },
     ],
   },
   {
@@ -74,45 +79,53 @@ const navGroups: NavGroup[] = [
         icon: BiDownArrowCircle,
         label: "Terima Barang (In)",
         path: "/inventory/barang-masuk",
+        permission: "barang-masuk-list",
       },
       {
         icon: BiUpArrowCircle,
         label: "Keluarkan Barang (Out)",
         path: "/inventory/barang-keluar",
+        permission: "barang-keluar-list",
       },
       {
         icon: BiTransfer,
         label: "Mutasi Antar Gudang",
         path: "/inventory/mutasi",
+        permission: "mutasi-stok-list",
       },
-      { icon: BiClipboard, label: "Stok Opname", path: "/inventory/opname" },
+      { icon: BiClipboard, label: "Stok Opname", path: "/inventory/opname", permission: "stok-opname-list" },
       {
         icon: BiTimeFive,
         label: "Kartu Stok & Riwayat",
         path: "/inventory/stok",
+        permission: "kartu-stok-list",
       },
     ],
   },
   {
     label: "SDM & Kehadiran",
     icon: BiUserCheck,
+    permission: "absensi-list",
     items: [
       {
         icon: BiUser,
         label: "Daftar Petugas",
         path: "/absensi/petugas",
+        permission: "petugas-list",
       },
       {
         icon: BiCalendar,
         label: "Jadwal Shift",
         path: "/absensi/jadwal-shift",
+        permission: "jadwal-petugas-list",
       },
       {
         icon: BiUserCheck,
         label: "Presensi Harian",
         path: "/absensi/presensi",
+        permission: "absensi-list",
       },
-      { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/cuti-izin" },
+      { icon: BiEditAlt, label: "Cuti & Izin", path: "/absensi/cuti-izin", permission: "izin-list" },
     ],
   },
   {
@@ -123,9 +136,10 @@ const navGroups: NavGroup[] = [
         icon: BiBarChartAlt2,
         label: "Pergerakan Stok",
         path: "/pergerakan-stok",
+        permission: "laporan-stok",
       },
-      { icon: BiError, label: "Selisih Opname", path: "/selisih-opname" },
-      { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/absensi/rekap" },
+      { icon: BiError, label: "Selisih Opname", path: "/selisih-opname", permission: "laporan-stok-opname" },
+      { icon: BiUserPlus, label: "Rekap Kehadiran", path: "/absensi/rekap", permission: "laporan-absensi" },
     ],
   },
 ]
@@ -145,6 +159,7 @@ export function AppSidebar() {
   const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(
     new Set(navGroups.map((g) => g.label))
   )
+  const hasPermission = useAuthStore((state) => state.hasPermission)
 
   const toggleGroup = React.useCallback((label: string) => {
     setExpandedGroups((prev) => {
@@ -251,8 +266,14 @@ export function AppSidebar() {
           </button>
         </SidebarGroup>
 
-        {navGroups.map((group) => {
-          const isExpanded = expandedGroups.has(group.label)
+        {navGroups
+          .filter((group) => !group.permission || hasPermission(group.permission))
+          .map((group) => {
+            const visibleItems = group.items.filter(
+              (item) => !item.permission || hasPermission(item.permission)
+            )
+            if (visibleItems.length === 0) return null
+            const isExpanded = expandedGroups.has(group.label)
 
           return (
             <SidebarGroup key={group.label} className="pt-2 pb-0">
@@ -280,7 +301,7 @@ export function AppSidebar() {
                 <div className="overflow-hidden">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {group.items.map((item) => (
+                      {visibleItems.map((item) => (
                         <SidebarMenuItem key={item.label}>
                           <SidebarMenuButton
                             onClick={() => router.push(item.path)}
