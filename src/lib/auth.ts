@@ -1,10 +1,10 @@
 import type { User } from "@/types"
 
 // Pemisahan akses (kontrak portal-izin, lihat Obsidian TODO-PORTAL-IZIN):
-// hanya super-admin/admin yang boleh masuk dashboard WMS. Role lain
-// (mis. operator/petugas biasa) = pengguna portal izin saja.
+// super-admin/admin + kepala gudang & admin gudang boleh WMS.
+// operator/petugas biasa = portal izin saja.
 
-const WMS_ROLES = ["super-admin", "admin"]
+const WMS_ROLES = ["super-admin", "admin", "admin-gudang", "kepala-gudang"]
 
 export function isPortalOnlyUser(user: User | null | undefined): boolean {
   const roleNames = (user?.roles ?? []).map((r) => r.name)

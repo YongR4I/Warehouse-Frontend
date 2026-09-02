@@ -12,6 +12,8 @@ import {
   BiRefresh,
   BiSend,
 } from "react-icons/bi"
+import { useRouter } from "next/navigation"
+import { BiLogOut } from "react-icons/bi"
 import { Button } from "@/components/ui/button"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { FormSelect, FormDate, FormTextarea } from "@/components/forms"
@@ -19,6 +21,8 @@ import api, { getErrorMessage, uploadFile } from "@/lib/api"
 import { useCameraScanner, useWedgeScanner } from "@/hooks/use-scan-input"
 import { useGyroCamera } from "@/hooks/use-gyro-camera"
 import { formatDate } from "@/lib/status"
+import { useAuthStore } from "@/store/use-auth-store"
+import { useAuth } from "@/hooks/use-auth"
 import type { IzinJenis, IzinRequest } from "@/types"
 
 // Portal Izin Petugas v2 — PUBLIK, TANPA LOGIN (kontrak portal-izin,
@@ -80,7 +84,10 @@ function PortalQrBadge({ status }: { status: "scanning" | "detected" }) {
 }
 
 export default function PortalIzinPage() {
+  const router = useRouter()
   const queryClient = useQueryClient()
+  const hasToken = !!useAuthStore((s) => s.token)
+  const { logout: doLogout } = useAuth()
 
   const [sesi, setSesi] = useState<PortalSesi | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -242,12 +249,38 @@ export default function PortalIzinPage() {
             </Button>
           )}
           {sesi && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSesi(null)}
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <BiRefresh className="size-4" />
+                Ganti Kartu
+              </button>
+              {hasToken && (
+                <button
+                  onClick={async () => {
+                    await doLogout()
+                    router.replace("/login")
+                  }}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-foreground/90"
+                >
+                  <BiLogOut className="size-4" />
+                  Keluar
+                </button>
+              )}
+            </div>
+          )}
+          {!sesi && hasToken && (
             <button
-              onClick={() => setSesi(null)}
-              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={async () => {
+                await doLogout()
+                router.replace("/login")
+              }}
+              className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-foreground/90"
             >
-              <BiRefresh className="size-4" />
-              Ganti Kartu
+              <BiLogOut className="size-4" />
+              Keluar
             </button>
           )}
         </div>

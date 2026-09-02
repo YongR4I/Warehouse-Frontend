@@ -28,6 +28,12 @@ import {
 } from "@/components/ui/table"
 
 interface AbsensiLaporanRow extends Record<string, unknown> {
+  id?: number
+  tanggal?: string
+  jam_masuk?: string | null
+  jam_pulang?: string | null
+  status?: string
+  keterangan?: string | null
   user_name?: string
   gudang_nama?: string
   shift_nama?: string
@@ -414,7 +420,10 @@ export default function LaporanAbsensiPage() {
             }}
             options={[
               { value: "all", label: "Semua Petugas" },
-              ...toOptions(userOptions.items),
+              ...userOptions.items.map((u) => ({
+                value: String(u.id),
+                label: u.name,
+              })),
             ]}
           />
         </div>
@@ -468,9 +477,9 @@ export default function LaporanAbsensiPage() {
                     </TableCell>
                   </TableRow>
                 )}
-                {paginatedData.map((row) => (
+                {paginatedData.map((row, idx) => (
                   <TableRow
-                    key={row.id ?? row.tanggal}
+                    key={String((row as Record<string, unknown>).id ?? (row as Record<string, unknown>).tanggal ?? idx)}
                     className="h-16 border-b border-border/40 hover:bg-muted/30"
                   >
                     <TableCell className="pl-6 font-sans text-sm whitespace-nowrap text-foreground">

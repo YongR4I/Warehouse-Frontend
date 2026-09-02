@@ -49,6 +49,24 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
+    label: "Data Master",
+    icon: BiPackage,
+    items: [
+      { icon: BiPackage, label: "Daftar Barang & SKU", path: "/master/barang" },
+      {
+        icon: BiTag,
+        label: "Kategori & Satuan Unit",
+        path: "/master/kategori",
+      },
+      {
+        icon: BiBuildings,
+        label: "Daftar Gudang & Rak",
+        path: "/master/gudang",
+      },
+      { icon: BiUser, label: "Supplier & Customer", path: "/master/supplier" },
+    ],
+  },
+  {
     label: "Aktivitas Gudang",
     icon: BiClipboard,
     items: [
@@ -73,24 +91,6 @@ const navGroups: NavGroup[] = [
         label: "Kartu Stok & Riwayat",
         path: "/inventory/stok",
       },
-    ],
-  },
-  {
-    label: "Data Master",
-    icon: BiPackage,
-    items: [
-      { icon: BiPackage, label: "Daftar Barang & SKU", path: "/master/barang" },
-      {
-        icon: BiTag,
-        label: "Kategori & Satuan Unit",
-        path: "/master/kategori",
-      },
-      {
-        icon: BiBuildings,
-        label: "Daftar Gudang & Rak",
-        path: "/master/gudang",
-      },
-      { icon: BiUser, label: "Supplier & Customer", path: "/master/supplier" },
     ],
   },
   {

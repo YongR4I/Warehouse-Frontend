@@ -429,8 +429,12 @@ export interface LaporanRow {
   tanggal?: string
   gudang?: string
   supplier?: string
+  supplier_nama?: string
   customer?: string
+  customer_nama?: string
+  gudang_nama?: string
   status?: string
+  status_label?: string
   total_qty?: number
   total_nilai?: number
 }
@@ -850,21 +854,6 @@ export interface DashboardData {
   attendance_today: DashboardAttendanceShift[]
 }
 
-export interface Absensi {
-  id: number
-  user_id: number
-  gudang_id: number
-  shift_id: number
-  tanggal: string
-  jam_masuk?: string | null
-  jam_pulang?: string | null
-  status: string
-  keterangan?: string | null
-  user?: User | null
-  gudang?: Gudang | null
-  shift?: Shift | null
-}
-
 export interface AbsensiLaporanRow {
   id?: number
   user_id?: number
@@ -880,14 +869,4 @@ export interface AbsensiLaporanRow {
   shift_nama?: string
 }
 
-export interface LaporanRow {
-  id: number
-  no_referensi: string
-  tanggal: string
-  status: string
-  total_qty: number
-  supplier_nama?: string
-  customer_nama?: string
-  gudang_nama?: string
-  status_label?: string
-}
+export interface LaporanMutationRow extends LaporanRow {}

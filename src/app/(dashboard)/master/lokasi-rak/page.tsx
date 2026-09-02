@@ -266,10 +266,10 @@ export default function LokasiRakPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     <ColoredBadge
-                      color={statusColor(row.status)}
+                      color={statusColor(row.status ?? "")}
                       className="mt-1.5"
                     >
-                      {statusLabel(row.status)}
+                      {statusLabel(row.status ?? "")}
                     </ColoredBadge>
                   </TableCell>
                   <TableCell className="pr-6 text-right whitespace-nowrap">
