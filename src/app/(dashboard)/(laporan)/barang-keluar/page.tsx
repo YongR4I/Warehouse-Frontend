@@ -15,9 +15,7 @@ import { formatDate, formatNumber } from "@/lib/status"
 import type { Gudang, Customer, LaporanRow } from "@/types"
 import {
   BiSolidReport,
-  BiBarChartAlt2,
   BiChevronRight,
-  BiChevronLeft,
   BiTrendingUp,
 } from "react-icons/bi"
 import {

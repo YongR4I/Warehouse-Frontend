@@ -11,13 +11,12 @@ import { Card } from "@/components/ui/card"
 import { TableSkeletonRows, StatGridSkeleton } from "@/components/skeletons"
 import { useApiList } from "@/hooks/use-api"
 import { useOptions, toOptions } from "@/hooks/use-options"
-import { formatDate, formatNumber } from "@/lib/status"
+import { formatDate } from "@/lib/status"
 import type { Gudang, User } from "@/types"
 import {
   BiSolidReport,
   BiUserCheck,
   BiChevronRight,
-  BiChevronLeft,
 } from "react-icons/bi"
 import {
   TableHeader,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   FormDrawer,
@@ -97,7 +97,6 @@ export function MutasiForm({
     register,
     control,
     handleSubmit,
-    watch,
     setValue,
     getValues,
     setError,
@@ -121,7 +120,7 @@ export function MutasiForm({
   }
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" })
-  const watchItems = watch("items")
+  const watchItems = useWatch({ control, name: "items" })
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
   const totalItem =

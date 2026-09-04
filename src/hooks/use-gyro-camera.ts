@@ -7,20 +7,26 @@ interface GyroCameraProps {
   enabled: boolean
 }
 
+type DeviceOrientationEventWithPermission =
+  typeof DeviceOrientationEvent & {
+    requestPermission?: () => Promise<"granted" | "denied">
+  }
+
 export function useGyroCamera({ videoRef, enabled }: GyroCameraProps) {
   const requestPendingRef = useRef(false)
   const lastOrientationRef = useRef({ beta: 0, gamma: 0 })
 
   useEffect(() => {
+    const videoEl = videoRef.current
     if (!enabled) {
       // Reset transform when disabled - natural mode (no mirror)
-      if (videoRef.current) {
-        videoRef.current.style.transform = "scaleX(1)"
-        videoRef.current.style.transformOrigin = "center center"
+      if (videoEl) {
+        videoEl.style.transform = "scaleX(1)"
+        videoEl.style.transformOrigin = "center center"
       }
       return
     }
-    if (!videoRef.current) return
+    if (!videoEl) return
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
       const gamma = event.gamma ?? 0 // left-right tilt
@@ -47,7 +53,9 @@ export function useGyroCamera({ videoRef, enabled }: GyroCameraProps) {
       if (requestPendingRef.current) return
       requestPendingRef.current = true
       try {
-        const permission = await (DeviceOrientationEvent as any).requestPermission()
+        const DoeWithPermission =
+          DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission
+        const permission = await DoeWithPermission.requestPermission?.()
         if (permission === "granted") {
           window.addEventListener("deviceorientation", handleOrientation)
         } else {
@@ -60,7 +68,9 @@ export function useGyroCamera({ videoRef, enabled }: GyroCameraProps) {
       }
     }
 
-    if (!(typeof (DeviceOrientationEvent as any).requestPermission === "function")) {
+    const DoeWithPermission =
+      DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission
+    if (!(typeof DoeWithPermission.requestPermission === "function")) {
       window.addEventListener("deviceorientation", handleOrientation)
     } else {
       void requestPermissions()
@@ -69,8 +79,8 @@ export function useGyroCamera({ videoRef, enabled }: GyroCameraProps) {
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation)
       // reset on cleanup, keep natural
-      if (videoRef.current) {
-        videoRef.current.style.transform = "scaleX(1)"
+      if (videoEl) {
+        videoEl.style.transform = "scaleX(1)"
       }
     }
   }, [enabled, videoRef])

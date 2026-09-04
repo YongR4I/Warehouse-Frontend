@@ -1,16 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table"
+import { useApiList } from "@/hooks/use-api"
 import type { Barang } from "@/types"
 import { BiPackage, BiTrendingDown } from "react-icons/bi"
 import Link from "next/link"
@@ -20,40 +14,24 @@ interface LowStockAlertProps {
 }
 
 export function LowStockAlert({ limit = 10 }: LowStockAlertProps) {
-  const [lowStockItems, setLowStockItems] = useState<Barang[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const { data, isLoading } = useApiList<Barang>({
+    key: "barang-low-stock",
+    url: "/barang",
+    params: { filter_low_stock: true, per_page: limit },
+  })
 
-  useEffect(() => {
-    fetchLowStockItems()
-  }, [])
+  const lowStockItems = useMemo(() => {
+    const items = data?.data ?? []
+    // Filter items that are at or below minimum stock
+    return items
+      .filter((item) => {
+        const currentStok = item.stok_saat_ini || 0
+        const minStok = item.min_stok || 0
 
-  const fetchLowStockItems = async () => {
-    setIsLoading(true)
-    try {
-      // Fetch all barang items that have min_stok > 0
-      const res = await fetch("/api/barang?filter_low_stock=true")
-      const data = await res.json()
-      
-      if (data.success && data.data) {
-        const items = Array.isArray(data.data) ? data.data : []
-        
-        // Filter items that are at or below minimum stock
-        const lowStock = items.filter((item: Barang) => {
-          const currentStok = item.stok_saat_ini || 0
-          const minStok = item.min_stok || 0
-          
-          return minStok > 0 && currentStok <= minStok
-        })
-        
-        setLowStockItems(lowStock)
-      }
-    } catch (error) {
-      console.error("Error fetching low stock items:", error)
-      setLowStockItems([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+        return minStok > 0 && currentStok <= minStok
+      })
+      .slice(0, limit)
+  }, [data, limit])
 
   if (!lowStockItems.length && !isLoading) {
     return null

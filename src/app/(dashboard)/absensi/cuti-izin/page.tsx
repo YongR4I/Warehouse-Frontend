@@ -385,8 +385,6 @@ export default function CutiIzinPage() {
               const canBatalkan =
                 (row.status === "menunggu" && row.user_id === authUser?.id) ||
                 (canDeleteIzin && row.status === "disetujui")
-              const hasRowMenu =
-                (canApprove && row.status === "menunggu") || canBatalkan
               return (
                 <TableRow
                   key={row.id}

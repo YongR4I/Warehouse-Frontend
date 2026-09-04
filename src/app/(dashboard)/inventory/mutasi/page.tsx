@@ -85,7 +85,7 @@ export default function MutasiPage() {
     ...toOptions(gudangList),
   ]
 
-  const rawRows = data?.data ?? []
+  const rawRows = useMemo(() => data?.data ?? [], [data])
   // Fallback client-side: FE split asal/tujuan, BE sudah support kedua param sebagai AND
   const rows = useMemo(() => {
     let filtered = rawRows

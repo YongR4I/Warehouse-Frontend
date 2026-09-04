@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import {
   useForm,
   useFieldArray,
+  useWatch,
   Controller,
   type Resolver,
 } from "react-hook-form"
@@ -115,7 +116,6 @@ export function BarangMasukForm({
     register,
     control,
     handleSubmit,
-    watch,
     getValues,
     setValue,
     setError,
@@ -172,7 +172,7 @@ export function BarangMasukForm({
   }, [open, initialData, reset])
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" })
-  const watchItems = watch("items")
+  const watchItems = useWatch({ control, name: "items" })
 
   const totalSku = watchItems?.filter((i) => i.barangId).length ?? 0
   const totalItem =
