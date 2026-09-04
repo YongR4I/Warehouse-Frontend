@@ -778,11 +778,11 @@ export interface JadwalShift {
 export interface DashboardMetrics {
   total_barang: number
   total_stok: number
-  total_nilai_stok: number
+  total_nilai_stok: number | null
   total_gudang: number
   barang_masuk_bulan_ini: { qty: number; count: number }
   barang_keluar_bulan_ini: { qty: number; count: number }
-  pending_approvals: number
+  pending_approvals: number | null
 }
 
 export interface DashboardChartData {
@@ -869,4 +869,4 @@ export interface AbsensiLaporanRow {
   shift_nama?: string
 }
 
-export interface LaporanMutationRow extends LaporanRow {}
+export type LaporanMutationRow = LaporanRow

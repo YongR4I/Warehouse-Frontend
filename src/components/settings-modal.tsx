@@ -54,6 +54,20 @@ type TabKey = "users" | "roles" | "warehouses"
 export function SettingsModal() {
   const [activeTab, setActiveTab] = React.useState<TabKey>("users")
   const currentUser = useAuthStore((state) => state.user)
+  const hasPermission = useAuthStore((state) => state.hasPermission)
+
+  // Gate tab berbasis permission — user tanpa hak lihat tidak dapat tabnya.
+  const canViewUsers = hasPermission("user-list")
+  const canViewRoles = hasPermission("role-list")
+  const canViewWarehouses = hasPermission("gudang-list")
+  const visibleTabs = (["users", "roles", "warehouses"] as TabKey[]).filter(
+    (t) =>
+      t === "users" ? canViewUsers : t === "roles" ? canViewRoles : canViewWarehouses
+  )
+  // Tab efektif hasil render (tanpa sync effect): jatuh ke tab pertama yang terlihat.
+  const effectiveTab = visibleTabs.includes(activeTab)
+    ? activeTab
+    : (visibleTabs[0] ?? activeTab)
 
   const usersQuery = useApiList<User>({
     key: "users",
@@ -75,7 +89,19 @@ export function SettingsModal() {
   const roles = unwrapRows<Role>(rolesQuery.data)
   const warehouses = unwrapRows<Gudang>(gudangQuery.data)
 
+  // Master permission list dari BE (hanya diambil bila boleh kelola role).
+  const permissionsQuery = useApiList<string>({
+    key: "permissions",
+    url: "/permissions",
+    enabled: canViewRoles,
+  })
+  const masterPermissions = unwrapRows<string>(permissionsQuery.data)
+
   const permissionOptions = React.useMemo(() => {
+    // Sumber utama: master list dari BE agar permission yang belum dipakai
+    // role manapun tetap bisa dipilih.
+    if (masterPermissions.length > 0) return [...masterPermissions].sort()
+    // Fallback: turunan dari role yang sudah ada (mis. endpoint tak terjangkau).
     const set = new Set<string>()
     for (const role of roles) {
       for (const permission of role.permissions ?? []) {
@@ -83,7 +109,7 @@ export function SettingsModal() {
       }
     }
     return [...set].sort()
-  }, [roles])
+  }, [masterPermissions, roles])
 
   const createUserMutation = useApiCreate<User, UserPayload>("users", "/user")
   const updateUserMutation = useApiUpdate<User, UserPayload>("users", "/user")
@@ -244,12 +270,13 @@ export function SettingsModal() {
           Pengaturan Sistem
         </span>
         <nav className="flex flex-col gap-2">
+          {canViewUsers && (
           <button
             type="button"
             onClick={() => setActiveTab("users")}
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
-              activeTab === "users"
+              effectiveTab === "users"
                 ? "bg-muted font-bold text-foreground shadow-2xs"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
@@ -259,12 +286,14 @@ export function SettingsModal() {
               Pengguna & Hak Akses
             </span>
           </button>
+          )}
+          {canViewRoles && (
           <button
             type="button"
             onClick={() => setActiveTab("roles")}
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
-              activeTab === "roles"
+              effectiveTab === "roles"
                 ? "bg-muted font-bold text-foreground shadow-2xs"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
@@ -274,12 +303,14 @@ export function SettingsModal() {
               Peran & Izin
             </span>
           </button>
+          )}
+          {canViewWarehouses && (
           <button
             type="button"
             onClick={() => setActiveTab("warehouses")}
             className={cn(
               "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-3 text-xs transition-all duration-150 outline-none select-none",
-              activeTab === "warehouses"
+              effectiveTab === "warehouses"
                 ? "bg-muted font-bold text-foreground shadow-2xs"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
@@ -289,13 +320,14 @@ export function SettingsModal() {
               Konfigurasi Gudang & PIC
             </span>
           </button>
+          )}
         </nav>
       </div>
 
       {/* PANEL KANAN: Area Konten Pengaturan */}
       <div className="relative flex flex-1 flex-col overflow-hidden bg-card p-8">
         {/* KONTEN TAB: Pengguna & Hak Akses */}
-        {activeTab === "users" && (
+        {effectiveTab === "users" && canViewUsers && (
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex items-center gap-2.5">
               <div className="flex size-7 items-center justify-center rounded-lg bg-foreground text-background">
@@ -536,7 +568,7 @@ export function SettingsModal() {
         )}
 
         {/* KONTEN TAB: Peran & Izin */}
-        {activeTab === "roles" && (
+        {effectiveTab === "roles" && canViewRoles && (
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex items-center gap-2.5">
               <div className="flex size-7 items-center justify-center rounded-lg bg-foreground text-background">
@@ -693,7 +725,7 @@ export function SettingsModal() {
         )}
 
         {/* KONTEN TAB: Konfigurasi Gudang & PIC */}
-        {activeTab === "warehouses" && (
+        {effectiveTab === "warehouses" && canViewWarehouses && (
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex items-center gap-2.5">
               <div className="flex size-7 items-center justify-center rounded-lg bg-foreground text-background">

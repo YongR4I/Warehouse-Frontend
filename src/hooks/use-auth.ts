@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/use-auth-store"
 import api from "@/lib/api"
-import { isPortalOnlyUser } from "@/lib/auth"
+import { getLandingPage } from "@/lib/auth"
 import type { User } from "@/types"
 
 export function useAuth() {
@@ -34,10 +34,8 @@ export function useAuth() {
       else localStorage.removeItem("auth-storage")
     }
     setAuth(data.user as User, data.token as string)
-    // Pemisahan akses (portal-izin): non-admin mendarat di portal, bukan WMS
-    router.push(
-      isPortalOnlyUser(data.user as User) ? "/portal-izin" : "/dashboard"
-    )
+    // Landing per role — portal-izin hanya diakses manual, bukan auto-direct
+    router.push(getLandingPage(data.user as User))
   }
 
   const fetchMe = async (): Promise<User | null> => {

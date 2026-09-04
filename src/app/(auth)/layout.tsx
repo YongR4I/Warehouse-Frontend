@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/use-auth-store"
-import { isPortalOnlyUser } from "@/lib/auth"
+import { getLandingPage } from "@/lib/auth"
 
 export default function AuthLayout({
   children,
@@ -32,7 +32,7 @@ export default function AuthLayout({
     if (!hydrated) return
     if (hasToken) {
       const user = useAuthStore.getState().user
-      router.replace(isPortalOnlyUser(user) ? "/portal-izin" : "/dashboard")
+      router.replace(getLandingPage(user))
     }
   }, [hydrated, hasToken, router])
 

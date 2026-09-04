@@ -248,6 +248,17 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
+
+            <p className="mt-5 text-center text-[13px] text-muted-foreground">
+              Petugas tanpa akun? Buka{" "}
+              <Link
+                href="/portal-izin"
+                className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80"
+              >
+                Portal Izin
+              </Link>{" "}
+              dan scan kartu QR Anda.
+            </p>
           </form>
         </div>
       </div>

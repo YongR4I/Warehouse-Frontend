@@ -9,7 +9,13 @@ import { useAuth } from "@/hooks/use-auth"
 
 export function AppHeader() {
   const [settingsOpen, setSettingsOpen] = React.useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout, hasPermission } = useAuth()
+
+  // Gear pengaturan hanya untuk yang boleh mengelola user/role/gudang.
+  const canOpenSettings =
+    hasPermission("user-list") ||
+    hasPermission("role-list") ||
+    hasPermission("gudang-list")
 
   const initials = user?.name
     ? user.name
@@ -36,16 +42,18 @@ export function AppHeader() {
           </span>
         </div>
         <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-          <DialogTrigger
-            render={
-              <button
-                className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors outline-none hover:bg-muted/60 hover:text-foreground active:scale-[0.96]"
-                aria-label="Settings"
-              >
-                <BiCog className="!size-[16px]" />
-              </button>
-            }
-          />
+          {canOpenSettings && (
+            <DialogTrigger
+              render={
+                <button
+                  className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors outline-none hover:bg-muted/60 hover:text-foreground active:scale-[0.96]"
+                  aria-label="Settings"
+                >
+                  <BiCog className="!size-[16px]" />
+                </button>
+              }
+            />
+          )}
           <SettingsModal />
         </Dialog>
         <button

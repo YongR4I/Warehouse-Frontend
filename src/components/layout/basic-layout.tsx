@@ -8,7 +8,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { useAuthStore } from "@/store/use-auth-store"
 import { useAuth } from "@/hooks/use-auth"
-import { isPortalOnlyUser } from "@/lib/auth"
 
 export function BasicLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -34,14 +33,10 @@ export function BasicLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return
-    const { token, user } = useAuthStore.getState()
+    const { token } = useAuthStore.getState()
     const hasTokenNow = !!token
     if (!hasTokenNow) {
       router.replace("/login")
-      return
-    }
-    if (isPortalOnlyUser(user)) {
-      router.replace("/portal-izin")
       return
     }
     fetchMe().catch((err) => {

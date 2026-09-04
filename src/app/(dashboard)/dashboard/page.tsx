@@ -18,6 +18,7 @@ import {
 } from "@/components/skeletons"
 import { useOptions, toOptions } from "@/hooks/use-options"
 import { useDashboardData } from "@/hooks/use-dashboard-data"
+import { useAuthStore } from "@/store/use-auth-store"
 import type { Gudang } from "@/types"
 import { BiBuilding, BiDownload, BiRefresh } from "react-icons/bi"
 
@@ -25,13 +26,26 @@ export default function DashboardPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [selectedGudang, setSelectedGudang] = useState("all")
   const [chartRange, setChartRange] = useState<"24h" | "7d" | "30d">("24h")
+  const user = useAuthStore((s) => s.user)
+  const hasPermission = useAuthStore((s) => s.hasPermission)
 
   const gudangOptions = useOptions<Gudang>("gudang", "/gudang")
 
-  const gudangId = selectedGudang !== "all" ? selectedGudang : undefined
+  // Tiering gudang: non super-admin/admin yang ter-assign ke satu gudang
+  // dikunci ke gudangnya (BE juga mengabaikan parameter lain).
+  const roleNames = (user?.roles ?? []).map((r) => r.name)
+  const canCrossGudang =
+    roleNames.includes("super-admin") || roleNames.includes("admin")
+  const lockedGudang =
+    !canCrossGudang && user?.gudang_id ? String(user.gudang_id) : null
+  const effectiveGudang =
+    lockedGudang ?? (selectedGudang !== "all" ? selectedGudang : undefined)
+
+  // Tiering widget: log aktivitas staf lain hanya untuk yang berhak.
+  const canSeeActivity = hasPermission("aktivitas-log-list")
 
   const { data, isLoading, refetch } = useDashboardData({
-    gudangId,
+    gudangId: effectiveGudang,
     chartRange,
   })
 
@@ -61,15 +75,25 @@ export default function DashboardPage() {
           />
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Scope Gudang Switcher */}
+            {/* Scope Gudang Switcher (terkunci untuk user satu-gudang) */}
             <Opsion
               placeholder="Semua Gudang"
-              options={[
-                { value: "all", label: "Semua Gudang (Agregat)" },
-                ...toOptions(gudangOptions.items),
-              ]}
-              value={selectedGudang}
-              onValueChange={(val) => setSelectedGudang(val || "all")}
+              options={
+                lockedGudang
+                  ? toOptions(
+                      gudangOptions.items.filter(
+                        (g) => String(g.id) === lockedGudang
+                      )
+                    )
+                  : [
+                      { value: "all", label: "Semua Gudang (Agregat)" },
+                      ...toOptions(gudangOptions.items),
+                    ]
+              }
+              value={lockedGudang ?? selectedGudang}
+              onValueChange={(val) => {
+                if (!lockedGudang) setSelectedGudang(val || "all")
+              }}
             />
 
             <Button
@@ -121,7 +145,9 @@ export default function DashboardPage() {
                   range={chartRange}
                   onRangeChange={setChartRange}
                 />
-                <DashboardLogTable logs={data?.recent_activity} />
+                {canSeeActivity && (
+                  <DashboardLogTable logs={data?.recent_activity} />
+                )}
               </>
             )}
           </div>
@@ -156,8 +182,9 @@ export default function DashboardPage() {
         totalItemsCount={data ? `${data.metrics.total_gudang} Gudang` : "Semua"}
         totalItemsLabel="Total Gudang"
         filterLabel={
-          selectedGudang !== "all"
-            ? gudangOptions.items.find((g) => String(g.id) === selectedGudang)?.nama ?? "Gudang"
+          effectiveGudang
+            ? (gudangOptions.items.find((g) => String(g.id) === effectiveGudang)
+                ?.nama ?? "Gudang")
             : "Semua Gudang"
         }
         checkboxes={[

@@ -47,7 +47,9 @@ interface AuthState {
 function flattenPermissions(user: User): string[] {
   const perms = new Set<string>()
   for (const role of user.roles ?? []) {
-    if (role.name === "super-admin" || role.name === "admin") {
+    // Hanya super-admin yang wildcard — admin & lainnya murni dari DB
+    // agar pencabutan permission di BE benar-benar berlaku di FE.
+    if (role.name === "super-admin") {
       perms.add("*")
     }
     for (const permission of role.permissions ?? []) {

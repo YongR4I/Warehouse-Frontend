@@ -1,14 +1,24 @@
 import type { User } from "@/types"
 
-// Pemisahan akses (kontrak portal-izin, lihat Obsidian TODO-PORTAL-IZIN):
-// super-admin/admin + kepala gudang & admin gudang boleh WMS.
-// operator/petugas biasa = portal izin saja.
+// Landing page per role: halaman pertama setelah login, sesuai kerja harian.
+// Portal-izin TIDAK jadi landing — ia halaman publik (akses via QR)
+//yang dibuka manual, bukan tempat mendarat otomatis.
+const LANDING_BY_ROLE: Array<{ roles: string[]; path: string }> = [
+  {
+    roles: ["super-admin", "admin", "admin-gudang", "kepala-gudang"],
+    path: "/dashboard",
+  },
+  { roles: ["petugas-gudang"], path: "/inventory/barang-masuk" },
+  { roles: ["checker"], path: "/inventory/opname" },
+  { roles: ["kurir-driver"], path: "/inventory/barang-keluar" },
+]
 
-const WMS_ROLES = ["super-admin", "admin", "admin-gudang", "kepala-gudang"]
-
-export function isPortalOnlyUser(user: User | null | undefined): boolean {
+export function getLandingPage(user: User | null | undefined): string {
   const roleNames = (user?.roles ?? []).map((r) => r.name)
-  // Tanpa info role -> anggap pengguna WMS (aman untuk data lama)
-  if (roleNames.length === 0) return false
-  return !roleNames.some((name) => WMS_ROLES.includes(name))
+  for (const entry of LANDING_BY_ROLE) {
+    if (roleNames.some((name) => entry.roles.includes(name))) {
+      return entry.path
+    }
+  }
+  return "/dashboard"
 }

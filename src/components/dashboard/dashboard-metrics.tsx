@@ -15,12 +15,12 @@ interface MetricItem {
 
 export interface DashboardMetricsData {
   totalBarang: number
-  nilaiStok: number
+  nilaiStok: number | null
   barangMasukQty: number
   barangMasukCount: number
   barangKeluarQty: number
   barangKeluarCount: number
-  pendingApprovals: number
+  pendingApprovals: number | null
   gudangCount: number
 }
 
@@ -76,17 +76,22 @@ function compactCurrency(value: number): string {
 }
 
 export function DashboardMetrics({ data }: DashboardMetricsProps) {
+  // Tiering: kartu yang datanya di-strip BE (null = tak berhak) tidak dirender.
   const metrics: MetricItem[] = data
     ? [
-        {
-          label: "TOTAL NILAI STOK",
-          mainValue: compactCurrency(data.nilaiStok),
-          subText: `${formatNumber(data.totalBarang)} SKU • Real-time Valuation`,
-          badgeText: "Live",
-          badgeColor: "green",
-          progressPercent: 78,
-          barColor: "bg-emerald-600",
-        },
+        ...(data.nilaiStok === null || data.nilaiStok === undefined
+          ? []
+          : [
+              {
+                label: "TOTAL NILAI STOK",
+                mainValue: compactCurrency(data.nilaiStok),
+                subText: `${formatNumber(data.totalBarang)} SKU • Real-time Valuation`,
+                badgeText: "Live",
+                badgeColor: "green",
+                progressPercent: 78,
+                barColor: "bg-emerald-600",
+              } as MetricItem,
+            ]),
         {
           label: "BARANG MASUK (INBOUND)",
           mainValue: `${formatNumber(data.barangMasukQty)} unit`,
@@ -105,15 +110,20 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
           progressPercent: 45,
           barColor: "bg-foreground/70",
         },
-        {
-          label: "STATUS OPERASIONAL",
-          mainValue: `${formatNumber(data.pendingApprovals)} Menunggu`,
-          subText: `${formatNumber(data.gudangCount)} Gudang Aktif`,
-          badgeText: "Pending Approval",
-          badgeColor: "yellow",
-          progressPercent: 80,
-          barColor: "bg-blue-600",
-        },
+        ...(data.pendingApprovals === null ||
+        data.pendingApprovals === undefined
+          ? []
+          : [
+              {
+                label: "STATUS OPERASIONAL",
+                mainValue: `${formatNumber(data.pendingApprovals)} Menunggu`,
+                subText: `${formatNumber(data.gudangCount)} Gudang Aktif`,
+                badgeText: "Pending Approval",
+                badgeColor: "yellow",
+                progressPercent: 80,
+                barColor: "bg-blue-600",
+              } as MetricItem,
+            ]),
       ]
     : DEFAULT_METRICS
 
