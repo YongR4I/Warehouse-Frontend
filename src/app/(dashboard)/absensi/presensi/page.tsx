@@ -39,6 +39,7 @@ import { TableSkeletonRows } from "@/components/skeletons"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { FormDrawer, FormInput, FormSelect } from "@/components/forms"
 import { useApiList, useApiCreate } from "@/hooks/use-api"
+import { useAuthStore } from "@/store/use-auth-store"
 import { useOptions } from "@/hooks/use-options"
 import { getErrorMessage } from "@/lib/api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
@@ -85,6 +86,8 @@ const STATUS_FILTER_OPTIONS = [
 
 export default function PresensiPage() {
   const [exportOpen, setExportOpen] = useState(false)
+  // Input manual hanya untuk atasan (pemegang absensi-edit).
+  const canManualInput = useAuthStore((s) => s.hasPermission("absensi-edit"))
   const [activeTab, setActiveTab] = useState("hari-ini")
   const [selectedDate, setSelectedDate] = useState(() =>
     toDateParam(new Date())
@@ -229,10 +232,12 @@ export default function PresensiPage() {
               <BiSolidReport className="mr-2" />
               Export Excel/Pdf
             </Button>
-            <Button variant="default" onClick={openCreate}>
-              <BiUserCheck className="mr-2" />
-              Input Manual
-            </Button>
+            {canManualInput && (
+              <Button variant="default" onClick={openCreate}>
+                <BiUserCheck className="mr-2" />
+                Input Manual
+              </Button>
+            )}
           </div>
         </div>
       </div>
