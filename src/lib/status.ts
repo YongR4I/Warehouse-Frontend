@@ -84,16 +84,30 @@ export function formatDateTime(date: string | null | undefined): string {
   })
 }
 
-export function formatCurrency(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return "-"
+export function formatCurrency(
+  value: number | string | null | undefined
+): string {
+  if (value === null || value === undefined) return "-"
+  const parsed =
+    typeof value === "number"
+      ? value
+      : parseFloat(String(value).replace(/,/g, "."))
+  if (!Number.isFinite(parsed)) return "-"
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(parsed)
 }
 
-export function formatNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return "-"
-  return new Intl.NumberFormat("id-ID").format(value)
+export function formatNumber(
+  value: number | string | null | undefined
+): string {
+  if (value === null || value === undefined) return "-"
+  const parsed =
+    typeof value === "number"
+      ? value
+      : parseFloat(String(value).replace(/,/g, "."))
+  if (!Number.isFinite(parsed)) return "-"
+  return new Intl.NumberFormat("id-ID").format(parsed)
 }

@@ -133,6 +133,18 @@ const navGroups: NavGroup[] = [
     icon: BiBarChartAlt2,
     items: [
       {
+        icon: BiDownArrowCircle,
+        label: "Laporan Barang Masuk",
+        path: "/barang-masuk",
+        permission: "laporan-barang-masuk",
+      },
+      {
+        icon: BiUpArrowCircle,
+        label: "Laporan Barang Keluar",
+        path: "/barang-keluar",
+        permission: "laporan-barang-keluar",
+      },
+      {
         icon: BiBarChartAlt2,
         label: "Pergerakan Stok",
         path: "/pergerakan-stok",

@@ -213,13 +213,14 @@ export default function OpnamePage() {
         </span>
       )
     }
-    if (selisihTotal === 0) {
+    const clean = Math.round(selisihTotal * 100) / 100
+    if (clean === 0) {
       return <ColoredBadge color="green">0 (Aman)</ColoredBadge>
     }
     return (
-      <ColoredBadge color={selisihTotal < 0 ? "red" : "yellow"}>
-        {selisihTotal > 0 ? "+" : ""}
-        {selisihTotal}
+      <ColoredBadge color={clean < 0 ? "red" : "yellow"}>
+        {clean > 0 ? "+" : ""}
+        {clean.toLocaleString("id-ID")}
       </ColoredBadge>
     )
   }
@@ -403,7 +404,16 @@ export default function OpnamePage() {
                 )}
                 {rows.map((row) => {
                   const selisihTotal = row.details?.length
-                    ? row.details.reduce((sum, d) => sum + (d.selisih ?? 0), 0)
+                    ? row.details.reduce((sum, d) => {
+                        const raw =
+                          (d as { selisih?: number | string | null }).selisih ??
+                          0
+                        const n =
+                          typeof raw === "number"
+                            ? raw
+                            : parseFloat(String(raw).replace(/,/g, "."))
+                        return sum + (Number.isFinite(n) ? n : 0)
+                      }, 0)
                     : null
                   return (
                     <TableRow
