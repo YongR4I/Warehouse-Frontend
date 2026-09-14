@@ -5,18 +5,18 @@ import { useDeferredValue, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch } from "@/components/input"
+import { InputSearch, DateRangeFilter } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangMasukForm } from "@/components/barang-masuk/barang-masuk-form"
 import { TableSkeletonRows } from "@/components/skeletons"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
-import { useOptions } from "@/hooks/use-options"
+import { useOptions, toOptions } from "@/hooks/use-options"
 import { getErrorMessage, downloadFile } from "@/lib/api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
-import type { BarangMasuk, Gudang } from "@/types"
+import type { BarangMasuk, Gudang, Supplier } from "@/types"
 
 import {
   BiDownArrowCircle,
@@ -65,6 +65,19 @@ function dokumenName(dokumen?: string | null): string {
   return parts[parts.length - 1] || dokumen
 }
 
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function toDateParam(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
 export default function BarangMasukPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -72,6 +85,11 @@ export default function BarangMasukPage() {
   const [search, setSearch] = useState("")
   const [gudangFilter, setGudangFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [supplierFilter, setSupplierFilter] = useState("all")
+  const [fromDate, setFromDate] = useState(() =>
+    toDateParam(addDays(new Date(), -30))
+  )
+  const [toDate, setToDate] = useState(() => toDateParam(new Date()))
   const router = useRouter()
 
   const deferredSearch = useDeferredValue(search)
@@ -81,6 +99,7 @@ export default function BarangMasukPage() {
     { value: "all", label: "Semua Gudang" },
     ...gudangItems.map((g) => ({ value: String(g.id), label: g.nama })),
   ]
+  const supplierOptions = useOptions<Supplier>("supplier", "/supplier")
 
   const { data, isLoading } = useApiList<BarangMasuk>({
     key: "barang-masuk",
@@ -91,6 +110,9 @@ export default function BarangMasukPage() {
       search: deferredSearch.trim() || undefined,
       status: statusFilter !== "all" ? statusFilter : undefined,
       gudang_id: gudangFilter !== "all" ? gudangFilter : undefined,
+      supplier_id: supplierFilter !== "all" ? supplierFilter : undefined,
+      from: fromDate || undefined,
+      to: toDate || undefined,
     },
   })
   const items = data?.data ?? []
@@ -117,6 +139,9 @@ export default function BarangMasukPage() {
   if (deferredSearch.trim()) exportQuery.set("search", deferredSearch.trim())
   if (statusFilter !== "all") exportQuery.set("status", statusFilter)
   if (gudangFilter !== "all") exportQuery.set("gudang_id", gudangFilter)
+  if (supplierFilter !== "all") exportQuery.set("supplier_id", supplierFilter)
+  if (fromDate) exportQuery.set("from", fromDate)
+  if (toDate) exportQuery.set("to", toDate)
   const exportQueryString = exportQuery.toString()
   const exportUrl = `/barang-masuk/export/excel${
     exportQueryString ? `?${exportQueryString}` : ""
@@ -180,13 +205,30 @@ export default function BarangMasukPage() {
       <BarangMasukForm open={drawerOpen} onOpenChange={setDrawerOpen} />
 
       <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <InputSearch
             placeholder="Cari no. referensi atau supplier..."
-            className="flex-1"
+            className="min-w-[220px] flex-1"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+          <DateRangeFilter
+            startDate={fromDate}
+            endDate={toDate}
+            onStartDateChange={(val) => {
+              setFromDate(val)
+              setPage(1)
+            }}
+            onEndDateChange={(val) => {
+              setToDate(val)
+              setPage(1)
+            }}
+            onChange={({ startDate, endDate }) => {
+              setFromDate(startDate)
+              setToDate(endDate)
               setPage(1)
             }}
           />
@@ -195,6 +237,18 @@ export default function BarangMasukPage() {
             value={gudangFilter}
             onValueChange={(value) => {
               setGudangFilter(value ?? "all")
+              setPage(1)
+            }}
+          />
+          <Opsion
+            placeholder="Semua Supplier"
+            options={[
+              { value: "all", label: "Semua Supplier" },
+              ...toOptions(supplierOptions.items),
+            ]}
+            value={supplierFilter}
+            onValueChange={(value) => {
+              setSupplierFilter(value ?? "all")
               setPage(1)
             }}
           />

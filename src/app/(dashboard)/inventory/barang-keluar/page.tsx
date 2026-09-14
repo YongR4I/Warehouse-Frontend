@@ -5,18 +5,18 @@ import { useDeferredValue, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { InputSearch } from "@/components/input"
+import { InputSearch, DateRangeFilter } from "@/components/input"
 import { Opsion } from "@/components/opsion"
 import { ColoredBadge } from "@/components/ui/colored-badge"
 import { BarangKeluarForm } from "@/components/barang-keluar/barang-keluar-form"
 import { TableSkeletonRows } from "@/components/skeletons"
 import { useApiList, useApiDelete } from "@/hooks/use-api"
-import { useOptions } from "@/hooks/use-options"
+import { useOptions, toOptions } from "@/hooks/use-options"
 import { getErrorMessage, downloadFile } from "@/lib/api"
 import { formatDate, statusColor, statusLabel } from "@/lib/status"
 import { useConfirmDialog } from "@/components/confirm-dialog"
 import { toast } from "sonner"
-import type { BarangKeluar, Gudang } from "@/types"
+import type { BarangKeluar, Customer, Gudang } from "@/types"
 
 import {
   BiUpArrowCircle,
@@ -67,6 +67,19 @@ function dokumenName(dokumen?: string | null): string {
   return parts[parts.length - 1] || dokumen
 }
 
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+function toDateParam(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
 export default function BarangKeluarPage() {
   const [exportOpen, setExportOpen] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -74,6 +87,11 @@ export default function BarangKeluarPage() {
   const [search, setSearch] = useState("")
   const [gudangFilter, setGudangFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [customerFilter, setCustomerFilter] = useState("all")
+  const [fromDate, setFromDate] = useState(() =>
+    toDateParam(addDays(new Date(), -30))
+  )
+  const [toDate, setToDate] = useState(() => toDateParam(new Date()))
   const router = useRouter()
 
   const deferredSearch = useDeferredValue(search)
@@ -83,6 +101,7 @@ export default function BarangKeluarPage() {
     { value: "all", label: "Semua Gudang" },
     ...gudangItems.map((g) => ({ value: String(g.id), label: g.nama })),
   ]
+  const customerOptions = useOptions<Customer>("customer", "/customer")
 
   const { data, isLoading } = useApiList<BarangKeluar>({
     key: "barang-keluar",
@@ -93,6 +112,9 @@ export default function BarangKeluarPage() {
       search: deferredSearch.trim() || undefined,
       status: statusFilter !== "all" ? statusFilter : undefined,
       gudang_id: gudangFilter !== "all" ? gudangFilter : undefined,
+      customer_id: customerFilter !== "all" ? customerFilter : undefined,
+      from: fromDate || undefined,
+      to: toDate || undefined,
     },
   })
   const items = data?.data ?? []
@@ -119,6 +141,9 @@ export default function BarangKeluarPage() {
   if (deferredSearch.trim()) exportQuery.set("search", deferredSearch.trim())
   if (statusFilter !== "all") exportQuery.set("status", statusFilter)
   if (gudangFilter !== "all") exportQuery.set("gudang_id", gudangFilter)
+  if (customerFilter !== "all") exportQuery.set("customer_id", customerFilter)
+  if (fromDate) exportQuery.set("from", fromDate)
+  if (toDate) exportQuery.set("to", toDate)
   const exportQueryString = exportQuery.toString()
   const exportUrl = `/barang-keluar/export/excel${
     exportQueryString ? `?${exportQueryString}` : ""
@@ -182,13 +207,30 @@ export default function BarangKeluarPage() {
       <BarangKeluarForm open={openDrawer} onOpenChange={setOpenDrawer} />
 
       <div className="wrapper mt-[50px]">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <InputSearch
             placeholder="Cari no. referensi atau customer..."
-            className="flex-1"
+            className="min-w-[220px] flex-1"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+          <DateRangeFilter
+            startDate={fromDate}
+            endDate={toDate}
+            onStartDateChange={(val) => {
+              setFromDate(val)
+              setPage(1)
+            }}
+            onEndDateChange={(val) => {
+              setToDate(val)
+              setPage(1)
+            }}
+            onChange={({ startDate, endDate }) => {
+              setFromDate(startDate)
+              setToDate(endDate)
               setPage(1)
             }}
           />
@@ -197,6 +239,18 @@ export default function BarangKeluarPage() {
             value={gudangFilter}
             onValueChange={(value) => {
               setGudangFilter(value ?? "all")
+              setPage(1)
+            }}
+          />
+          <Opsion
+            placeholder="Semua Customer"
+            options={[
+              { value: "all", label: "Semua Customer" },
+              ...toOptions(customerOptions.items),
+            ]}
+            value={customerFilter}
+            onValueChange={(value) => {
+              setCustomerFilter(value ?? "all")
               setPage(1)
             }}
           />

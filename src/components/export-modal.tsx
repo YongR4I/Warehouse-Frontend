@@ -167,6 +167,90 @@ export function ExportModal({
           responseType: "blob",
         })
 
+        // Validasi response Content-Type & status
+        const rawContentType =
+          response.headers["content-type"] ||
+          (response.data instanceof Blob ? response.data.type : "")
+        const contentType =
+          typeof rawContentType === "string"
+            ? rawContentType
+            : String(rawContentType ?? "")
+
+        if (contentType.includes("application/json")) {
+          const text = await response.data.text()
+          let parsed: { success?: boolean; message?: string; data?: unknown } | null = null
+          try {
+            parsed = JSON.parse(text)
+          } catch {
+            // ignore
+          }
+
+          // Cek apakah response merupakan error (status HTTP error atau flag success false)
+          const isError =
+            response.status < 200 ||
+            response.status >= 300 ||
+            (parsed !== null && parsed.success === false)
+
+          if (isError) {
+            throw new Error(parsed?.message || "Gagal mengunduh file.")
+          }
+
+          // Jika response 200 OK dan berisi payload JSON (fallback: konversi array data ke Excel)
+          if (parsed && (Array.isArray(parsed.data) || Array.isArray(parsed))) {
+            const rawItems: Record<string, unknown>[] = Array.isArray(parsed.data)
+              ? (parsed.data as Record<string, unknown>[])
+              : (parsed as unknown as Record<string, unknown>[])
+
+            if (rawItems.length === 0) {
+              toast.warning("Tidak ada data untuk diekspor.")
+              setIsLoading(false)
+              return
+            }
+
+            const flattenedData = rawItems.map((item, idx) => {
+              const flat: Record<string, unknown> = { No: idx + 1 }
+              for (const [key, value] of Object.entries(item)) {
+                if (value && typeof value === "object" && !Array.isArray(value)) {
+                  for (const [subKey, subVal] of Object.entries(
+                    value as Record<string, unknown>
+                  )) {
+                    if (subVal !== null && typeof subVal !== "object") {
+                      flat[`${key}_${subKey}`] = subVal
+                    }
+                  }
+                } else if (!Array.isArray(value)) {
+                  flat[key] = value ?? "-"
+                }
+              }
+              return flat
+            })
+
+            const ws = XLSX.utils.json_to_sheet(flattenedData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Data")
+            const filename = `${title.toLowerCase().replace(/\s+/g, "-")}.xlsx`
+            XLSX.writeFile(wb, filename)
+
+            toast.success("Berhasil mengunduh data")
+            if (onExport) {
+              onExport("xlsx", coverage, selectedOptions)
+            }
+            onClose()
+            setIsLoading(false)
+            return
+          }
+
+          // Jika JSON sukses tapi tidak memiliki array data
+          toast.success(parsed?.message || "Data berhasil diproses.")
+          if (onExport) {
+            onExport("xlsx", coverage, selectedOptions)
+          }
+          onClose()
+          setIsLoading(false)
+          return
+        }
+
+        // File biner spreadsheet Excel
         const blob = new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         })
@@ -175,10 +259,10 @@ export function ExportModal({
         let filename = `${title.toLowerCase().replace(/\s+/g, "-")}.xlsx`
         if (contentDisposition) {
           const filenameMatch = contentDisposition.match(
-            /filename="?([^";]+)"?/
+            /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i
           )
           if (filenameMatch && filenameMatch[1]) {
-            filename = filenameMatch[1]
+            filename = decodeURIComponent(filenameMatch[1].trim())
           }
         }
 
@@ -198,6 +282,21 @@ export function ExportModal({
         onClose()
       } catch (error) {
         console.error("Export error:", error)
+
+        // Coba ekstrak pesan error dari Blob response jika ada
+        if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+          try {
+            const text = await error.response.data.text()
+            const parsed = JSON.parse(text)
+            if (parsed.message) {
+              toast.error(parsed.message)
+              return
+            }
+          } catch {
+            // fallback
+          }
+        }
+
         const status = axios.isAxiosError(error)
           ? error.response?.status
           : undefined
@@ -207,6 +306,8 @@ export function ExportModal({
           )
         } else if (status === 401) {
           toast.error("Sesi Anda telah berakhir. Silakan login kembali.")
+        } else if (error instanceof Error && error.message) {
+          toast.error(error.message)
         } else {
           toast.error(
             "Gagal mengunduh file. Silakan hubungi admin atau coba sesaat lagi."

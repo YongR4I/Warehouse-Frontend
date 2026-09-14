@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { ExportModal } from "@/components/export-modal"
 import { useMemo, useState } from "react"
@@ -371,7 +371,13 @@ export default function RekapPage() {
     return buttons
   }
 
-  const exportUrl = `/laporan/absensi?format=excel&from=${fromDate}&to=${toDate}`
+  const exportUrl = useMemo(() => {
+    const params = new URLSearchParams({ format: "excel" })
+    if (fromDate) params.set("from", fromDate)
+    if (toDate) params.set("to", toDate)
+    if (statusFilter && statusFilter !== "all") params.set("status", statusFilter)
+    return `/laporan/absensi?${params.toString()}`
+  }, [fromDate, toDate, statusFilter])
 
   return (
     <>
